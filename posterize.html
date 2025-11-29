@@ -151,6 +151,57 @@
         .btn-download:hover { box-shadow: 0 2px 0 #b5c9d2; }
         .btn-download.show { display: inline-block; }
 
+        /* 实时刷新开关 */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #ccc;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            padding: 0;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #27ae60;
+        }
+
+        .toggle-switch.active::after {
+            left: 22px;
+        }
+
+        .toggle-switch:hover {
+            transform: none;
+        }
+
+        .toggle-label {
+            color: var(--brown);
+            font-weight: bold;
+        }
+
         /* 预设按钮 */
         .preset-btn {
             background: #f5f5f5;
@@ -454,6 +505,11 @@
                 <button class="channel-btn blue active" data-channel="b">B</button>
             </div>
 
+            <div class="toggle-group">
+                <span class="toggle-label active" id="liveLabel">⚡实时</span>
+                <button class="toggle-switch active" id="liveToggle"></button>
+            </div>
+
             <div style="display: flex; gap: 8px; margin-left: 10px;">
                 <button class="btn-process" id="processBtn" disabled>✨ 处理</button>
                 <button class="btn-reset" id="resetBtn">↺ 重置</button>
@@ -543,9 +599,12 @@
 
         const channelBtns = document.querySelectorAll('.channel-btn');
         const presetBtns = document.querySelectorAll('.preset-btn');
+        const liveToggle = document.getElementById('liveToggle');
+        const liveLabel = document.getElementById('liveLabel');
 
         let originalImage = null;
         let channels = { r: true, g: true, b: true };
+        let isLiveMode = true; // 默认开启实时刷新
 
         // 上传
         originalContainer.addEventListener('click', (e) => {
@@ -602,6 +661,9 @@
                     imageInfo.style.display = 'block';
                     imageInfo.textContent = `${img.width} × ${img.height} px`;
                     changeImageBtn.classList.add('show');
+                    
+                    // 上传后自动处理
+                    processImage();
                 };
                 img.src = e.target.result;
             };
@@ -615,45 +677,15 @@
             ctx.drawImage(originalImage, 0, 0);
         }
 
-        // 滑块
-        levelsSlider.addEventListener('input', () => levelsValue.textContent = levelsSlider.value);
-        contrastSlider.addEventListener('input', () => contrastValue.textContent = contrastSlider.value + '%');
-        brightnessSlider.addEventListener('input', () => brightnessValue.textContent = brightnessSlider.value);
-        saturationSlider.addEventListener('input', () => saturationValue.textContent = saturationSlider.value + '%');
+        // 实时处理函数
+        function liveProcess() {
+            if (isLiveMode && originalImage) {
+                processImage();
+            }
+        }
 
-        // 通道
-        channelBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                btn.classList.toggle('active');
-                channels[btn.dataset.channel] = btn.classList.contains('active');
-            });
-        });
-
-        // 预设
-        presetBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                levelsSlider.value = btn.dataset.levels;
-                levelsValue.textContent = btn.dataset.levels;
-            });
-        });
-
-        // 重置
-        resetBtn.addEventListener('click', () => {
-            levelsSlider.value = 4;
-            contrastSlider.value = 100;
-            brightnessSlider.value = 0;
-            saturationSlider.value = 100;
-            levelsValue.textContent = '4';
-            contrastValue.textContent = '100%';
-            brightnessValue.textContent = '0';
-            saturationValue.textContent = '100%';
-            channelBtns.forEach(btn => btn.classList.add('active'));
-            channels = { r: true, g: true, b: true };
-        });
-
-        // 处理
-        processBtn.addEventListener('click', () => {
-            if (!originalImage) return;
+        // 统一的处理函数
+        function processImage() {
             posterizeImage();
             posterizeGrayImage();
 
@@ -666,6 +698,71 @@
             grayResultContainer.classList.add('has-image');
 
             downloadBtn.classList.add('show');
+        }
+
+        // 滑块 - 添加实时刷新
+        levelsSlider.addEventListener('input', () => {
+            levelsValue.textContent = levelsSlider.value;
+            liveProcess();
+        });
+        contrastSlider.addEventListener('input', () => {
+            contrastValue.textContent = contrastSlider.value + '%';
+            liveProcess();
+        });
+        brightnessSlider.addEventListener('input', () => {
+            brightnessValue.textContent = brightnessSlider.value;
+            liveProcess();
+        });
+        saturationSlider.addEventListener('input', () => {
+            saturationValue.textContent = saturationSlider.value + '%';
+            liveProcess();
+        });
+
+        // 通道 - 添加实时刷新
+        channelBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('active');
+                channels[btn.dataset.channel] = btn.classList.contains('active');
+                liveProcess();
+            });
+        });
+
+        // 预设 - 添加实时刷新
+        presetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                levelsSlider.value = btn.dataset.levels;
+                levelsValue.textContent = btn.dataset.levels;
+                liveProcess();
+            });
+        });
+
+        // 重置 - 添加实时刷新
+        resetBtn.addEventListener('click', () => {
+            levelsSlider.value = 4;
+            contrastSlider.value = 100;
+            brightnessSlider.value = 0;
+            saturationSlider.value = 100;
+            levelsValue.textContent = '4';
+            contrastValue.textContent = '100%';
+            brightnessValue.textContent = '0';
+            saturationValue.textContent = '100%';
+            channelBtns.forEach(btn => btn.classList.add('active'));
+            channels = { r: true, g: true, b: true };
+            liveProcess();
+        });
+
+        // 实时开关
+        liveToggle.addEventListener('click', () => {
+            isLiveMode = !isLiveMode;
+            liveToggle.classList.toggle('active', isLiveMode);
+            liveLabel.classList.toggle('active', isLiveMode);
+            liveLabel.textContent = isLiveMode ? '⚡实时' : '🖱️手动';
+        });
+
+        // 处理按钮
+        processBtn.addEventListener('click', () => {
+            if (!originalImage) return;
+            processImage();
         });
 
         function posterizeImage() {
