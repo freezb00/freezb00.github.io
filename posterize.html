@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📷 色调分离工具</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Zcool+KuaiLe&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fdfbf7;
+            --card: #fffef9;
+            --pink: #e5989b;
+            --blue: #b5e2fa;
+            --green: #d6e2e9;
+            --yellow: #faedcd;
+            --brown: #d4a373;
+            --text: #6d6875;
+            --line: #e5e5e5;
+        }
+
+        body {
+            background-color: #f0efeb;
+            font-family: "ZCOOL KuaiLe", cursive, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text);
+        }
+
+        h1 {
+            font-size: 48px;
+            margin: 0 0 30px 0;
+            color: var(--brown);
+            text-shadow: 3px 3px 0 var(--yellow);
+            text-align: center;
+        }
+
+        /* 笔记本卡片 */
+        .note-card {
+            width: 100%;
+            max-width: 1000px;
+            background-color: var(--card);
+            position: relative;
+            background-image:
+                linear-gradient(var(--line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--line) 1px, transparent 1px);
+            background-size: 25px 25px;
+            box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            box-sizing: border-box;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        /* 胶带装饰 */
+        .tape {
+            position: absolute;
+            width: 100px;
+            height: 30px;
+            background-color: var(--pink);
+            opacity: 0.7;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-2deg);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* 手绘框框 */
+        .hand-box {
+            border: 3px solid var(--brown);
+            background: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            position: relative;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        /* 控制面板 */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+
+        input[type="range"] {
+            width: 70px;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #eee;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--brown);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .control-value {
+            font-weight: bold;
+            color: var(--brown);
+            min-width: 40px;
+            text-align: center;
+        }
+
+        /* 按钮基础样式 */
+        button {
+            background: var(--brown);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #a67c52;
+            transition: all 0.1s;
+        }
+
+        button:hover { transform: translateY(1px); box-shadow: 0 2px 0 #a67c52; }
+        button:active { transform: translateY(3px); box-shadow: none; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-process { background: var(--pink); box-shadow: 0 3px 0 #c47f82; }
+        .btn-process:hover { box-shadow: 0 2px 0 #c47f82; }
+        
+        .btn-reset { background: #ffb74d; box-shadow: 0 3px 0 #e6a043; }
+        .btn-reset:hover { box-shadow: 0 2px 0 #e6a043; }
+        
+        .btn-download { background: var(--green); color: #556; box-shadow: 0 3px 0 #b5c9d2; display: none; }
+        .btn-download:hover { box-shadow: 0 2px 0 #b5c9d2; }
+        .btn-download.show { display: inline-block; }
+
+        /* 预设按钮 */
+        .preset-btn {
+            background: #f5f5f5;
+            color: var(--text);
+            box-shadow: 0 2px 0 #ddd;
+            font-size: 13px;
+            padding: 5px 12px;
+        }
+        .preset-btn:hover { background: var(--yellow); box-shadow: 0 1px 0 #ddd; }
+
+        /* RGB 通道按钮 - 修复显示问题 */
+        .channel-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            font-weight: bold;
+            font-size: 14px;
+            border: 2px solid;
+        }
+
+        .channel-btn.red {
+            background: #fff;
+            color: #e74c3c;
+            border-color: #e74c3c;
+            box-shadow: 0 3px 0 #c0392b;
+        }
+        .channel-btn.red.active {
+            background: #e74c3c;
+            color: #fff;
+        }
+
+        .channel-btn.green {
+            background: #fff;
+            color: #27ae60;
+            border-color: #27ae60;
+            box-shadow: 0 3px 0 #1e8449;
+        }
+        .channel-btn.green.active {
+            background: #27ae60;
+            color: #fff;
+        }
+
+        .channel-btn.blue {
+            background: #fff;
+            color: #3498db;
+            border-color: #3498db;
+            box-shadow: 0 3px 0 #2980b9;
+        }
+        .channel-btn.blue.active {
+            background: #3498db;
+            color: #fff;
+        }
+
+        /* 图片展示区 */
+        .demo-stage {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-around;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .grid-wrapper {
+            text-align: center;
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .grid-wrapper h3 {
+            font-size: 20px;
+            margin: 0 0 10px 0;
+            color: var(--text);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: white;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .tag-input { background: var(--blue); color: #556; }
+        .tag-color { background: var(--pink); }
+        .tag-gray { background: #888; }
+
+        /* 图片容器 */
+        .image-box {
+            width: 100%;
+            min-height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 2px dashed #ddd;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-box:hover {
+            border-color: var(--brown);
+            background: #fffef9;
+        }
+
+        .image-box.has-image {
+            border-style: solid;
+            border-color: #ccc;
+            cursor: zoom-in;
+        }
+
+        .image-box canvas {
+            max-width: 100%;
+            max-height: 280px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .upload-hint {
+            text-align: center;
+            color: #aaa;
+            padding: 20px;
+        }
+
+        .upload-hint svg {
+            width: 45px;
+            height: 45px;
+            stroke: var(--brown);
+            opacity: 0.5;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint p { font-size: 16px; margin-bottom: 5px; }
+        .upload-hint small { font-size: 13px; color: #ccc; }
+
+        .placeholder-text {
+            color: #ccc;
+            font-size: 15px;
+        }
+
+        .image-info {
+            font-size: 13px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        /* 更换图片按钮 */
+        .change-image-btn {
+            display: none;
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--brown);
+            cursor: pointer;
+            text-decoration: underline;
+            background: none;
+            border: none;
+            font-family: inherit;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        .change-image-btn:hover {
+            color: var(--pink);
+            transform: none;
+        }
+
+        .change-image-btn.show {
+            display: inline-block;
+        }
+
+        /* 放大提示 */
+        .click-hint {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        .image-box.has-image:hover .click-hint { opacity: 1; }
+
+        /* 放大预览 */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+
+        .lightbox.active { display: flex; }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .lightbox-close:hover { opacity: 1; }
+
+        .lightbox-hint {
+            position: absolute;
+            bottom: 25px;
+            color: rgba(255,255,255,0.5);
+            font-size: 14px;
+        }
+
+        #uploadInput { display: none; }
+
+        /* 装饰贴纸 */
+        .sticker {
+            position: absolute;
+            font-size: 35px;
+            z-index: 10;
+            filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.1));
+        }
+
+        /* 响应式 */
+        @media (max-width: 800px) {
+            .demo-stage { flex-direction: column; }
+            .grid-wrapper { min-width: 100%; }
+            .controls { gap: 10px 15px; }
+            h1 { font-size: 36px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📷 色调分离工具</h1>
+
+    <div class="note-card">
+        <div class="tape"></div>
+        <div class="sticker" style="top: 30px; right: 30px; transform: rotate(10deg);">🎨</div>
+
+        <!-- 控制面板 -->
+        <div class="hand-box controls">
+            <div style="display: flex; gap: 6px;">
+                <button class="preset-btn" data-levels="2">极简</button>
+                <button class="preset-btn" data-levels="4">海报</button>
+                <button class="preset-btn" data-levels="8">细腻</button>
+            </div>
+
+            <div class="input-group">
+                <label>色阶:</label>
+                <input type="range" id="levelsSlider" min="2" max="16" value="4">
+                <span class="control-value" id="levelsValue">4</span>
+            </div>
+
+            <div class="input-group">
+                <label>对比:</label>
+                <input type="range" id="contrastSlider" min="50" max="200" value="100">
+                <span class="control-value" id="contrastValue">100%</span>
+            </div>
+
+            <div class="input-group">
+                <label>亮度:</label>
+                <input type="range" id="brightnessSlider" min="-100" max="100" value="0">
+                <span class="control-value" id="brightnessValue">0</span>
+            </div>
+
+            <div class="input-group">
+                <label>饱和:</label>
+                <input type="range" id="saturationSlider" min="0" max="200" value="100">
+                <span class="control-value" id="saturationValue">100%</span>
+            </div>
+
+            <div style="display: flex; gap: 5px;">
+                <button class="channel-btn red active" data-channel="r">R</button>
+                <button class="channel-btn green active" data-channel="g">G</button>
+                <button class="channel-btn blue active" data-channel="b">B</button>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-left: 10px;">
+                <button class="btn-process" id="processBtn" disabled>✨ 处理</button>
+                <button class="btn-reset" id="resetBtn">↺ 重置</button>
+                <button class="btn-download" id="downloadBtn">💾 下载</button>
+            </div>
+        </div>
+
+        <!-- 图片展示区 -->
+        <div class="demo-stage">
+            <!-- 原图 -->
+            <div class="grid-wrapper">
+                <h3>📦 原始图像 <span class="tag tag-input">Input</span></h3>
+                <div class="image-box" id="originalContainer">
+                    <div class="upload-hint" id="uploadHint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <p>点击 / 拖放 / 粘贴</p>
+                        <small>Ctrl+V 粘贴截图</small>
+                    </div>
+                    <canvas id="originalCanvas" style="display: none;"></canvas>
+                    <span class="click-hint">🔍 点击放大</span>
+                </div>
+                <div class="image-info" id="imageInfo" style="display: none;"></div>
+                <button class="change-image-btn" id="changeImageBtn">🔄 更换图片</button>
+            </div>
+
+            <!-- 彩色结果 -->
+            <div class="grid-wrapper">
+                <h3>🌈 彩色分离 <span class="tag tag-color">Color</span></h3>
+                <div class="image-box" id="colorResultContainer">
+                    <span class="placeholder-text">处理后显示</span>
+                    <canvas id="resultCanvas" style="display: none;"></canvas>
+                    <span class="click-hint">🔍 点击放大</span>
+                </div>
+            </div>
+
+            <!-- 灰度结果 -->
+            <div class="grid-wrapper">
+                <h3>⬛ 灰度概括 <span class="tag tag-gray">Gray</span></h3>
+                <div class="image-box" id="grayResultContainer">
+                    <span class="placeholder-text">处理后显示</span>
+                    <canvas id="grayCanvas" style="display: none;"></canvas>
+                    <span class="click-hint">🔍 点击放大</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="uploadInput" accept="image/*">
+
+    <!-- 放大预览 -->
+    <div class="lightbox" id="lightbox">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightboxImg" src="" alt="预览">
+        <span class="lightbox-hint">点击任意处关闭 / 按 ESC</span>
+    </div>
+
+    <script>
+        // DOM
+        const uploadInput = document.getElementById('uploadInput');
+        const uploadHint = document.getElementById('uploadHint');
+        const originalCanvas = document.getElementById('originalCanvas');
+        const resultCanvas = document.getElementById('resultCanvas');
+        const grayCanvas = document.getElementById('grayCanvas');
+        const originalContainer = document.getElementById('originalContainer');
+        const colorResultContainer = document.getElementById('colorResultContainer');
+        const grayResultContainer = document.getElementById('grayResultContainer');
+        const processBtn = document.getElementById('processBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const imageInfo = document.getElementById('imageInfo');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+        const changeImageBtn = document.getElementById('changeImageBtn');
+
+        const levelsSlider = document.getElementById('levelsSlider');
+        const contrastSlider = document.getElementById('contrastSlider');
+        const brightnessSlider = document.getElementById('brightnessSlider');
+        const saturationSlider = document.getElementById('saturationSlider');
+        const levelsValue = document.getElementById('levelsValue');
+        const contrastValue = document.getElementById('contrastValue');
+        const brightnessValue = document.getElementById('brightnessValue');
+        const saturationValue = document.getElementById('saturationValue');
+
+        const channelBtns = document.querySelectorAll('.channel-btn');
+        const presetBtns = document.querySelectorAll('.preset-btn');
+
+        let originalImage = null;
+        let channels = { r: true, g: true, b: true };
+
+        // 上传
+        originalContainer.addEventListener('click', (e) => {
+            if (!originalContainer.classList.contains('has-image')) {
+                uploadInput.click();
+            }
+        });
+
+        // 拖放
+        originalContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            originalContainer.style.borderColor = 'var(--brown)';
+        });
+        originalContainer.addEventListener('dragleave', () => {
+            originalContainer.style.borderColor = '';
+        });
+        originalContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            originalContainer.style.borderColor = '';
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) handleImageUpload(file);
+        });
+
+        // 粘贴
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    if (file) handleImageUpload(file);
+                    break;
+                }
+            }
+        });
+
+        uploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleImageUpload(file);
+        });
+
+        function handleImageUpload(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    originalImage = img;
+                    drawOriginalImage();
+                    processBtn.disabled = false;
+                    uploadHint.style.display = 'none';
+                    originalCanvas.style.display = 'block';
+                    originalContainer.classList.add('has-image');
+                    imageInfo.style.display = 'block';
+                    imageInfo.textContent = `${img.width} × ${img.height} px`;
+                    changeImageBtn.classList.add('show');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function drawOriginalImage() {
+            const ctx = originalCanvas.getContext('2d');
+            originalCanvas.width = originalImage.width;
+            originalCanvas.height = originalImage.height;
+            ctx.drawImage(originalImage, 0, 0);
+        }
+
+        // 滑块
+        levelsSlider.addEventListener('input', () => levelsValue.textContent = levelsSlider.value);
+        contrastSlider.addEventListener('input', () => contrastValue.textContent = contrastSlider.value + '%');
+        brightnessSlider.addEventListener('input', () => brightnessValue.textContent = brightnessSlider.value);
+        saturationSlider.addEventListener('input', () => saturationValue.textContent = saturationSlider.value + '%');
+
+        // 通道
+        channelBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('active');
+                channels[btn.dataset.channel] = btn.classList.contains('active');
+            });
+        });
+
+        // 预设
+        presetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                levelsSlider.value = btn.dataset.levels;
+                levelsValue.textContent = btn.dataset.levels;
+            });
+        });
+
+        // 重置
+        resetBtn.addEventListener('click', () => {
+            levelsSlider.value = 4;
+            contrastSlider.value = 100;
+            brightnessSlider.value = 0;
+            saturationSlider.value = 100;
+            levelsValue.textContent = '4';
+            contrastValue.textContent = '100%';
+            brightnessValue.textContent = '0';
+            saturationValue.textContent = '100%';
+            channelBtns.forEach(btn => btn.classList.add('active'));
+            channels = { r: true, g: true, b: true };
+        });
+
+        // 处理
+        processBtn.addEventListener('click', () => {
+            if (!originalImage) return;
+            posterizeImage();
+            posterizeGrayImage();
+
+            colorResultContainer.querySelector('.placeholder-text')?.remove();
+            resultCanvas.style.display = 'block';
+            colorResultContainer.classList.add('has-image');
+
+            grayResultContainer.querySelector('.placeholder-text')?.remove();
+            grayCanvas.style.display = 'block';
+            grayResultContainer.classList.add('has-image');
+
+            downloadBtn.classList.add('show');
+        });
+
+        function posterizeImage() {
+            const levels = parseInt(levelsSlider.value);
+            const contrast = parseFloat(contrastSlider.value) / 100;
+            const brightness = parseInt(brightnessSlider.value);
+            const saturation = parseFloat(saturationSlider.value) / 100;
+
+            const ctx = resultCanvas.getContext('2d');
+            resultCanvas.width = originalImage.width;
+            resultCanvas.height = originalImage.height;
+            ctx.drawImage(originalImage, 0, 0);
+
+            const imageData = ctx.getImageData(0, 0, resultCanvas.width, resultCanvas.height);
+            const data = imageData.data;
+            const step = 255 / (levels - 1);
+
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i], g = data[i + 1], b = data[i + 2];
+
+                r += brightness; g += brightness; b += brightness;
+                r = ((r - 128) * contrast) + 128;
+                g = ((g - 128) * contrast) + 128;
+                b = ((b - 128) * contrast) + 128;
+
+                const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                r = gray + (r - gray) * saturation;
+                g = gray + (g - gray) * saturation;
+                b = gray + (b - gray) * saturation;
+
+                if (channels.r) r = Math.round(r / step) * step;
+                if (channels.g) g = Math.round(g / step) * step;
+                if (channels.b) b = Math.round(b / step) * step;
+
+                data[i] = Math.max(0, Math.min(255, r));
+                data[i + 1] = Math.max(0, Math.min(255, g));
+                data[i + 2] = Math.max(0, Math.min(255, b));
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        function posterizeGrayImage() {
+            const levels = parseInt(levelsSlider.value);
+            const contrast = parseFloat(contrastSlider.value) / 100;
+            const brightness = parseInt(brightnessSlider.value);
+
+            const ctx = grayCanvas.getContext('2d');
+            grayCanvas.width = originalImage.width;
+            grayCanvas.height = originalImage.height;
+            ctx.drawImage(originalImage, 0, 0);
+
+            const imageData = ctx.getImageData(0, 0, grayCanvas.width, grayCanvas.height);
+            const data = imageData.data;
+            const step = 255 / (levels - 1);
+
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i], g = data[i + 1], b = data[i + 2];
+                let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                gray += brightness;
+                gray = ((gray - 128) * contrast) + 128;
+                gray = Math.round(gray / step) * step;
+                gray = Math.max(0, Math.min(255, gray));
+                data[i] = gray; data[i + 1] = gray; data[i + 2] = gray;
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        // 点击放大
+        function openLightbox(canvas) {
+            lightboxImg.src = canvas.toDataURL('image/png');
+            lightbox.classList.add('active');
+        }
+
+        originalContainer.addEventListener('click', (e) => {
+            if (originalContainer.classList.contains('has-image') && !uploadHint.contains(e.target)) {
+                openLightbox(originalCanvas);
+            }
+        });
+
+        colorResultContainer.addEventListener('click', () => {
+            if (colorResultContainer.classList.contains('has-image')) {
+                openLightbox(resultCanvas);
+            }
+        });
+
+        grayResultContainer.addEventListener('click', () => {
+            if (grayResultContainer.classList.contains('has-image')) {
+                openLightbox(grayCanvas);
+            }
+        });
+
+        lightbox.addEventListener('click', () => lightbox.classList.remove('active'));
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') lightbox.classList.remove('active');
+        });
+
+        // 下载
+        downloadBtn.addEventListener('click', () => {
+            const mergedCanvas = document.createElement('canvas');
+            mergedCanvas.width = resultCanvas.width * 2 + 20;
+            mergedCanvas.height = resultCanvas.height;
+            const ctx = mergedCanvas.getContext('2d');
+            ctx.fillStyle = '#f0efeb';
+            ctx.fillRect(0, 0, mergedCanvas.width, mergedCanvas.height);
+            ctx.drawImage(resultCanvas, 0, 0);
+            ctx.drawImage(grayCanvas, resultCanvas.width + 20, 0);
+
+            const link = document.createElement('a');
+            link.download = 'posterized.png';
+            link.href = mergedCanvas.toDataURL('image/png');
+            link.click();
+        });
+
+        // 更换图片
+        changeImageBtn.addEventListener('click', () => {
+            uploadInput.click();
+        });
+    </script>
+</body>
+</html>
