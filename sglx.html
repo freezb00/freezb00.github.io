@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>治愈系色感练习 Pro v18 - 网格精简版</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zeyada&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #fdfbf7;
+            --card-bg: #ffffff;
+            --accent-blue: #a3c4f3;
+            --accent-pink: #f1c0e8;
+            --accent-green: #cfbaf0;
+            --accent-yellow: #fbf8cc;
+            --text-color: #5d576b;
+            --border-color: #5d576b;
+            --wobbly-border: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            --hand-font: 'Zeyada', 'Ma Shan Zheng', cursive;
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#e5e5f7 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: var(--hand-font);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 0px var(--accent-pink);
+            transform: rotate(-2deg);
+        }
+
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: var(--wobbly-border);
+            padding: 25px;
+            box-shadow: 5px 5px 0px rgba(93, 87, 107, 0.1);
+            position: relative;
+        }
+
+        /* === 画布区 === */
+        .canvas-area {
+            flex: 2;
+            min-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .top-toolbar {
+            width: 100%;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pattern-select {
+            flex: 1;
+            padding: 8px 15px;
+            font-family: var(--hand-font);
+            font-size: 1.2rem;
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            background: #fff;
+            cursor: pointer;
+            outline: none;
+            min-width: 200px;
+        }
+
+        .img-pick-btn {
+            padding: 8px 15px;
+            background: var(--accent-yellow);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: var(--hand-font);
+            font-size: 1.1rem;
+            transition: 0.2s;
+        }
+        .img-pick-btn:hover { transform: scale(1.05); }
+
+        optgroup { font-family: sans-serif; font-style: normal; font-weight: bold; }
+
+        .ambient-wrapper {
+            width: 100%;
+            padding: 30px;
+            background-color: #eeeeee;
+            border: 2px dashed var(--border-color);
+            border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        .ambient-label {
+            position: absolute; top: -15px; left: 20px;
+            background: var(--accent-yellow); padding: 2px 10px;
+            border: 1px solid var(--border-color);
+            transform: rotate(-3deg); font-size: 1.1rem; z-index: 10;
+        }
+
+        .svg-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 45%;
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+            max-width: 250px;
+            filter: drop-shadow(3px 3px 2px rgba(0,0,0,0.1));
+            transition: all 0.3s;
+            overflow: visible;
+        }
+
+        .tangram-shape path {
+            stroke: var(--border-color); stroke-width: 2;
+            stroke-linejoin: round; stroke-linecap: round;
+            transition: d 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.2s, stroke 0.2s, stroke-width 0.2s; 
+            cursor: pointer;
+        }
+        #target-svg path { cursor: default; }
+
+        .interactive-svg path:hover { opacity: 0.9; transform: scale(1.02); transform-box: fill-box; transform-origin: center; }
+        
+        .interactive-svg path.active-part {
+            stroke: #ff6b6b; stroke-width: 5; stroke-dasharray: 6, 4;
+            animation: dash 1.5s linear infinite; z-index: 10;
+        }
+        
+        /* 高亮状态 (静态) */
+        .path-highlighted {
+            stroke: #ff4757 !important;
+            stroke-width: 6px !important;
+            opacity: 1 !important;
+            z-index: 100;
+            filter: drop-shadow(0 0 5px rgba(255, 71, 87, 0.8));
+        }
+        
+        @keyframes dash { to { stroke-dashoffset: -20; } }
+
+        .box-label { margin-top: 10px; font-size: 1.3rem; font-weight: bold; }
+
+        /* === 右侧控制区 === */
+        .controls-area { flex: 0.8; min-width: 300px; display: flex; flex-direction: column; gap: 15px; }
+
+        .sv-picker-container {
+            width: 100%; height: 200px; position: relative; border: 2px solid var(--border-color);
+            border-radius: 10px; margin-bottom: 10px; cursor: crosshair; overflow: hidden;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.1); background-color: red;
+        }
+        .sv-gradient-white { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to right, #fff, rgba(255,255,255,0)); }
+        .sv-gradient-black { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, transparent, #000); }
+        .sv-cursor { width: 16px; height: 16px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 2px rgba(0,0,0,0.5); position: absolute; transform: translate(-50%, -50%); pointer-events: none; top: 0; left: 0; }
+
+        .slider-group { margin-bottom: 10px; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 1.2rem; margin-bottom: 5px; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 10px 0; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 12px; cursor: pointer; background: #eee; border: 2px solid var(--border-color); border-radius: 10px; box-shadow: 2px 2px 0px rgba(0,0,0,0.1); }
+        input[type=range]::-webkit-slider-thumb { height: 24px; width: 24px; border-radius: 50%; background: var(--card-bg); border: 2px solid var(--border-color); cursor: pointer; -webkit-appearance: none; margin-top: -8px; box-shadow: 2px 2px 0px rgba(0,0,0,0.2); transition: transform 0.1s; }
+        #hue-slider::-webkit-slider-runnable-track { background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000); }
+        #sat-slider::-webkit-slider-runnable-track { background: linear-gradient(to right, #ddd, #888); } 
+        #val-slider::-webkit-slider-runnable-track { background: linear-gradient(to right, #000, #fff); }
+
+        .btn-group { display: flex; gap: 15px; margin-top: 10px; }
+        .btn { flex: 1; padding: 12px; font-family: var(--hand-font); font-size: 1.4rem; background: var(--accent-blue); border: 2px solid var(--border-color); border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; cursor: pointer; transition: 0.2s; box-shadow: 3px 3px 0px var(--border-color); }
+        .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--border-color); }
+        .btn-reset { background: var(--accent-pink); }
+
+        .mode-switch { display: flex; justify-content: space-between; background: #fff; border: 2px solid var(--border-color); border-radius: 50px; padding: 5px; margin-bottom: 10px; cursor: pointer; }
+        .mode-option { flex: 1; text-align: center; padding: 8px; border-radius: 40px; font-size: 1.2rem; transition: 0.3s; }
+        .mode-option.active { background: var(--accent-blue); color: white; border: 2px solid var(--border-color); transform: scale(1.05); }
+        .mode-option.active.ambient-mode { background: var(--accent-green); }
+
+        /* === 结果区域样式 (网格优化版) === */
+        .result-section { 
+            width: 100%; margin-top: 20px; padding-top: 15px; 
+            border-top: 2px dashed var(--border-color); 
+            display: none; animation: fadeIn 0.5s ease; 
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .result-title { font-size: 1.5rem; margin: 0 0 15px 0; color: var(--accent-blue); text-shadow: 1px 1px 0 var(--border-color); transform: rotate(-1deg); }
+        .score-container { margin-top: 15px; text-align: right; font-size: 1.8rem; color: var(--text-color); transform: rotate(-2deg); }
+        
+        /* 核心：Grid 布局容器 */
+        .part-score-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); /* 自动适应列数 */
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        /* 卡片样式 */
+        .part-score-item { 
+            display: flex; flex-direction: column; /* 内部垂直排列 */
+            padding: 10px; 
+            border: 2px solid #eee; border-radius: 12px;
+            background: #fff;
+            cursor: help; 
+            transition: all 0.2s;
+        }
+        .part-score-item:hover {
+            border-color: var(--accent-blue);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        /* 卡片头部 */
+        .score-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #eee;
+        }
+        .score-name { font-size: 1.2rem; font-weight: bold; color: var(--text-color); }
+        
+        .score-right { display: flex; align-items: center; gap: 5px; }
+        .score-num { font-size: 1.3rem; font-weight: bold; color: #ff6b6b; font-family: var(--hand-font); }
+        .score-badge { font-size: 1.1rem; }
+
+        /* 卡片内容区 (3列数据) */
+        .score-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr 0.7fr; 
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #666;
+            font-family: sans-serif;
+        }
+        
+        .detail-col { display: flex; flex-direction: column; }
+        .detail-label { font-size: 0.75rem; color: #999; margin-bottom: 3px; display: flex; align-items: center; gap: 3px; }
+        
+        /* 紧凑的色值条 */
+        .val-bar {
+            display: block; width: 100%; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-size: 0.8rem;
+            font-weight: bold; 
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .val-diff-bar { background: #dfe6e9; color: #636e72; }
+
+        /* === 弹窗样式 === */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(93, 87, 107, 0.6); display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px); opacity: 0; transition: opacity 0.3s; }
+        .modal-overlay.show { opacity: 1; }
+        .picker-modal { background: #fff; padding: 25px; width: 90%; max-width: 600px; border-radius: 5px; border: 3px solid var(--border-color); position: relative; display: flex; flex-direction: column; align-items: center; background-image: linear-gradient(#f0f0f0 1px, transparent 1px); background-size: 100% 30px; box-shadow: 10px 10px 0 rgba(0,0,0,0.2); transform: rotate(-1deg); max-height: 90vh; overflow-y: auto; }
+        .close-modal { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; color: var(--accent-pink); font-weight: bold; }
+        .upload-area { width: 100%; min-height: 200px; border: 3px dashed #bbb; border-radius: 10px; margin: 15px 0; display: flex; justify-content: center; align-items: center; color: #888; flex-direction: column; background: rgba(255,255,255,0.9); position: relative; transition: all 0.3s; }
+        canvas#image-canvas { max-width: 100%; max-height: 300px; display: none; cursor: copy; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+        .picker-toolbar { display: flex; gap: 10px; width: 100%; margin-bottom: 10px; justify-content: flex-end; display: none; }
+        .tool-btn { background: #fff; border: 1px solid var(--border-color); padding: 5px 12px; border-radius: 15px; cursor: pointer; font-family: var(--hand-font); transition: 0.2s; font-size: 0.9rem; }
+        .tool-btn:hover { background: #eee; }
+        .tool-btn-danger { color: #d9534f; border-color: #d9534f; }
+        .tool-btn-danger:hover { background: #fde8e8; }
+        .palette-container { width: 100%; margin-top: 15px; display: none; }
+        .palette-title { font-size: 1.1rem; margin-bottom: 5px; color: var(--border-color); text-align: left; width: 100%; }
+        .palette-swatches { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; min-height: 45px; }
+        .palette-swatch { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border-color); cursor: pointer; transition: transform 0.2s; position: relative; }
+        .palette-swatch:hover { transform: scale(1.1); z-index: 2; }
+        .swatch-delete-btn { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; background: #ff6b6b; color: white; border-radius: 50%; font-size: 14px; line-height: 16px; text-align: center; opacity: 0; transition: opacity 0.2s; box-shadow: 1px 1px 2px rgba(0,0,0,0.3); border: 1px solid #fff; }
+        .palette-swatch:hover .swatch-delete-btn { opacity: 1; }
+        .confirm-btn { margin-top: 20px; width: 100%; padding: 10px; background: var(--accent-green); border: 2px solid var(--border-color); border-radius: 10px; font-family: var(--hand-font); font-size: 1.2rem; cursor: pointer; display: none; }
+        .confirm-btn:hover { filter: brightness(0.95); }
+
+    </style>
+</head>
+<body>
+
+    <h1>🎨 七巧板色彩练习</h1>
+    <div style="font-size: 1.2rem; margin-bottom: 20px; opacity: 0.8;">详细对比 · 视觉反馈 · 提升色感</div>
+
+    <div class="main-container">
+        <!-- 左侧：双画布区 -->
+        <div class="card canvas-area">
+            <!-- 顶部工具栏 -->
+            <div class="top-toolbar">
+                <div style="flex:1; display:flex; align-items:center; gap:5px;">
+                    <span>📂</span>
+                    <select id="pattern-select" class="pattern-select" onchange="changePattern(this.value)">
+                        <!-- JS 自动填充 -->
+                    </select>
+                </div>
+                <button class="img-pick-btn" onclick="openPickerModal()">📷 从图片取色</button>
+            </div>
+
+            <div class="ambient-wrapper" id="ambient-bg">
+                <div class="ambient-label">🌍 环境色</div>
+                <div class="svg-container">
+                    <svg viewBox="0 0 200 200" id="target-svg" class="tangram-shape">
+                        <g transform="translate(10, 10)">
+                            <path id="t-p1" /> <path id="t-p2" /> <path id="t-p3" /> <path id="t-p4" />
+                            <path id="t-p5" /> <path id="t-p6" /> <path id="t-p7" />
+                        </g>
+                    </svg>
+                    <!-- <div class="box-label">🎯 目标配色</div> -->
+                </div>
+                <div class="svg-container">
+                    <svg viewBox="0 0 200 200" id="user-svg" class="tangram-shape interactive-svg">
+                        <g transform="translate(10, 10)">
+                            <path id="u-p1" onclick="selectPart('p1')" />
+                            <path id="u-p2" onclick="selectPart('p2')" />
+                            <path id="u-p3" onclick="selectPart('p3')" />
+                            <path id="u-p4" onclick="selectPart('p4')" />
+                            <path id="u-p5" onclick="selectPart('p5')" />
+                            <path id="u-p6" onclick="selectPart('p6')" />
+                            <path id="u-p7" onclick="selectPart('p7')" />
+                        </g>
+                    </svg>
+                    <!-- <div class="box-label">🖌️ 你的画布</div> -->
+                </div>
+            </div>
+
+            <p style="margin-top: 15px; font-size: 1.1rem; color: #888;">
+                <span id="status-indicator">👆 点击右侧七巧板的任意部分开始</span>
+            </p>
+
+            <!-- 结果区 -->
+            <div class="result-section" id="result-panel">
+                <h3 class="result-title">📊 详细成绩单 (悬停高亮部位)</h3>
+                <div class="part-score-list" id="score-list"></div>
+                <div class="score-container">
+                    总分：<span id="final-score" style="font-weight: bold; color: var(--accent-blue);"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：控制区 -->
+        <div class="card controls-area">
+            <div class="mode-switch">
+                <div class="mode-option active" id="mode-user" onclick="setMode('user')">🖌️ 调整板块</div>
+                <div class="mode-option" id="mode-ambient" onclick="setMode('ambient')">🌍 调整环境</div>
+            </div>
+            <div class="sv-picker-container" id="sv-picker">
+                <div class="sv-gradient-white"></div>
+                <div class="sv-gradient-black"></div>
+                <div class="sv-cursor" id="sv-cursor"></div>
+            </div>
+            <div class="slider-group">
+                <div class="slider-label"><span>色相 (H)</span><span id="val-h">0°</span></div>
+                <input type="range" min="0" max="360" value="0" id="hue-slider">
+            </div>
+            <div class="slider-group">
+                <div class="slider-label"><span>饱和度 (S)</span><span id="val-s">50%</span></div>
+                <input type="range" min="0" max="100" value="50" id="sat-slider">
+            </div>
+            <div class="slider-group">
+                <div class="slider-label"><span>明度 (V)</span><span id="val-v">50%</span></div>
+                <input type="range" min="0" max="100" value="50" id="val-slider">
+            </div>
+            <div class="btn-group">
+                <button class="btn" onclick="submitResult()">✨ 提交</button>
+                <button class="btn btn-reset" onclick="resetGame()">随机颜色</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗部分 -->
+    <div class="modal-overlay" id="picker-modal">
+        <div class="picker-modal">
+            <span class="close-modal" onclick="closePickerModal()">×</span>
+            <h2>📷 从图片生成目标配色</h2>
+            <div class="picker-toolbar" id="picker-toolbar">
+                <button class="tool-btn" onclick="document.getElementById('file-input').click()">📂 替换图片</button>
+                <button class="tool-btn tool-btn-danger" onclick="clearImage()">🗑️ 删除</button>
+            </div>
+            <div class="upload-area" id="drop-area">
+                <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+                <div id="upload-placeholder" style="text-align: center;">
+                    <p style="font-size: 2rem; margin: 0;">📂</p>
+                    <button class="tool-btn" onclick="document.getElementById('file-input').click()">选择文件...</button>
+                    <p style="font-size: 0.8rem; margin-top: 5px; color: #999;">或直接粘贴图片 (Ctrl+V)</p>
+                </div>
+                <canvas id="image-canvas"></canvas>
+            </div>
+            <div class="palette-container" id="palette-section">
+                <div class="palette-title">🎨 提取的色盘 (自动应用到目标):</div>
+                <div class="palette-swatches" id="palette-swatches"></div>
+                <button class="confirm-btn" id="confirm-btn" onclick="confirmPalette()">✅ 确定使用此配色</button>
+            </div>
+            <p id="picker-hint" style="display:none; color: var(--accent-blue); font-weight: bold; margin-top: 10px; font-size:0.9rem;">👆 点击图片吸取新颜色，悬停色块可删除</p>
+        </div>
+    </div>
+
+    <script>
+        const patterns = {
+            'fox': { name: '奔跑的小狐狸', category: '动物', paths: { p1: "M 120,40 L 140,60 L 120,80 L 100,60 Z", p2: "M 100,60 L 100,20 L 120,40 Z", p3: "M 120,40 L 140,20 L 140,60 Z", p4: "M 100,60 L 100,140 L 20,60 Z", p5: "M 100,140 L 180,140 L 180,60 Z", p6: "M 20,60 L 60,20 L 60,60 Z", p7: "M 100,140 L 120,160 L 160,160 L 140,140 Z" }, names: { p1:'头部', p2:'左耳', p3:'右耳', p4:'身体', p5:'前腿', p6:'尾巴', p7:'后脚' } },
+            'swan': { name: '优雅的天鹅', category: '动物', paths: { p1: "M 140,40 L 160,60 L 140,80 L 120,60 Z", p2: "M 40,140 L 40,100 L 80,140 Z", p3: "M 120,60 L 120,20 L 140,40 Z", p4: "M 40,140 L 120,140 L 120,60 Z", p5: "M 20,140 L 100,140 L 100,220 Z", p6: "M 120,140 L 160,100 L 160,140 Z", p7: "M 100,140 L 120,140 L 140,100 L 120,100 Z" }, names: { p1:'头部', p2:'尾羽', p3:'头冠', p4:'身体', p5:'翅膀', p6:'背部', p7:'脖子' } },
+            'house': { name: '温馨的小屋', category: '建筑', paths: { p1: "M 130,50 L 150,70 L 130,90 L 110,70 Z", p2: "M 50,110 L 50,70 L 90,110 Z", p3: "M 150,110 L 150,70 L 110,110 Z", p4: "M 30,110 L 110,30 L 110,110 Z", p5: "M 110,30 L 190,110 L 110,110 Z", p6: "M 130,150 L 170,110 L 170,150 Z", p7: "M 30,110 L 70,110 L 50,150 L 10,150 Z" }, names: { p1:'烟囱', p2:'左窗', p3:'右窗', p4:'左顶', p5:'右顶', p6:'侧屋', p7:'地基' } },
+            'cat': { name: '坐着的小猫', category: '动物', paths: { p1: "M 100,40 L 120,60 L 100,80 L 80,60 Z", p2: "M 80,60 L 80,20 L 100,40 Z", p3: "M 100,40 L 120,20 L 120,60 Z", p4: "M 80,60 L 80,140 L 160,140 Z", p5: "M 80,140 L 80,60 L 0,140 Z", p6: "M 160,140 L 200,100 L 200,140 Z", p7: "M 160,140 L 180,160 L 180,200 L 160,180 Z" }, names: { p1:'头部', p2:'左耳', p3:'右耳', p4:'身体右', p5:'身体左', p6:'尾巴基', p7:'尾巴尖' } },
+            'rabbit': { name: '警觉的兔子', category: '动物', paths: { p1: "M 140,60 L 160,80 L 140,100 L 120,80 Z", p2: "M 120,80 L 80,80 L 120,40 Z", p3: "M 120,40 L 160,40 L 120,0 Z", p4: "M 100,100 L 100,180 L 20,180 Z", p5: "M 100,180 L 180,180 L 100,100 Z", p6: "M 20,140 L 20,180 L 60,180 Z", p7: "M 180,180 L 200,160 L 180,140 L 160,160 Z" }, names: { p1:'头部', p2:'左耳', p3:'右耳', p4:'前身', p5:'后身', p6:'前爪', p7:'后腿' } },
+            'boat': { name: '帆船', category: '物体', paths: { p1: "M 90,60 L 110,80 L 90,100 L 70,80 Z", p2: "M 110,80 L 150,80 L 110,40 Z", p3: "M 110,40 L 110,80 L 70,80 Z", p4: "M 50,100 L 130,100 L 50,180 Z", p5: "M 130,100 L 210,100 L 130,20 Z", p6: "M 10,100 L 50,60 L 50,100 Z", p7: "M 130,100 L 150,120 L 150,80 L 130,60 Z" }, names: { p1:'望台', p2:'前帆', p3:'后帆', p4:'船身左', p5:'主帆', p6:'船头', p7:'旗帜' } },
+            'rocket': { name: '冲天火箭', category: '物体', paths: { p1: "M 80,40 L 120,40 L 120,80 L 80,80 Z", p2: "M 80,40 L 100,20 L 120,40 Z", p3: "M 80,80 L 60,100 L 80,120 Z", p4: "M 80,120 L 80,200 L 160,120 Z", p5: "M 80,200 L 0,120 L 80,120 Z", p6: "M 120,80 L 140,100 L 120,120 Z", p7: "M 80,200 L 100,220 L 60,220 L 40,200 Z" }, names: { p1:'机舱', p2:'尖顶', p3:'左翼', p4:'右推进', p5:'左推进', p6:'右翼', p7:'尾焰' } },
+            'runner': { name: '奔跑的人', category: '人物', paths: { p1: "M 100,20 L 120,40 L 100,60 L 80,40 Z", p2: "M 80,40 L 40,40 L 80,80 Z", p3: "M 140,100 L 180,100 L 140,60 Z", p4: "M 80,80 L 160,80 L 80,160 Z", p5: "M 80,80 L 0,80 L 80,160 Z", p6: "M 80,160 L 40,200 L 80,200 Z", p7: "M 140,100 L 160,120 L 160,80 L 140,60 Z" }, names: { p1:'头', p2:'手', p3:'脚', p4:'身躯', p5:'腿', p6:'脚掌', p7:'小腿' } },
+            'candle': { name: '燃烧的蜡烛', category: '物体', paths: { p1: "M 80,120 L 120,120 L 120,160 L 80,160 Z", p2: "M 80,160 L 120,160 L 80,200 Z", p3: "M 120,160 L 160,200 L 120,200 Z", p4: "M 80,40 L 160,120 L 80,120 Z", p5: "M 80,120 L 0,120 L 80,40 Z", p6: "M 80,20 L 100,0 L 120,20 Z", p7: "M 80,20 L 100,40 L 120,20 L 100,0 Z" }, names: { p1:'烛身中', p2:'底座左', p3:'底座右', p4:'烛身上', p5:'烛身下', p6:'焰心', p7:'外焰' } },
+            'horse': { name: '骏马', category: '动物', paths: { p1: "M 160,40 L 180,60 L 160,80 L 140,60 Z", p2: "M 140,60 L 140,20 L 160,40 Z", p3: "M 20,100 L 60,100 L 20,140 Z", p4: "M 60,100 L 140,100 L 60,20 Z", p5: "M 60,100 L 140,100 L 140,180 Z", p6: "M 140,180 L 180,140 L 180,180 Z", p7: "M 140,60 L 160,80 L 140,100 L 120,80 Z" }, names: { p1:'头', p2:'耳', p3:'尾', p4:'颈', p5:'身', p6:'后腿', p7:'前腿' } },
+            'fish': { name: '热带鱼', category: '动物', paths: { p1: "M 100,80 L 120,100 L 100,120 L 80,100 Z", p2: "M 140,100 L 180,60 L 180,100 Z", p3: "M 140,100 L 180,140 L 180,100 Z", p4: "M 100,40 L 100,120 L 20,120 Z", p5: "M 100,160 L 100,80 L 20,80 Z", p6: "M 100,120 L 140,120 L 140,80 Z", p7: "M 80,100 L 100,120 L 100,80 L 80,60 Z" }, names: { p1:'眼睛', p2:'上尾', p3:'下尾', p4:'上身', p5:'下身', p6:'尾柄', p7:'嘴' } },
+            'chair': { name: '舒适的椅子', category: '物体', paths: { p1: "M 40,80 L 80,80 L 80,120 L 40,120 Z", p2: "M 80,120 L 80,160 L 120,160 Z", p3: "M 120,160 L 120,200 L 160,160 Z", p4: "M 40,80 L 120,80 L 40,0 Z", p5: "M 120,80 L 200,80 L 120,160 Z", p6: "M 40,120 L 0,160 L 40,160 Z", p7: "M 80,120 L 100,140 L 80,160 L 60,140 Z" }, names: { p1:'靠背中', p2:'座左', p3:'腿右', p4:'靠背上', p5:'座位', p6:'腿左', p7:'扶手' } },
+            'camel': { name: '沙漠骆驼', category: '动物', paths: { p1: "M 20,40 L 40,60 L 20,80 L 0,60 Z", p2: "M 40,60 L 60,80 L 40,100 Z", p3: "M 180,140 L 180,180 L 140,140 Z", p4: "M 60,80 L 140,80 L 60,160 Z", p5: "M 140,80 L 140,160 L 60,160 Z", p6: "M 60,80 L 100,40 L 100,80 Z", p7: "M 20,80 L 40,100 L 60,80 L 40,60 Z" }, names: { p1:'头', p2:'颈下', p3:'后腿', p4:'前峰', p5:'后峰', p6:'驼峰', p7:'颈上' } },
+            'arrow': { name: '方向箭头', category: '物体', paths: { p1: "M 80,120 L 120,120 L 120,160 L 80,160 Z", p2: "M 40,80 L 80,80 L 80,120 Z", p3: "M 120,80 L 160,80 L 120,120 Z", p4: "M 20,80 L 100,0 L 180,80 Z", p5: "M 40,160 L 120,160 L 40,240 Z", p6: "M 120,160 L 160,200 L 160,160 Z", p7: "M 80,160 L 100,180 L 120,160 L 100,140 Z" }, names: { p1:'杆中', p2:'左翼', p3:'右翼', p4:'箭头', p5:'杆左', p6:'杆右', p7:'装饰' } },
+            'helicopter': { name: '直升机', category: '物体', paths: { p1: "M 60,80 L 100,80 L 100,120 L 60,120 Z", p2: "M 100,80 L 140,80 L 100,40 Z", p3: "M 20,80 L 60,80 L 60,120 Z", p4: "M 60,120 L 140,120 L 60,200 Z", p5: "M 60,120 L 140,120 L 140,40 Z", p6: "M 140,80 L 180,80 L 180,120 Z", p7: "M 140,40 L 160,20 L 180,40 L 160,60 Z" }, names: { p1:'窗户', p2:'顶部', p3:'机鼻', p4:'机身下', p5:'机身上', p6:'尾翼', p7:'旋翼' } },
+            'tree': { name: '松树', category: '植物', paths: { p1: "M 80,160 L 120,160 L 120,200 L 80,200 Z", p2: "M 60,120 L 100,120 L 100,160 Z", p3: "M 100,120 L 140,120 L 100,160 Z", p4: "M 60,80 L 140,80 L 60,160 Z", p5: "M 60,80 L 140,80 L 140,160 Z", p6: "M 80,40 L 120,40 L 120,80 Z", p7: "M 80,40 L 100,20 L 120,40 L 100,60 Z" }, names: { p1:'树干', p2:'左下叶', p3:'右下叶', p4:'左中叶', p5:'右中叶', p6:'顶叶', p7:'树梢' } },
+            'dog': { name: '坐着的小狗', category: '动物', paths: { p1: "M 140,40 L 160,60 L 140,80 L 120,60 Z", p2: "M 120,60 L 80,60 L 120,20 Z", p3: "M 20,140 L 60,140 L 20,180 Z", p4: "M 60,60 L 140,60 L 60,140 Z", p5: "M 60,140 L 140,140 L 140,60 Z", p6: "M 140,20 L 180,60 L 140,60 Z", p7: "M 140,140 L 160,160 L 180,140 L 160,120 Z" }, names: { p1:'头', p2:'耳', p3:'尾', p4:'胸', p5:'背', p6:'鼻', p7:'脚' } },
+            'samurai': { name: '日本武士', category: '人物', paths: { p1: "M 80,40 L 100,60 L 80,80 L 60,60 Z", p2: "M 100,60 L 140,60 L 100,100 Z", p3: "M 20,140 L 60,180 L 20,180 Z", p4: "M 60,60 L 140,60 L 60,140 Z", p5: "M 60,140 L 140,140 L 60,220 Z", p6: "M 60,20 L 100,20 L 60,60 Z", p7: "M 140,60 L 160,80 L 140,100 L 120,80 Z" }, names: { p1:'脸', p2:'肩', p3:'脚', p4:'衣', p5:'裤', p6:'帽', p7:'手' } },
+            'dancer': { name: '舞者', category: '人物', paths: { p1: "M 100,20 L 120,40 L 100,60 L 80,40 Z", p2: "M 60,60 L 100,60 L 100,100 Z", p3: "M 140,60 L 180,100 L 140,100 Z", p4: "M 100,100 L 100,180 L 20,100 Z", p5: "M 100,100 L 180,100 L 100,180 Z", p6: "M 100,180 L 140,180 L 140,140 Z", p7: "M 60,60 L 80,80 L 60,100 L 40,80 Z" }, names: { p1:'头', p2:'左手', p3:'右手', p4:'裙左', p5:'裙右', p6:'腿', p7:'臂' } },
+            'bird': { name: '飞鸟', category: '动物', paths: { p1: "M 40,80 L 60,100 L 40,120 L 20,100 Z", p2: "M 60,60 L 100,60 L 60,100 Z", p3: "M 60,100 L 60,140 L 100,140 Z", p4: "M 100,60 L 180,60 L 100,140 Z", p5: "M 100,140 L 180,140 L 100,60 Z", p6: "M 180,60 L 220,60 L 180,100 Z", p7: "M 20,100 L 40,120 L 20,140 L 0,120 Z" }, names: { p1:'头', p2:'颈上', p3:'颈下', p4:'上翼', p5:'下翼', p6:'翼尖', p7:'嘴' } }
+        };
+
+        const state = { mode: 'user', activePart: null, currentPattern: 'fox', parts: {}, ambient: { h: 0, s: 0, v: 95 }, tempColors: [] };
+
+        const els = {
+            ambientBg: document.getElementById('ambient-bg'), statusIndicator: document.getElementById('status-indicator'),
+            hueSlider: document.getElementById('hue-slider'), satSlider: document.getElementById('sat-slider'), valSlider: document.getElementById('val-slider'),
+            valH: document.getElementById('val-h'), valS: document.getElementById('val-s'), valV: document.getElementById('val-v'),
+            modeUser: document.getElementById('mode-user'), modeAmbient: document.getElementById('mode-ambient'),
+            resultPanel: document.getElementById('result-panel'), scoreList: document.getElementById('score-list'), finalScore: document.getElementById('final-score'),
+            svPicker: document.getElementById('sv-picker'), svCursor: document.getElementById('sv-cursor'),
+            targetSvg: document.getElementById('target-svg'), userSvg: document.getElementById('user-svg'), patternSelect: document.getElementById('pattern-select'),
+            modal: document.getElementById('picker-modal'), uploadArea: document.getElementById('drop-area'), uploadPlaceholder: document.getElementById('upload-placeholder'),
+            canvas: document.getElementById('image-canvas'), pickerHint: document.getElementById('picker-hint'), pickerToolbar: document.getElementById('picker-toolbar'),
+            confirmBtn: document.getElementById('confirm-btn'), paletteSection: document.getElementById('palette-section'), paletteSwatches: document.getElementById('palette-swatches')
+        };
+
+        const ctx = els.canvas.getContext('2d', { willReadFrequently: true });
+
+        // Helper to determine text color (black or white) based on background brightness
+        function getTextColorForBackground(h, s, v) {
+            let r, g, b;
+            let s_norm = s / 100;
+            let v_norm = v / 100;
+            let c = v_norm * s_norm;
+            let x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+            let m = v_norm - c;
+            
+            if (h < 60) { r = c; g = x; b = 0; }
+            else if (h < 120) { r = x; g = c; b = 0; }
+            else if (h < 180) { r = 0; g = c; b = x; }
+            else if (h < 240) { r = 0; g = x; b = c; }
+            else if (h < 300) { r = x; g = 0; b = c; }
+            else { r = c; g = 0; b = x; }
+            
+            r = (r + m) * 255;
+            g = (g + m) * 255;
+            b = (b + m) * 255;
+            
+            const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            return (yiq >= 128) ? '#000000' : '#ffffff';
+        }
+
+        function hsvToRgb(h, s, v) {
+            s /= 100; v /= 100;
+            let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
+            return `rgb(${Math.round(f(5) * 255)}, ${Math.round(f(3) * 255)}, ${Math.round(f(1) * 255)})`;
+        }
+        function rgbToHsv(r, g, b) {
+            r /= 255, g /= 255, b /= 255;
+            let max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, v = max;
+            let d = max - min;
+            s = max === 0 ? 0 : d / max;
+            if (max === min) h = 0; else { switch (max) { case r: h = (g - b) / d + (g < b ? 6 : 0); break; case g: h = (b - r) / d + 2; break; case b: h = (r - g) / d + 4; break; } h /= 6; }
+            return { h: Math.round(h * 360), s: Math.round(s * 100), v: Math.round(v * 100) };
+        }
+        function randomHSV() { return { h: Math.floor(Math.random() * 360), s: Math.floor(Math.random() * 60) + 40, v: Math.floor(Math.random() * 50) + 50 }; }
+
+        function init() {
+            els.hueSlider.addEventListener('input', handleSliderChange);
+            els.satSlider.addEventListener('input', handleSliderChange);
+            els.valSlider.addEventListener('input', handleSliderChange);
+            window.addEventListener('paste', handlePaste);
+            els.canvas.addEventListener('click', handleCanvasPick);
+            
+            initSVPicker();
+            initPatternMenu();
+            changePattern('fox'); 
+        }
+
+        function initPatternMenu() {
+            const groups = {};
+            for(let key in patterns) {
+                const cat = patterns[key].category;
+                if(!groups[cat]) groups[cat] = [];
+                groups[cat].push({key: key, name: patterns[key].name});
+            }
+            let html = '';
+            for(let cat in groups) {
+                html += `<optgroup label="${cat}">`;
+                groups[cat].forEach(item => { html += `<option value="${item.key}">${item.name}</option>`; });
+                html += `</optgroup>`;
+            }
+            els.patternSelect.innerHTML = html;
+        }
+
+        window.changePattern = function(patternKey) {
+            state.currentPattern = patternKey;
+            const patternData = patterns[patternKey];
+            for(let key in patternData.paths) {
+                const d = patternData.paths[key];
+                document.getElementById(`t-${key}`).setAttribute('d', d);
+                document.getElementById(`u-${key}`).setAttribute('d', d);
+            }
+            resetGame();
+        }
+
+        function resetGame() {
+            const patternData = patterns[state.currentPattern];
+            const usePalette = state.tempColors && state.tempColors.length > 0;
+
+            for(let i=1; i<=7; i++) {
+                const key = 'p' + i;
+                let targetColor;
+
+                if (usePalette) {
+                    const colorIdx = (i - 1) % state.tempColors.length;
+                    const rgb = state.tempColors[colorIdx];
+                    targetColor = rgbToHsv(rgb.r, rgb.g, rgb.b);
+                } else {
+                    targetColor = randomHSV();
+                }
+
+                state.parts[key] = {
+                    name: patternData.names[key],
+                    target: targetColor,
+                    user: { h: 0, s: 0, v: 92 }
+                };
+            }
+            state.ambient = { h: 0, s: 0, v: 95 };
+            state.activePart = null; els.resultPanel.style.display = 'none';
+            renderAllColors();
+            selectPart('p4'); 
+        }
+
+        function renderAllColors() {
+            const ambientHex = hsvToRgb(state.ambient.h, state.ambient.s, state.ambient.v);
+            els.ambientBg.style.backgroundColor = ambientHex;
+            for(let key in state.parts) {
+                const data = state.parts[key];
+                const tEl = document.getElementById(`t-${key}`);
+                const uEl = document.getElementById(`u-${key}`);
+                if(tEl) tEl.setAttribute('fill', hsvToRgb(data.target.h, data.target.s, data.target.v));
+                if(uEl) uEl.setAttribute('fill', hsvToRgb(data.user.h, data.user.s, data.user.v));
+            }
+        }
+
+        window.selectPart = function(key) {
+            state.activePart = key; setMode('user');
+            document.querySelectorAll('.interactive-svg path').forEach(el => el.classList.remove('active-part'));
+            const activeEl = document.getElementById(`u-${key}`);
+            if(activeEl) activeEl.classList.add('active-part');
+            const partName = state.parts[key].name;
+            els.statusIndicator.innerHTML = `当前选中：<strong style="color:var(--accent-blue)">${partName}</strong>`;
+            updateSliders(state.parts[key].user); updateSVPickerUI(state.parts[key].user);
+        }
+
+        function setMode(mode) {
+            state.mode = mode;
+            if(mode === 'user') {
+                els.modeUser.classList.add('active'); els.modeAmbient.classList.remove('active', 'ambient-mode');
+                if(!state.activePart) selectPart('p4');
+                else {
+                    const partName = state.parts[state.activePart].name;
+                    els.statusIndicator.innerHTML = `当前选中：<strong style="color:var(--accent-blue)">${partName}</strong>`;
+                    updateSliders(state.parts[state.activePart].user); updateSVPickerUI(state.parts[state.activePart].user);
+                }
+            } else {
+                els.modeUser.classList.remove('active'); els.modeAmbient.classList.add('active', 'ambient-mode');
+                els.statusIndicator.textContent = "当前正在调整：🌍 环境颜色";
+                document.querySelectorAll('.interactive-svg path').forEach(el => el.classList.remove('active-part'));
+                updateSliders(state.ambient); updateSVPickerUI(state.ambient);
+            }
+        }
+
+        function updateSliders(colorObj) {
+            els.hueSlider.value = colorObj.h; els.satSlider.value = colorObj.s; els.valSlider.value = colorObj.v;
+            els.valH.innerText = colorObj.h + '°'; els.valS.innerText = colorObj.s + '%'; els.valV.innerText = colorObj.v + '%';
+        }
+
+        function handleSliderChange() {
+            const h = parseInt(els.hueSlider.value); const s = parseInt(els.satSlider.value); const v = parseInt(els.valSlider.value);
+            applyColorChange(h, s, v);
+        }
+
+        function applyColorChange(h, s, v) {
+            if (state.mode === 'user') {
+                if(state.activePart) {
+                    state.parts[state.activePart].user = { h, s, v };
+                    const uEl = document.getElementById(`u-${state.activePart}`);
+                    if(uEl) uEl.setAttribute('fill', hsvToRgb(h, s, v));
+                    updateSVPickerUI({h,s,v});
+                    els.valH.innerText = h + '°'; els.valS.innerText = s + '%'; els.valV.innerText = v + '%';
+                }
+            } else {
+                state.ambient = { h, s, v };
+                els.ambientBg.style.backgroundColor = hsvToRgb(h, s, v);
+                updateSVPickerUI({h,s,v});
+                els.valH.innerText = h + '°'; els.valS.innerText = s + '%'; els.valV.innerText = v + '%';
+            }
+        }
+
+        let isDraggingSV = false;
+        function initSVPicker() {
+            els.svPicker.addEventListener('mousedown', (e) => { isDraggingSV = true; updateSVFromMouse(e); });
+            window.addEventListener('mousemove', (e) => { if (isDraggingSV) updateSVFromMouse(e); });
+            window.addEventListener('mouseup', () => isDraggingSV = false);
+            els.svPicker.addEventListener('touchstart', (e) => { isDraggingSV = true; updateSVFromMouse(e.touches[0]); e.preventDefault(); }, {passive: false});
+            window.addEventListener('touchmove', (e) => { if (isDraggingSV) { updateSVFromMouse(e.touches[0]); e.preventDefault(); } }, {passive: false});
+            window.addEventListener('touchend', () => isDraggingSV = false);
+        }
+
+        function updateSVFromMouse(e) {
+            const rect = els.svPicker.getBoundingClientRect();
+            let x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+            let y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+            const s = Math.round((x / rect.width) * 100);
+            const v = Math.round(100 - (y / rect.height) * 100);
+            let currentH = parseInt(els.hueSlider.value);
+            applyColorChange(currentH, s, v);
+            els.satSlider.value = s; els.valSlider.value = v;
+        }
+
+        function updateSVPickerUI(colorObj) {
+            els.svPicker.style.backgroundColor = `hsl(${colorObj.h}, 100%, 50%)`;
+            els.svCursor.style.left = `${colorObj.s}%`; els.svCursor.style.top = `${100 - colorObj.v}%`;
+        }
+
+        // === Modal Functions ===
+        function openPickerModal() { els.modal.style.display = 'flex'; setTimeout(() => els.modal.classList.add('show'), 10); }
+        function closePickerModal() { els.modal.classList.remove('show'); setTimeout(() => els.modal.style.display = 'none', 300); }
+        function handleFileSelect(e) { if(e.target.files[0]) processImage(e.target.files[0]); }
+        function handlePaste(e) { if(els.modal.style.display!=='flex') return; const items=(e.clipboardData||e.originalEvent.clipboardData).items; for(let i of items) if(i.type.indexOf('image')===0) processImage(i.getAsFile()); }
+        
+        function processImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    let w=img.width, h=img.height; if(h>300){w=w*(300/h);h=300;}
+                    els.canvas.width=w; els.canvas.height=h;
+                    ctx.drawImage(img,0,0,w,h);
+                    els.uploadPlaceholder.style.display='none'; els.canvas.style.display='block';
+                    els.pickerToolbar.style.display='flex'; els.pickerHint.style.display='block';
+                    els.uploadArea.style.borderStyle='solid';
+                    extractDominantColors(w,h);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearImage() {
+            ctx.clearRect(0,0,els.canvas.width,els.canvas.height);
+            els.canvas.style.display='none'; els.uploadPlaceholder.style.display='block';
+            els.pickerToolbar.style.display='none'; els.pickerHint.style.display='none';
+            els.paletteSection.style.display='none'; els.uploadArea.style.borderStyle='dashed';
+            state.tempColors=[]; document.getElementById('file-input').value="";
+        }
+
+        function extractDominantColors(w,h) {
+            const data = ctx.getImageData(0,0,w,h).data;
+            const counts = {};
+            for(let i=0; i<data.length; i+=40) {
+                const r=data[i], g=data[i+1], b=data[i+2];
+                const key = `${Math.round(r/32)*32},${Math.round(g/32)*32},${Math.round(b/32)*32}`;
+                counts[key] = (counts[key]||0)+1;
+            }
+            const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,7).map(e=>{
+                const [r,g,b] = e[0].split(',').map(Number); return {r,g,b};
+            });
+            state.tempColors = sorted;
+            renderModalPalette();
+        }
+
+        function renderModalPalette() {
+            els.paletteSwatches.innerHTML=''; els.paletteSection.style.display='block'; els.confirmBtn.style.display='block';
+            state.tempColors.forEach((c, idx) => {
+                const s = document.createElement('div'); s.className='palette-swatch'; s.style.backgroundColor=`rgb(${c.r},${c.g},${c.b})`;
+                const d = document.createElement('span'); d.className='swatch-delete-btn'; d.innerHTML='×';
+                d.onclick=(e)=>{e.stopPropagation(); state.tempColors.splice(idx,1); renderModalPalette();};
+                s.appendChild(d); els.paletteSwatches.appendChild(s);
+            });
+        }
+
+        function handleCanvasPick(e) {
+            if(els.canvas.style.display==='none') return;
+            const r=els.canvas.getBoundingClientRect();
+            const x=(e.clientX-r.left)*(els.canvas.width/r.width);
+            const y=(e.clientY-r.top)*(els.canvas.height/r.height);
+            const p=ctx.getImageData(x,y,1,1).data;
+            state.tempColors.push({r:p[0],g:p[1],b:p[2]});
+            renderModalPalette();
+        }
+
+        function confirmPalette() {
+            if(state.tempColors.length === 0) return;
+            let idx = 0;
+            for(let key in state.parts) {
+                const c = state.tempColors[idx % state.tempColors.length];
+                state.parts[key].target = rgbToHsv(c.r, c.g, c.b);
+                state.parts[key].user = { h: 0, s: 0, v: 92 };
+                idx++;
+            }
+            renderAllColors();
+            closePickerModal();
+            els.statusIndicator.innerHTML = `✅ 已应用配色，请开始模仿！`;
+        }
+
+        // === 核心修改：高亮功能 (静态红框) ===
+        function highlightPart(key, active) {
+            const tEl = document.getElementById(`t-${key}`);
+            const uEl = document.getElementById(`u-${key}`);
+            if(active) {
+                tEl.classList.add('path-highlighted');
+                uEl.classList.add('path-highlighted');
+            } else {
+                tEl.classList.remove('path-highlighted');
+                uEl.classList.remove('path-highlighted');
+            }
+        }
+
+        function submitResult() {
+            let totalScore = 0; let html = '';
+            for(let key in state.parts) {
+                const p = state.parts[key];
+                const dH = Math.min(Math.abs(p.target.h - p.user.h), 360 - Math.abs(p.target.h - p.user.h));
+                const dS = Math.abs(p.target.s - p.user.s); const dV = Math.abs(p.target.v - p.user.v);
+                const partScore = Math.max(0, 100 - (dH + dS/2 + dV/2));
+                totalScore += partScore;
+                
+                let badge = ''; 
+                if(partScore>90) badge='✨'; else if(partScore<60) badge='⚠️';
+                
+                // Get RGB background string and contrasting text color
+                const targetRgbStr = hsvToRgb(p.target.h, p.target.s, p.target.v);
+                const userRgbStr = hsvToRgb(p.user.h, p.user.s, p.user.v);
+                const targetTextColor = getTextColorForBackground(p.target.h, p.target.s, p.target.v);
+                const userTextColor = getTextColorForBackground(p.user.h, p.user.s, p.user.v);
+
+                html += `
+                    <div class="part-score-item" onmouseenter="highlightPart('${key}', true)" onmouseleave="highlightPart('${key}', false)">
+                        
+                        <!-- 左侧：部位名称 -->
+                        <div class="score-name">${p.name}</div>
+
+                        <!-- 中间：详细数据 -->
+                        <div class="score-data-grid">
+                            <div class="detail-col">
+                                <div class="detail-label">🎯 目标</div>
+                                <div class="val-bar" style="background:${targetRgbStr}; color:${targetTextColor}">
+                                    ${p.target.h}, ${p.target.s}, ${p.target.v}
+                                </div>
+                            </div>
+                            <div class="detail-col">
+                               <div class="detail-label">🖌️ 你的</div>
+                                <div class="val-bar" style="background:${userRgbStr}; color:${userTextColor}">
+                                    ${p.user.h}, ${p.user.s}, ${p.user.v}
+                                </div>
+                            </div>
+                            <div class="detail-col">
+                                <div class="detail-label">📉 差值</div>
+                                <div class="val-bar val-diff-bar">
+                                    ${dH}, ${dS}, ${dV}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 右侧：分数 -->
+                        <div class="score-right">
+                            <span class="score-num">${Math.floor(partScore)}分</span>
+                            <span class="score-badge">${badge}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            const avg = Math.floor(totalScore/Object.keys(state.parts).length);
+            els.scoreList.innerHTML = html;
+            els.finalScore.innerText = avg + "分 - " + (avg>90?"色彩大师！🎨":(avg>75?"非常不错！✨":"继续加油 💪"));
+            els.resultPanel.style.display='block'; els.resultPanel.scrollIntoView({behavior:'smooth'});
+        }
+
+        init();
+    </script>
+</body>
+</html>
