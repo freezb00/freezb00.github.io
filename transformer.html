@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformer Full Flow Visualization</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Balsamiq+Sans:wght@400;700&family=ZCOOL+KuaiLe&display=swap');
+
+        :root {
+            --bg-paper: #FDFDFD;
+            --grid-line: #E1F5FE;
+            --ink-color: #546E7A;
+            --border-color: #455A64;
+            --mod-fill: #E3F2FD;
+            --cap-fill: #81D4FA;
+            --ghost-fill: #ECEFF1;    /* 留存轨迹的颜色 */
+            --accent-fill: #FFF59D;   /* 正在移动的颜色 */
+            --shadow: rgba(69, 90, 100, 0.15);
+        }
+
+        body {
+            font-family: 'Balsamiq Sans', 'ZCOOL KuaiLe', cursive;
+            background-color: var(--bg-paper);
+            background-image: 
+                linear-gradient(var(--grid-line) 2px, transparent 2px),
+                linear-gradient(90deg, var(--grid-line) 2px, transparent 2px);
+            background-size: 25px 25px;
+            color: var(--ink-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            user-select: none;
+        }
+
+        h1 {
+            color: #29B6F6;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 0px var(--grid-line);
+        }
+
+        #canvas-frame {
+            position: relative;
+            width: 1000px;
+            height: 750px;
+            background: #FFFFFF;
+            border: 3px solid var(--border-color);
+            border-radius: 20px 255px 15px 25px / 255px 15px 225px 15px;
+            box-shadow: 8px 8px 0px var(--shadow);
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .sketch-line {
+            fill: none;
+            stroke: var(--ink-color);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .sketch-dashed {
+            stroke-dasharray: 6, 6;
+            opacity: 0.6;
+        }
+
+        /* 模块样式 */
+        .module {
+            position: absolute;
+            background-color: var(--mod-fill);
+            border: 3px solid var(--border-color);
+            border-radius: 12px 20px 15px 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 700;
+            z-index: 2;
+            box-shadow: 4px 4px 0px var(--shadow);
+        }
+
+        .capsule {
+            position: absolute;
+            background-color: var(--cap-fill);
+            color: #FFF;
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 13px;
+            font-weight: bold;
+            z-index: 3;
+            box-shadow: 2px 2px 0px var(--shadow);
+        }
+
+        .io-box {
+            position: absolute;
+            background-color: #ECEFF1;
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            color: var(--ink-color);
+            z-index: 1;
+        }
+
+        .area-tag {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: #B0BEC5;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            bottom: 20px;
+            z-index: 0;
+            font-family: 'Balsamiq Sans';
+        }
+
+        /* === 动态数据块 (Active Tensor) === */
+        .tensor {
+            position: absolute;
+            background-color: var(--accent-fill);
+            border: 2px solid #FBC02D;
+            color: #F57F17;
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+            z-index: 20; /* 最高层级 */
+            box-shadow: 4px 4px 8px rgba(0,0,0,0.2);
+            transform: rotate(-2deg) scale(1.1); /* 稍微放大 */
+            transition: all 0.1s;
+        }
+
+        /* === 静态留存块 (Ghost Tensor) === */
+        .tensor-ghost {
+            position: absolute;
+            background-color: var(--ghost-fill);
+            border: 2px dashed #90A4AE;
+            color: #78909C;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+            z-index: 5; /* 低层级 */
+            opacity: 0.9;
+        }
+
+        /* === 状态解析栏 (左上角) === */
+        .status-bar {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 3px solid var(--border-color);
+            border-radius: 15px 25px 15px 25px;
+            padding: 15px 20px;
+            width: 380px;
+            z-index: 30;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.1);
+        }
+        .status-en { 
+            font-size: 18px; 
+            font-weight: 800; 
+            color: #0277BD; 
+            margin-bottom: 6px; 
+            border-bottom: 2px dashed #E1F5FE;
+            padding-bottom: 4px;
+        }
+        .status-zh { 
+            font-size: 16px; 
+            color: #455A64; 
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        /* 维度解释专用样式 */
+        .dim-explain {
+            font-size: 14px;
+            color: #78909C;
+            background: #F1F8E9;
+            padding: 8px;
+            border-radius: 8px;
+            line-height: 1.5;
+            border-left: 4px solid #81C784;
+        }
+        .dim-tag {
+            background: #455A64;
+            color: white;
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 4px;
+        }
+
+        /* === 底部控制 === */
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: #fff;
+            padding: 12px 25px;
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.05);
+        }
+
+        button {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px 18px;
+            font-family: inherit;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--border-color);
+            font-weight: bold;
+            background-color: #FFF;
+            color: var(--ink-color);
+        }
+        button:hover { background-color: #ECEFF1; transform: translateY(-1px); }
+        button:active { transform: translate(2px, 2px); box-shadow: none; }
+        
+        .btn-main { background-color: var(--cap-fill); color: white; min-width: 90px; }
+        .btn-main:hover { background-color: #0288D1; color: white; }
+
+        input[type=range] { width: 300px; accent-color: var(--cap-fill); cursor: pointer; }
+
+    </style>
+</head>
+<body>
+
+    <h1>Transformer Full Architecture Flow</h1>
+    
+    <div id="canvas-frame">
+        <div class="status-bar">
+            <div class="status-en" id="text-en">Ready</div>
+            <div class="status-zh" id="text-zh">点击播放开始演示</div>
+            <div class="dim-explain" id="text-dim">
+                此处将解释 [B, S, D] 等维度的具体含义。
+            </div>
+        </div>
+
+        <svg>
+            <defs>
+                <marker id="arrow-head" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+                    <path d="M2,2 L10,6 L2,10 Q4,6 2,2 Z" fill="#546E7A" />
+                </marker>
+            </defs>
+            <!-- Encoder Path -->
+            <path d="M 250 640 Q 248 620 250 600" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 250 560 Q 252 540 250 520" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 250 460 Q 248 440 250 430" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 250 400 Q 252 380 250 370" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 250 310 Q 248 290 250 280" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 250 540 C 120 540, 120 415, 180 415" class="sketch-line sketch-dashed" marker-end="url(#arrow-head)" />
+            <path d="M 250 385 C 120 385, 120 265, 180 265" class="sketch-line sketch-dashed" marker-end="url(#arrow-head)" />
+
+            <!-- Decoder Path -->
+            <path d="M 750 640 Q 752 620 750 600" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 750 560 Q 748 540 750 520" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 750 460 Q 752 440 750 430" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 750 400 Q 748 380 750 370" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 750 310 Q 752 290 750 280" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 750 250 Q 748 230 750 220" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 750 160 Q 752 140 750 130" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 750 100 Q 748 80 750 70" class="sketch-line" marker-end="url(#arrow-head)" />
+            <path d="M 750 540 C 880 540, 880 415, 820 415" class="sketch-line sketch-dashed" marker-end="url(#arrow-head)" />
+            <path d="M 750 385 C 880 385, 880 265, 820 265" class="sketch-line sketch-dashed" marker-end="url(#arrow-head)" />
+            <path d="M 750 235 C 880 235, 880 115, 820 115" class="sketch-line sketch-dashed" marker-end="url(#arrow-head)" />
+
+            <!-- Cross Connection -->
+            <path d="M 250 250 C 500 250, 550 340, 640 340" class="sketch-line" style="stroke-width: 3; stroke: #81D4FA;" marker-end="url(#arrow-head)" />
+        </svg>
+
+        <div class="area-tag" style="left: 180px;">Encoder Stack</div>
+        <div class="area-tag" style="left: 680px;">Decoder Stack</div>
+
+        <!-- ENCODER Blocks -->
+        <div class="io-box" style="left: 170px; top: 640px; width: 160px; height: 40px;">Inputs</div>
+        <div class="io-box" style="left: 150px; top: 560px; width: 200px; height: 40px;">Embedding</div>
+        <div class="module" style="left: 150px; top: 460px; width: 200px; height: 60px;">Self-Attention</div>
+        <div class="capsule" style="left: 190px; top: 400px; width: 120px; height: 30px;">Add & Norm</div>
+        <div class="module" style="left: 150px; top: 310px; width: 200px; height: 60px;">Feed Forward</div>
+        <div class="capsule" style="left: 190px; top: 250px; width: 120px; height: 30px;">Add & Norm</div>
+
+        <!-- DECODER Blocks -->
+        <div class="io-box" style="left: 670px; top: 640px; width: 160px; height: 40px;">Outputs</div>
+        <div class="io-box" style="left: 650px; top: 560px; width: 200px; height: 40px;">Embedding</div>
+        <div class="module" style="left: 650px; top: 460px; width: 200px; height: 60px;">Masked Attn</div>
+        <div class="capsule" style="left: 690px; top: 400px; width: 120px; height: 30px;">Add & Norm</div>
+        <div class="module" style="left: 650px; top: 310px; width: 200px; height: 60px;">Cross-Attention</div>
+        <div class="capsule" style="left: 690px; top: 250px; width: 120px; height: 30px;">Add & Norm</div>
+        <div class="module" style="left: 650px; top: 160px; width: 200px; height: 60px;">Feed Forward</div>
+        <div class="capsule" style="left: 690px; top: 100px; width: 120px; height: 30px;">Add & Norm</div>
+        <div class="module" style="left: 650px; top: 40px; width: 200px; height: 30px; background: #FFF9C4;">Linear</div>
+        <div class="capsule" style="left: 690px; top: 5px; width: 120px; height: 30px; background: #FFCCBC; border-color: #E64A19;">Softmax</div>
+
+        <div id="dynamic-layer"></div>
+    </div>
+
+    <div class="controls">
+        <button id="btn-prev">⏮ 上一步</button>
+        <button id="btn-play" class="btn-main">▶ 播放</button>
+        <button id="btn-pause" class="btn-main" style="display:none;">⏸ 暂停</button>
+        <button id="btn-next">下一步 ⏭</button>
+        <input type="range" id="progress-bar" min="0" max="100" value="0">
+    </div>
+
+    <script>
+        const layer = document.getElementById('dynamic-layer');
+        const textEn = document.getElementById('text-en');
+        const textZh = document.getElementById('text-zh');
+        const textDim = document.getElementById('text-dim');
+        const progressBar = document.getElementById('progress-bar');
+        
+        const btnPlay = document.getElementById('btn-play');
+        const btnPause = document.getElementById('btn-pause');
+        const btnNext = document.getElementById('btn-next');
+        const btnPrev = document.getElementById('btn-prev');
+
+        let isPlaying = false;
+        let progress = 0;
+        let animFrame;
+
+        /* 
+           场景定义: 增加 'desc' 字段用于维度解释
+           persist: true 表示该节点非常重要，会一直显示在屏幕上
+        */
+        const scenes = [
+            { t: 0,  en: "Input Processing", zh: "输入阶段", 
+              shape: "[Batch, Seq]", 
+              desc: "<span class='dim-tag'>Batch</span> 批次大小 (如1句)<br><span class='dim-tag'>Seq</span> 句子长度 (如单词数)",
+              x: 250, y: 660, w: 90, h: 25, persist: true },
+
+            { t: 5,  en: "Embedding", zh: "嵌入层: 向量化", 
+              shape: "[B, S, 512]", 
+              desc: "<span class='dim-tag'>512</span> 每个词被映射到512维空间，代表其语义特征。",
+              x: 250, y: 560, w: 120, h: 30, persist: true },
+
+            { t: 12, en: "Multi-Head Attn", zh: "多头自注意力", 
+              shape: "[B, 8, S, 64]", 
+              desc: "<span class='dim-tag'>8</span> 将512拆分为8个头。<br><span class='dim-tag'>64</span> 每个头64维，分别关注语法/指代等不同关系。",
+              x: 250, y: 490, w: 140, h: 35, persist: true },
+
+            { t: 18, en: "Add & Norm", zh: "残差+归一化", 
+              shape: "[B, S, 512]", 
+              desc: "多头结果拼接回 512 维，与原输入相加并归一化，稳定梯度。",
+              x: 250, y: 415, w: 100, h: 25, bg: '#81D4FA' },
+
+            { t: 25, en: "Feed Forward", zh: "前馈网络 (FFN)", 
+              shape: "[B, S, 2048]", 
+              desc: "<span class='dim-tag'>2048</span> 维度扩展4倍 (512→2048)。<br>相当于在更大的空间进行特征重组和记忆检索。",
+              x: 250, y: 340, w: 150, h: 40, persist: true },
+
+            { t: 30, en: "Add & Norm", zh: "再次归一化", 
+              shape: "[B, S, 512]", 
+              desc: "投影回 512 维，准备输出或进入下一层。",
+              x: 250, y: 265, w: 100, h: 25, bg: '#81D4FA' },
+
+            { t: 35, en: "Encoder Memory", zh: "生成记忆矩阵 K, V", 
+              shape: "Keys & Values", 
+              desc: "Encoder 将输入句子的理解压缩为 K 和 V 矩阵，供 Decoder 查询。",
+              x: 250, y: 230, w: 120, h: 30, bg: '#FFF59D', persist: true },
+            
+            // --- Decoder ---
+            { t: 40, en: "Decoder Input", zh: "解码器输入", 
+              shape: "[B, S]", 
+              desc: "目标语言的当前单词序列 (Shifted Right)。",
+              x: 750, y: 660, w: 90, h: 25, persist: true },
+
+            { t: 45, en: "Embedding", zh: "嵌入层", 
+              shape: "[B, S, 512]", 
+              desc: "同样映射到 512 维语义空间。",
+              x: 750, y: 560, w: 120, h: 30, persist: true },
+
+            { t: 50, en: "Masked Attn", zh: "掩码注意力", 
+              shape: "[B, S, 512]", 
+              desc: "防止看到未来的词。只能利用当前时刻之前的词。",
+              x: 750, y: 490, w: 140, h: 35, persist: true },
+
+            { t: 60, en: "Prepare Query", zh: "准备查询 (Query)", 
+              shape: "Query (Dec)", 
+              desc: "Decoder 拿着当前的翻译状态作为 Query。",
+              x: 750, y: 360, w: 110, h: 25 },
+
+            { t: 65, en: "Cross-Attention", zh: "交互注意力", 
+              shape: "Q(Dec)+KV(Enc)", 
+              desc: "用 Decoder 的 Q 去查 Encoder 的 K/V。<br>确定翻译当前词时要关注原句哪里。",
+              x: 750, y: 340, w: 140, h: 40, bg: '#FFF59D', persist: true },
+
+            { t: 78, en: "Feed Forward", zh: "前馈网络", 
+              shape: "[B, S, 2048]", 
+              desc: "再次升维处理特征。",
+              x: 750, y: 190, w: 150, h: 40, persist: true },
+
+            { t: 90, en: "Linear Projection", zh: "线性投影层", 
+              shape: "[B, S, Vocab]", 
+              desc: "<span class='dim-tag'>Vocab</span> 映射到词汇表大小 (如 30000)。<br>每个维度对应字典中一个词的分数。",
+              x: 750, y: 55, w: 120, h: 25, persist: true },
+
+            { t: 95, en: "Softmax", zh: "概率计算", 
+              shape: "Probabilities", 
+              desc: "将分数转换为概率 (0%~100%)。",
+              x: 750, y: 20, w: 120, h: 25, bg: '#FFCCBC' },
+
+            { t: 100,en: "Output", zh: "生成下一个词", 
+              shape: "Next Token", 
+              desc: "选择概率最大的词作为输出。",
+              x: 750, y: -20, w: 90, h: 20, op: 1, persist: true }
+        ];
+
+        function lerp(a, b, t) { return a + (b - a) * t; }
+
+        function render(p) {
+            layer.innerHTML = ''; // 清空当前层
+            
+            // 1. 查找当前活跃的场景
+            let currentIdx = 0;
+            for(let i=0; i<scenes.length-1; i++) {
+                if(p >= scenes[i].t && p < scenes[i+1].t) {
+                    currentIdx = i;
+                    break;
+                }
+            }
+            if(p >= 99) currentIdx = scenes.length - 2;
+
+            const s1 = scenes[currentIdx];
+            const s2 = scenes[currentIdx+1];
+            const t = (p - s1.t) / (s2.t - s1.t);
+
+            // 更新左上角的解释文字
+            textEn.innerText = s1.en;
+            textZh.innerText = s1.zh;
+            textDim.innerHTML = s1.desc || "";
+
+            // 2. 绘制【历史留存轨迹 (Trails)】
+            // 遍历所有之前已经发生过的场景，如果是 persist=true，就画一个灰色的 ghost
+            for(let i = 0; i <= currentIdx; i++) {
+                const s = scenes[i];
+                // 只有当当前的进度明显超过该场景时才留存 (防止和正在移动的块重叠)
+                if (s.persist && p > s.t + 3) {
+                    const ghost = document.createElement('div');
+                    ghost.className = 'tensor-ghost';
+                    ghost.style.left = (s.x - s.w/2) + 'px';
+                    ghost.style.top = (s.y - s.h/2) + 'px';
+                    ghost.style.width = s.w + 'px';
+                    ghost.style.height = s.h + 'px';
+                    ghost.innerText = s.shape;
+                    layer.appendChild(ghost);
+                }
+            }
+
+            // 3. 绘制【当前正在移动的块 (Active Block)】
+            const x = lerp(s1.x, s2.x, t);
+            const y = lerp(s1.y, s2.y, t);
+            const w = lerp(s1.w, s2.w, t);
+            const h = lerp(s1.h, s2.h, t);
+
+            const div = document.createElement('div');
+            div.className = 'tensor';
+            div.style.left = (x - w/2) + 'px';
+            div.style.top = (y - h/2) + 'px';
+            div.style.width = w + 'px';
+            div.style.height = h + 'px';
+            div.innerText = s1.shape;
+            if(s1.bg) div.style.backgroundColor = s1.bg;
+            if(s1.op !== undefined) div.style.opacity = s1.op;
+
+            // 动画效果
+            const rot = Math.sin(p * 0.8) * 3;
+            div.style.transform = `rotate(${rot}deg) scale(1.05)`;
+            
+            layer.appendChild(div);
+
+            // 4. 特殊粒子效果 (Cross Attention / Memory)
+            if(p > 35 && p < 100) {
+                // Ghost Memory Block (K,V 驻留在 Encoder 顶部)
+                const mem = document.createElement('div');
+                mem.className = 'tensor-ghost';
+                mem.style.left = (250 - 60) + 'px';
+                mem.style.top = (230 - 15) + 'px';
+                mem.style.width = '120px';
+                mem.style.height = '30px';
+                mem.style.backgroundColor = '#FFF9C4';
+                mem.style.borderStyle = 'dashed';
+                mem.innerText = "Memory";
+                layer.appendChild(mem);
+                
+                // 粒子飞行
+                if(p > 60 && p < 68) {
+                    const flyT = (p - 60) / 8;
+                    const dot = document.createElement('div');
+                    dot.style.position = 'absolute';
+                    dot.style.width = '16px';
+                    dot.style.height = '16px';
+                    dot.style.background = '#FBC02D';
+                    dot.style.borderRadius = '50%';
+                    dot.style.zIndex = 20;
+                    
+                    const p0x = 250, p0y = 230;
+                    const p1x = 550, p1y = 340;
+                    const p2x = 750, p2y = 340;
+                    const oneMinusT = 1 - flyT;
+                    const fx = oneMinusT*oneMinusT*p0x + 2*oneMinusT*flyT*p1x + flyT*flyT*p2x;
+                    const fy = oneMinusT*oneMinusT*p0y + 2*oneMinusT*flyT*p1y + flyT*flyT*p2y;
+                    
+                    dot.style.left = fx + 'px';
+                    dot.style.top = fy + 'px';
+                    layer.appendChild(dot);
+                }
+            }
+        }
+
+        // --- 控制逻辑 ---
+        function loop() {
+            if(isPlaying) {
+                progress += 0.08; 
+                if(progress >= 100) {
+                    progress = 100;
+                    isPlaying = false;
+                    togglePlayBtn();
+                }
+                progressBar.value = progress;
+                render(progress);
+                animFrame = requestAnimationFrame(loop);
+            }
+        }
+
+        function togglePlayBtn() {
+            if(isPlaying) {
+                btnPlay.style.display = 'none';
+                btnPause.style.display = 'inline-block';
+            } else {
+                btnPlay.style.display = 'inline-block';
+                btnPause.style.display = 'none';
+            }
+        }
+
+        btnPlay.onclick = () => {
+            if(progress >= 100) progress = 0;
+            isPlaying = true;
+            togglePlayBtn();
+            loop();
+        };
+
+        btnPause.onclick = () => {
+            isPlaying = false;
+            togglePlayBtn();
+            cancelAnimationFrame(animFrame);
+        };
+
+        btnNext.onclick = () => {
+            isPlaying = false;
+            togglePlayBtn();
+            cancelAnimationFrame(animFrame);
+            let nextT = 100;
+            for(let s of scenes) {
+                if(s.t > progress + 0.5) {
+                    nextT = s.t;
+                    break;
+                }
+            }
+            progress = nextT;
+            progressBar.value = progress;
+            render(progress);
+        };
+
+        btnPrev.onclick = () => {
+            isPlaying = false;
+            togglePlayBtn();
+            cancelAnimationFrame(animFrame);
+            let prevT = 0;
+            for(let i = scenes.length - 1; i >= 0; i--) {
+                if(scenes[i].t < progress - 0.5) {
+                    prevT = scenes[i].t;
+                    break;
+                }
+            }
+            progress = prevT;
+            progressBar.value = progress;
+            render(progress);
+        };
+
+        progressBar.oninput = (e) => {
+            isPlaying = false;
+            togglePlayBtn();
+            progress = parseFloat(e.target.value);
+            render(progress);
+        };
+
+        render(0);
+    </script>
+</body>
+</html>
