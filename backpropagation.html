@@ -395,6 +395,27 @@
             border-radius: 4px;
         }
 
+        .floating-formula {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #8763c5;
+            border-radius: 8px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-width: none;
+            white-space: nowrap;
+            font-size: 24px;
+            pointer-events: auto;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .floating-formula.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         /* === 符号解释弹窗 === */
         .symbol-popup-overlay {
             position: fixed;
@@ -695,7 +716,7 @@
         input:  { x: 420, startY: 160, gap: 140 },
         hidden: { x: 640, startY: 130, gap: 110 },
         output: { x: 860, startY: 160, gap: 140 },
-        loss:   { x: 1200, y: 230 }
+        loss:   { x: 1080, y: 230 }
     };
     const NODE_R = 32;
 
@@ -1020,6 +1041,8 @@
     function resetPanel() {
         document.getElementById('panel-content').innerHTML = '';
         document.getElementById('arrows-layer').innerHTML = '';
+        const el = document.getElementById('floating-formula-display'); 
+        if(el) el.classList.remove('visible');
     }
 
     // ========== 场景生成 - 更详细的推导 ==========
@@ -1229,11 +1252,111 @@
         return steps;
     }
 
+    function showFloatingFormula(step) {
+        let el = document.getElementById('floating-formula-display');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'floating-formula-display';
+            el.className = 'floating-formula';
+            document.getElementById('canvas-area').appendChild(el);
+        }
+
+        // Determine position
+        let targetX = 0, targetY = 0;
+        let hasTarget = false;
+
+        // 1. Priority: Explicit text matching for specific locations
+        if (step.text.includes("损失函数") || step.text.includes("链式法则")) {
+             targetX = LAYOUT.loss.x;
+             targetY = LAYOUT.loss.y;
+             hasTarget = true;
+        } 
+        // 2. Priority: Explicit arrows
+        else if (step.arrow) {
+            const node = nodes[step.arrow.to];
+            if (node) {
+                targetX = node.x;
+                targetY = node.y;
+                hasTarget = true;
+            } else if (step.arrow.to === 'loss') {
+                 targetX = LAYOUT.loss.x;
+                 targetY = LAYOUT.loss.y;
+                 hasTarget = true;
+            }
+        } else if (step.arrows && step.arrows.length > 0) {
+             const node = nodes[step.arrows[0].to];
+             if (node) {
+                targetX = node.x;
+                targetY = node.y;
+                hasTarget = true;
+             }
+        } 
+        // 3. Priority: Infer from text and selection
+        else if (currentSelection) {
+            // Helper to get node by type and index
+            const getNode = (type, idx) => nodes[`${type}${idx}`];
+            
+            if (step.text.includes("输出节点") || step.text.includes("∂L/∂o")) {
+                let idx = currentSelection.data.idx1 || currentSelection.data.idx;
+                if (currentSelection.data.type === 'out_w' || currentSelection.data.type === 'out_b') {
+                     const node = getNode('o', idx);
+                     if (node) { targetX = node.x; targetY = node.y; hasTarget = true; }
+                }
+            }
+            else if (step.text.includes("隐藏节点") || step.text.includes("∂L/∂h")) {
+                 let idx = currentSelection.data.idx1 || currentSelection.data.idx;
+                 if (currentSelection.data.type === 'hid_w' || currentSelection.data.type === 'hid_b') {
+                     const node = getNode('h', idx);
+                     if (node) { targetX = node.x; targetY = node.y; hasTarget = true; }
+                 }
+            }
+            
+            // 4. Fallback: Selection location
+            if (!hasTarget) {
+                if (currentSelection.type === 'connection') {
+                    const conn = currentSelection.data;
+                    const start = nodes[conn.from];
+                    const end = nodes[conn.to];
+                    if (start && end) {
+                        targetX = (start.x + end.x) / 2;
+                        targetY = (start.y + end.y) / 2;
+                        hasTarget = true;
+                    }
+                } else if (currentSelection.type === 'node') {
+                    const node = nodes[currentSelection.data.id];
+                    if (node) {
+                        targetX = node.x;
+                        targetY = node.y;
+                        hasTarget = true;
+                    }
+                }
+            }
+        }
+
+        if (hasTarget) {
+            // Offset slightly to not cover the node/line
+            el.style.left = (targetX + 20) + 'px';
+            el.style.top = (targetY - 40) + 'px';
+            
+            // Use the math content
+            el.innerHTML = step.math;
+            
+            // Render MathJax
+            MathJax.typesetPromise([el]).then(() => {
+                el.classList.add('visible');
+            });
+        } else {
+            el.classList.remove('visible');
+        }
+    }
+
     // ========== 渲染步骤 ==========
     function renderStep(idx) {
         if (!currentScenario || idx >= currentScenario.length) return;
         const step = currentScenario[idx];
         
+        showFloatingFormula(step);
+
         // 绘制反向传播箭头（青绿色虚线）
         if (step.arrow) drawBackpropArrow(step.arrow.from, step.arrow.to);
         if (step.arrows) step.arrows.forEach(a => drawBackpropArrow(a.from, a.to));
@@ -1343,6 +1466,8 @@
         if (!currentScenario || idx >= currentScenario.length) return;
         const step = currentScenario[idx];
         
+        if (isCurrent) showFloatingFormula(step);
+
         if (step.arrow) drawBackpropArrow(step.arrow.from, step.arrow.to);
         if (step.arrows) step.arrows.forEach(a => drawBackpropArrow(a.from, a.to));
         
