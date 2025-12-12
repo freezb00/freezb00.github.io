@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>神经网络反向传播之旅 ✨</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Balsamiq+Sans:wght@400;700&family=ZCOOL+KuaiLe&display=swap');
+
+        :root {
+            /* 温暖治愈配色 */
+            --bg-paper: #FFF8E7;
+            --grid-line: #FFE4C4;
+            --ink-color: #5D4E37;
+            --border-color: #8B7355;
+            --accent-color: #FF7043;
+            --accent-light: #FFAB91;
+            --shadow: rgba(139, 115, 85, 0.2);
+            
+            /* 节点配色 */
+            --input-bg: #E8F5E9;
+            --input-border: #81C784;
+            --hidden-bg: #EDE7F6;
+            --hidden-border: #B39DDB;
+            --output-bg: #FCE4EC;
+            --output-border: #F48FB1;
+            
+            /* 连线配色 - 前向传播 */
+            --line-color: #D7CCC8;
+            --line-hover: #A1887F;
+            
+            /* 反向传播箭头 - 深紫色系（与隐藏层呼应） */
+            --backprop-color: #8763c5;
+            --backprop-light: #D1C4E9;
+            
+            --node-r: 32px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Balsamiq Sans', 'ZCOOL KuaiLe', cursive;
+            background-color: var(--bg-paper);
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--ink-color);
+            overflow: hidden;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* === 顶部工具栏 === */
+        .toolbar {
+            height: 70px;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 3px solid var(--border-color);
+            box-shadow: 0 4px 0 var(--shadow);
+            z-index: 100;
+        }
+
+        .title-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title-area h1 {
+            margin: 0;
+            font-size: 24px;
+            color: var(--accent-color);
+            text-shadow: 2px 2px 0 var(--grid-line);
+        }
+
+        .title-area .subtitle {
+            font-size: 14px;
+            color: var(--ink-color);
+            opacity: 0.7;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 12px 18px 14px 16px;
+            border: 2px solid var(--border-color);
+            background: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 3px 3px 0 var(--shadow);
+            color: var(--ink-color);
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+        }
+
+        button:active:not(:disabled) {
+            transform: translate(3px, 3px);
+            box-shadow: none;
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-play {
+            background: var(--accent-color);
+            border-color: #E64A19;
+            color: white;
+        }
+
+        .btn-play:hover:not(:disabled) {
+            background: #FF8A65;
+        }
+
+        .btn-help {
+            background: #FFF9C4;
+            border-color: #FBC02D;
+            color: #F57F17;
+        }
+
+        /* === 主画布区域 === */
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        svg#network-svg {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* SVG 连线样式 - 前向传播用浅咖色 */
+        .connection-line {
+            fill: none;
+            stroke: var(--line-color);
+            stroke-width: 3;
+            stroke-linecap: round;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .connection-line:hover {
+            stroke: var(--line-hover);
+            stroke-width: 5;
+            filter: drop-shadow(0 0 6px var(--line-hover));
+        }
+
+        .connection-line.active {
+            stroke: var(--accent-color);
+            stroke-width: 5;
+            filter: drop-shadow(0 0 10px var(--accent-color));
+        }
+
+        /* 连线标签 */
+        .line-label {
+            position: absolute;
+            background: white;
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--accent-color);
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.2s;
+            z-index: 50;
+            box-shadow: 2px 2px 0 var(--shadow);
+        }
+
+        .line-label.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* 节点样式 */
+        .node {
+            position: absolute;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 4px 4px 0 var(--shadow);
+        }
+
+        .node:hover {
+            transform: scale(1.15);
+            z-index: 60;
+        }
+
+        .node.active {
+            transform: scale(1.2);
+            z-index: 60;
+        }
+
+        .node .node-label {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+
+        .node.layer-input {
+            background: var(--input-bg);
+            border: 3px solid var(--input-border);
+        }
+
+        .node.layer-hidden {
+            background: var(--hidden-bg);
+            border: 3px solid var(--hidden-border);
+        }
+
+        .node.layer-output {
+            background: var(--output-bg);
+            border: 3px solid var(--output-border);
+        }
+
+        /* 层标签 */
+        .layer-tag {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--ink-color);
+            opacity: 0.5;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+            width: 120px;
+        }
+
+        /* Loss 节点 */
+        .loss-node {
+            position: absolute;
+            width: 80px;
+            height: 50px;
+            background: linear-gradient(135deg, #FFCCBC 0%, #FFAB91 100%);
+            border: 3px solid var(--accent-color);
+            border-radius: 15px 25px 15px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 16px;
+            color: #BF360C;
+            box-shadow: 4px 4px 0 var(--shadow);
+        }
+
+        /* === 底部推导区域 === */
+        .derivation-panel {
+            height: 260px;
+            background: rgba(255, 255, 255, 0.95);
+            border-top: 3px solid var(--border-color);
+            box-shadow: 0 -4px 0 var(--shadow);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .panel-header {
+            padding: 12px 25px;
+            border-bottom: 2px dashed var(--grid-line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .panel-hint {
+            font-size: 13px;
+            color: var(--ink-color);
+            opacity: 0.6;
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 15px 25px;
+            overflow-x: auto;
+            overflow-y: auto;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        /* 推导步骤卡片 */
+        .step-card {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-left-width: 5px;
+            border-left-color: var(--backprop-color);
+            border-radius: 8px 15px 12px 10px;
+            padding: 12px 16px;
+            min-width: 280px;
+            max-width: 400px;
+            box-shadow: 3px 3px 0 var(--shadow);
+            opacity: 0;
+            transform: translateY(20px) rotate(-1deg);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            flex-shrink: 0;
+            overflow-x: auto;
+        }
+
+        .step-card.visible {
+            opacity: 1;
+            transform: translateY(0) rotate(0deg);
+        }
+
+        .step-card.current {
+            border-left-color: var(--accent-color);
+            background: linear-gradient(135deg, #FFF9E6 0%, #FFF3E0 100%);
+            box-shadow: 0 0 0 3px var(--accent-light), 6px 6px 0 var(--shadow);
+            transform: scale(1.02);
+        }
+
+        .step-badge {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 26px;
+            height: 26px;
+            background: var(--backprop-color);
+            color: white;
+            border-radius: 50%;
+            font-size: 13px;
+            font-weight: bold;
+            margin-right: 10px;
+            box-shadow: 2px 2px 0 rgba(38, 166, 154, 0.3);
+        }
+
+        .step-title {
+            font-weight: bold;
+            color: var(--ink-color);
+            margin-bottom: 8px;
+        }
+
+        .step-math {
+            font-size: 14px;
+            color: #37474F;
+            line-height: 1.8;
+        }
+
+        .step-math .formula-line {
+            display: block;
+            margin: 4px 0;
+        }
+
+        /* 可点击的数学符号 */
+        .clickable-symbol {
+            cursor: pointer;
+            border-bottom: 2px dashed var(--backprop-color);
+            padding-bottom: 1px;
+            transition: all 0.2s;
+        }
+
+        .clickable-symbol:hover {
+            background: var(--backprop-light);
+            border-radius: 4px;
+        }
+
+        /* === 符号解释弹窗 === */
+        .symbol-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .symbol-popup-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .symbol-popup {
+            position: absolute;
+            background: white;
+            border: 3px solid var(--backprop-color);
+            border-radius: 15px 25px 18px 20px;
+            padding: 20px;
+            width: 340px;
+            box-shadow: 8px 8px 0 var(--shadow);
+            transform: scale(0.8) rotate(-2deg);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .symbol-popup-overlay.visible .symbol-popup {
+            transform: scale(1) rotate(0deg);
+        }
+
+        .popup-symbol {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--backprop-color);
+            margin-bottom: 8px;
+        }
+
+        .popup-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--ink-color);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px dashed var(--grid-line);
+        }
+
+        .popup-explain {
+            font-size: 14px;
+            color: var(--ink-color);
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .popup-analogy {
+            background: #EDE7F6;
+            border: 2px solid var(--backprop-color);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #4527A0;
+        }
+
+        .popup-analogy::before {
+            content: "💡 ";
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--ink-color);
+            opacity: 0.5;
+            transition: all 0.2s;
+        }
+
+        .popup-close:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        /* 装饰元素 */
+        .deco-star {
+            position: absolute;
+            font-size: 20px;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* 反向传播箭头 - 青绿色 */
+        .backprop-arrow {
+            fill: none;
+            stroke: var(--backprop-color);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 8, 4;
+            opacity: 0;
+            animation: backpropDash 0.8s forwards ease-out;
+        }
+
+        @keyframes backpropDash {
+            0% { 
+                opacity: 0;
+                stroke-dashoffset: 100;
+            }
+            100% { 
+                opacity: 1;
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* 欢迎提示 - 顶部横幅 */
+        .welcome-hint {
+            position: absolute;
+            top: 30px;
+            left: 80%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #EDE7F6 0%, #D1C4E9 100%);
+            border: 2px solid var(--backprop-color);
+            border-radius: 30px;
+            padding: 10px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #4527A0;
+            font-size: 14px;
+            box-shadow: 3px 3px 0 var(--shadow);
+            transition: all 0.5s;
+            z-index: 50;
+        }
+
+        .welcome-hint.hidden {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-20px);
+            pointer-events: none;
+        }
+
+        .welcome-hint .hint-icon {
+            font-size: 24px;
+        }
+
+        .welcome-hint .hint-text {
+            font-size: 14px;
+        }
+        
+        .welcome-hint .close-hint {
+            cursor: pointer;
+            opacity: 0.6;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+        
+        .welcome-hint .close-hint:hover {
+            opacity: 1;
+        }
+
+        /* 图例 */
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-size: 12px;
+            box-shadow: 3px 3px 0 var(--shadow);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0;
+        }
+
+        .legend-line {
+            width: 30px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .legend-line.forward {
+            background: var(--line-color);
+        }
+
+        .legend-line.backward {
+            background: var(--backprop-color);
+            background: repeating-linear-gradient(
+                90deg,
+                var(--backprop-color) 0px,
+                var(--backprop-color) 6px,
+                transparent 6px,
+                transparent 10px
+            );
+        }
+
+        mjx-container { font-size: 105% !important; }
+    </style>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<!-- 顶部工具栏 -->
+<div class="toolbar">
+    <div class="title-area">
+        <h1>神经网络反向传播之旅</h1>
+        <span class="subtitle">点击连线或节点，开始探索梯度的奥秘 ✨</span>
+    </div>
+    <div class="btn-group">
+        <button id="btn-prev" disabled>⏮ 上一步</button>
+        <button id="btn-play" class="btn-play">▶ 自动播放</button>
+        <button id="btn-next" disabled>下一步 ⏭</button>
+        <button id="btn-help" class="btn-help">❓ 帮助</button>
+    </div>
+</div>
+
+<!-- 主画布 -->
+<div class="canvas-area" id="canvas-area">
+    <svg id="network-svg">
+        <defs>
+            <!-- 前向传播箭头 - 浅咖色 -->
+            <marker id="arrow-forward" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+                <path d="M0,0 L0,8 L10,4 z" fill="#A1887F" />
+            </marker>
+            <!-- 反向传播箭头 - 青绿色 -->
+            <marker id="arrow-backprop" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+                <path d="M2,2 L10,6 L2,10 Q4,6 2,2 Z" fill="#8763c5" />
+            </marker>
+        </defs>
+        <g id="connections-layer"></g>
+        <g id="arrows-layer"></g>
+    </svg>
+    
+    <div id="nodes-layer"></div>
+    <div id="labels-layer"></div>
+    
+    <!-- 图例 -->
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-line forward"></div>
+            <span>前向传播连接</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-line backward"></div>
+            <span>反向传播路径</span>
+        </div>
+    </div>
+    
+    <!-- 欢迎提示 -->
+    <div class="welcome-hint" id="welcome-hint">
+        <div class="hint-icon">👆</div>
+        <div class="hint-text">点击任意 <b>连线</b> 查看权重更新<br>点击任意 <b>节点</b> 查看偏置更新</div>
+    </div>
+</div>
+
+<!-- 底部推导面板 -->
+<div class="derivation-panel">
+    <div class="panel-header">
+        <div class="panel-title" id="panel-title">选择一个参数开始学习</div>
+        <div class="panel-hint">点击公式中的 <span style="border-bottom: 2px dashed #8763c5;">虚线符号</span> 查看解释</div>
+    </div>
+    <div class="panel-content" id="panel-content">
+        <!-- 推导步骤卡片将在这里显示 -->
+    </div>
+</div>
+
+<!-- 符号解释弹窗 -->
+<div class="symbol-popup-overlay" id="symbol-overlay">
+    <div class="symbol-popup" id="symbol-popup">
+        <span class="popup-close" onclick="closeSymbolPopup()">✕</span>
+        <div class="popup-symbol" id="popup-symbol"></div>
+        <div class="popup-name" id="popup-name"></div>
+        <div class="popup-explain" id="popup-explain"></div>
+        <div class="popup-analogy" id="popup-analogy"></div>
+    </div>
+</div>
+
+<!-- 连线悬浮标签 -->
+<div class="line-label" id="line-label"></div>
+
+<script>
+    // ========== 配置 - 网络位置居中 ==========
+    const LAYOUT = {
+        input:  { x: 420, startY: 160, gap: 140 },
+        hidden: { x: 640, startY: 130, gap: 110 },
+        output: { x: 860, startY: 160, gap: 140 },
+        loss:   { x: 1200, y: 230 }
+    };
+    const NODE_R = 32;
+
+    // ========== 符号字典 ==========
+    const symbolDict = {
+        'partial': {
+            symbol: '∂',
+            name: '偏导数符号',
+            explain: '表示"只对一个变量求导，把其他变量当常数"。在多变量函数中，我们一次只关心一个方向的变化率。',
+            analogy: '像在山上只看东西方向的坡度，暂时忽略南北方向。'
+        },
+        'gradient': {
+            symbol: '∂L/∂w',
+            name: '损失对权重的梯度',
+            explain: '表示"如果我稍微调整这个权重，损失会如何变化"。正值表示权重增大会让误差变大，负值则相反。',
+            analogy: '像调节音量旋钮，这个数告诉你往哪边拧能让声音更合适。'
+        },
+        'delta': {
+            symbol: 'δ (delta)',
+            name: '误差信号 / 局部梯度',
+            explain: '表示"这个神经元应该承担多少责任"。它把总误差按贡献比例分配给每个神经元。',
+            analogy: '像分摊账单，根据每人点了多少来决定各付多少钱。'
+        },
+        'eta': {
+            symbol: 'η (eta)',
+            name: '学习率',
+            explain: '控制每次更新参数的步长大小。太大会跳过最优解，太小则学习太慢。',
+            analogy: '像下山时每一步迈多大。步子太大可能摔跤，太小则走得太慢。'
+        },
+        'fprime': {
+            symbol: "f'(z) / I(z>0)",
+            name: '激活函数的导数',
+            explain: '表示信号通过神经元时的"放大或缩小系数"。在ReLU中，z>0时导数为1，z≤0时导数为0，记作I(z>0)。',
+            analogy: '像音量调节器的灵敏度，决定了转动旋钮时音量变化有多快。'
+        },
+        'loss': {
+            symbol: 'L = ½Σ(o-ŷ)²',
+            name: '均方误差损失函数 (MSE)',
+            explain: '衡量预测值o和真实值ŷ之间差距的平方和。除以2是为了求导时系数好看。n是样本数。',
+            analogy: '像考试分数和满分之间的差距的平方，放大了大误差的惩罚。'
+        },
+        'chain': {
+            symbol: '链式法则',
+            name: '链式法则 (Chain Rule)',
+            explain: '复合函数求导的规则：∂L/∂w = ∂L/∂o · ∂o/∂z · ∂z/∂w。把复杂求导拆成多个简单部分相乘。',
+            analogy: '像多米诺骨牌，每一张牌的倒下速度取决于前一张推它的力度。'
+        },
+        'sum': {
+            symbol: 'Σ',
+            name: '求和符号',
+            explain: '表示把多个数加起来。在神经网络中，一个节点可能收到多个输入，需要把影响加总。',
+            analogy: '像把多条小溪的水汇集成一条河流。'
+        },
+        'wnew': {
+            symbol: "w' = w - η·∂L/∂w",
+            name: '权重更新公式',
+            explain: '使用梯度下降更新权重：新权重 = 旧权重 - 学习率 × 梯度。负号表示朝着减小损失的方向走。',
+            analogy: '像校准准星，每次微调都让下一次射击更准。梯度指向上坡，我们要往下走。'
+        },
+        'relu': {
+            symbol: 'ReLU(z) = max(0, z)',
+            name: 'ReLU 激活函数',
+            explain: '整流线性单元：正数原样输出，负数变成0。简单高效，是最常用的激活函数。',
+            analogy: '像一个只让正数通过的门，负数被拦住变成0。'
+        },
+        'z': {
+            symbol: 'z = Σ(w·x) + b',
+            name: '加权求和',
+            explain: '神经元的输入：把所有输入乘以对应权重后加起来，再加上偏置。这是激活函数之前的值。',
+            analogy: '像投票计票，每张票（输入）有不同权重，最后加上一个固定的基础分（偏置）。'
+        }
+    };
+
+    // ========== 节点和连接数据 ==========
+    const nodes = {};
+    for(let i=1; i<=2; i++) {
+        nodes[`x${i}`] = { 
+            x: LAYOUT.input.x, 
+            y: LAYOUT.input.startY + (i-1)*LAYOUT.input.gap, 
+            layer: 'layer-input',
+            label: '输入'
+        };
+    }
+    for(let i=1; i<=3; i++) {
+        nodes[`h${i}`] = { 
+            x: LAYOUT.hidden.x, 
+            y: LAYOUT.hidden.startY + (i-1)*LAYOUT.hidden.gap, 
+            layer: 'layer-hidden',
+            label: '隐藏'
+        };
+    }
+    for(let i=1; i<=2; i++) {
+        nodes[`o${i}`] = { 
+            x: LAYOUT.output.x, 
+            y: LAYOUT.output.startY + (i-1)*LAYOUT.output.gap, 
+            layer: 'layer-output',
+            label: '输出'
+        };
+    }
+
+    // 连接信息
+    const connections = [];
+    // 输入层 → 隐藏层
+    for(let i=1; i<=2; i++) {
+        for(let j=1; j<=3; j++) {
+            connections.push({
+                from: `x${i}`,
+                to: `h${j}`,
+                id: `w_h${j}_x${i}`,
+                label: `w_{H${j}X${i}}`,
+                type: 'hid_w',
+                idx1: j,
+                idx2: i
+            });
+        }
+    }
+    // 隐藏层 → 输出层
+    for(let j=1; j<=3; j++) {
+        for(let k=1; k<=2; k++) {
+            connections.push({
+                from: `h${j}`,
+                to: `o${k}`,
+                id: `w_o${k}_h${j}`,
+                label: `w_{O${k}H${j}}`,
+                type: 'out_w',
+                idx1: k,
+                idx2: j
+            });
+        }
+    }
+
+    // ========== 初始化 ==========
+    function init() {
+        createNodes();
+        createConnections();
+        createLayerTags();
+        createLossNode();
+        addDecorations();
+        
+        document.getElementById('btn-play').onclick = togglePlay;
+        document.getElementById('btn-next').onclick = () => { stopPlay(); nextStep(); };
+        document.getElementById('btn-prev').onclick = () => { stopPlay(); prevStep(); };
+        document.getElementById('btn-help').onclick = showHelp;
+        
+        document.getElementById('symbol-overlay').onclick = (e) => {
+            if(e.target.id === 'symbol-overlay') closeSymbolPopup();
+        };
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape') closeSymbolPopup();
+        });
+    }
+
+    function createNodes() {
+        const container = document.getElementById('nodes-layer');
+        for(let id in nodes) {
+            const n = nodes[id];
+            const div = document.createElement('div');
+            div.className = `node ${n.layer}`;
+            div.id = `node-${id}`;
+            div.style.left = (n.x - NODE_R) + 'px';
+            div.style.top = (n.y - NODE_R) + 'px';
+            div.innerHTML = `<span>${id}</span><span class="node-label">${n.label}</span>`;
+            div.onclick = () => selectNode(id);
+            div.onmouseenter = () => showNodeTooltip(id);
+            div.onmouseleave = hideTooltip;
+            container.appendChild(div);
+        }
+    }
+
+    function createConnections() {
+        const svg = document.getElementById('connections-layer');
+        const labelEl = document.getElementById('line-label');
+        
+        connections.forEach(conn => {
+            const start = nodes[conn.from];
+            const end = nodes[conn.to];
+            
+            const angle = Math.atan2(end.y - start.y, end.x - start.x);
+            const sx = start.x + Math.cos(angle) * (NODE_R + 3);
+            const sy = start.y + Math.sin(angle) * (NODE_R + 3);
+            const ex = end.x - Math.cos(angle) * (NODE_R + 8);
+            const ey = end.y - Math.sin(angle) * (NODE_R + 8);
+            
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", sx);
+            line.setAttribute("y1", sy);
+            line.setAttribute("x2", ex);
+            line.setAttribute("y2", ey);
+            line.setAttribute("class", "connection-line");
+            line.setAttribute("id", `line-${conn.id}`);
+            line.setAttribute("marker-end", "url(#arrow-forward)");
+            line.style.pointerEvents = 'stroke';
+            
+            line.onclick = () => selectConnection(conn);
+            line.onmouseenter = (e) => {
+                const mx = (start.x + end.x) / 2;
+                const my = (start.y + end.y) / 2;
+                labelEl.style.left = mx + 'px';
+                labelEl.style.top = (my - 30) + 'px';
+                labelEl.innerHTML = `$${conn.label}$`;
+                labelEl.classList.add('visible');
+                MathJax.typesetPromise([labelEl]);
+            };
+            line.onmouseleave = () => {
+                labelEl.classList.remove('visible');
+            };
+            
+            svg.appendChild(line);
+        });
+    }
+
+    function createLayerTags() {
+        const container = document.getElementById('labels-layer');
+        const tags = [
+            { text: 'Input', x: LAYOUT.input.x - 60, y: 50 },
+            { text: 'Hidden', x: LAYOUT.hidden.x - 60, y: 50 },
+            { text: 'Output', x: LAYOUT.output.x - 60, y: 50 }
+        ];
+        tags.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'layer-tag';
+            div.style.left = t.x + 'px';
+            div.style.top = t.y + 'px';
+            div.innerText = t.text;
+            container.appendChild(div);
+        });
+    }
+
+    function createLossNode() {
+        const container = document.getElementById('nodes-layer');
+        const div = document.createElement('div');
+        div.className = 'loss-node';
+        div.style.left = (LAYOUT.loss.x - 40) + 'px';
+        div.style.top = (LAYOUT.loss.y - 25) + 'px';
+        div.innerHTML = 'Loss L';
+        div.style.cursor = 'pointer';
+        div.onclick = () => showSymbol('loss');
+        container.appendChild(div);
+    }
+
+    function addDecorations() {
+        const container = document.getElementById('canvas-area');
+        const positions = [
+            { x: 120, y: 60, char: '✦' },
+            { x: 950, y: 50, char: '✧' },
+            { x: 180, y: 350, char: '·' },
+            { x: 900, y: 320, char: '✦' }
+        ];
+        positions.forEach(p => {
+            const span = document.createElement('span');
+            span.className = 'deco-star';
+            span.style.left = p.x + 'px';
+            span.style.top = p.y + 'px';
+            span.innerText = p.char;
+            container.appendChild(span);
+        });
+    }
+
+    // ========== 交互处理 ==========
+    let currentSelection = null;
+    let currentScenario = null;
+    let currentStepIdx = -1;
+    let isPlaying = false;
+    let playInterval = null;
+
+    function selectConnection(conn) {
+        clearSelection();
+        document.getElementById('welcome-hint').classList.add('hidden');
+        
+        const line = document.getElementById(`line-${conn.id}`);
+        line.classList.add('active');
+        
+        currentSelection = { type: 'connection', data: conn };
+        document.getElementById('panel-title').innerHTML = `权重 <b style="color:#8763c5">$${conn.label}$</b> 的梯度推导`;
+        MathJax.typesetPromise([document.getElementById('panel-title')]);
+        
+        currentScenario = generateScenario(conn.type, conn.idx1, conn.idx2);
+        currentStepIdx = -1;
+        resetPanel();
+        document.getElementById('btn-next').disabled = false;
+        document.getElementById('btn-prev').disabled = true;
+    }
+
+    function selectNode(nodeId) {
+        // 只有隐藏层和输出层有偏置
+        if(nodeId.startsWith('x')) return;
+        
+        clearSelection();
+        document.getElementById('welcome-hint').classList.add('hidden');
+        
+        const nodeEl = document.getElementById(`node-${nodeId}`);
+        nodeEl.classList.add('active');
+        
+        let type, idx;
+        if(nodeId.startsWith('h')) {
+            type = 'hid_b';
+            idx = parseInt(nodeId[1]);
+        } else if(nodeId.startsWith('o')) {
+            type = 'out_b';
+            idx = parseInt(nodeId[1]);
+        }
+        
+        const labelTex = nodeId.startsWith('h') ? `b_{H${idx}}` : `b_{O${idx}}`;
+        currentSelection = { type: 'node', data: { id: nodeId, type, idx, label: labelTex } };
+        document.getElementById('panel-title').innerHTML = `偏置 <b style="color:#8763c5">$${labelTex}$</b> 的梯度推导`;
+        MathJax.typesetPromise([document.getElementById('panel-title')]);
+        
+        currentScenario = generateScenario(type, idx, null);
+        currentStepIdx = -1;
+        resetPanel();
+        document.getElementById('btn-next').disabled = false;
+        document.getElementById('btn-prev').disabled = true;
+    }
+
+    function clearSelection() {
+        document.querySelectorAll('.connection-line.active').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.node.active').forEach(n => n.classList.remove('active'));
+        document.getElementById('arrows-layer').innerHTML = '';
+        currentSelection = null;
+    }
+
+    function resetPanel() {
+        document.getElementById('panel-content').innerHTML = '';
+        document.getElementById('arrows-layer').innerHTML = '';
+    }
+
+    // ========== 场景生成 - 更详细的推导 ==========
+    function generateScenario(type, idx1, idx2) {
+        const steps = [];
+        
+        if (type === 'out_w') {
+            // 输出层权重的详细推导
+            const ok = `o${idx1}`, hj = `h${idx2}`;
+            
+            steps.push({
+                text: "损失函数定义",
+                math: `<span class="clickable-symbol" onclick="showSymbol('loss')">$L = \\frac{1}{n}\\sum_{i=1}^{n}\\frac{1}{2}(o_i - \\hat{o}_i)^2$</span>
+                <br><span style="color:#78909C;font-size:12px;">其中 $o_i$ 是预测值，$\\hat{o}_i$ 是真实值</span>`,
+                explain: '均方误差：预测值与真实值差距的平方和'
+            });
+            
+            steps.push({
+                text: "输出节点表达式",
+                math: `$o_{${idx1}} = (h_1 \\cdot w_{O${idx1}H1} + h_2 \\cdot w_{O${idx1}H2} + h_3 \\cdot w_{O${idx1}H3}) + b_{O${idx1}}$
+                <br><span style="color:#78909C;font-size:12px;">输出 = 所有隐藏层输出的加权和 + 偏置</span>`,
+                explain: '输出节点是隐藏层的线性组合'
+            });
+            
+            steps.push({
+                text: "链式法则展开",
+                math: `<span class="clickable-symbol" onclick="showSymbol('chain')">$\\frac{\\partial L}{\\partial w_{O${idx1}H${idx2}}} = \\frac{\\partial L}{\\partial o_{${idx1}}} \\cdot \\frac{\\partial o_{${idx1}}}{\\partial w_{O${idx1}H${idx2}}}$</span>
+                <br><span style="color:#78909C;font-size:12px;">梯度 = 损失对输出的导数 × 输出对权重的导数</span>`,
+                arrow: { from: 'loss', to: ok },
+                explain: '复杂导数拆成简单部分相乘'
+            });
+            
+            steps.push({
+                text: "计算 ∂L/∂o",
+                math: `$\\frac{\\partial L}{\\partial o_{${idx1}}} = \\frac{1}{n}(o_{${idx1}} - \\hat{o}_{${idx1}})$
+                <br><span style="color:#78909C;font-size:12px;">对 $\\frac{1}{2}(o-\\hat{o})^2$ 求导，系数2和1/2抵消</span>`,
+                explain: '预测值减真实值，就是误差'
+            });
+            
+            steps.push({
+                text: "计算 ∂o/∂w",
+                math: `$\\frac{\\partial o_{${idx1}}}{\\partial w_{O${idx1}H${idx2}}} = h_{${idx2}}$
+                <br><span style="color:#78909C;font-size:12px;">线性组合对某权重求导，结果就是对应的输入值</span>`,
+                arrow: { from: ok, to: hj },
+                explain: '权重的"贡献者"就是它连接的隐藏节点输出'
+            });
+            
+            steps.push({
+                text: "合并得到梯度",
+                math: `$\\frac{\\partial L}{\\partial w} = \\frac{1}{n}(o_{${idx1}} - \\hat{o}_{${idx1}}) \\cdot h_{${idx2}}$
+                <br><span style="color:#1976D2;font-weight:bold;">= 误差 × 输入</span>`,
+                explain: '这就是这个权重的梯度！'
+            });
+            
+            steps.push({
+                text: "权重更新公式",
+                math: `<span class="clickable-symbol" onclick="showSymbol('wnew')">$w'_{O${idx1}H${idx2}} = w_{O${idx1}H${idx2}} - $ <span class="clickable-symbol" onclick="showSymbol('eta')">$\\eta$</span> $ \\cdot \\frac{\\partial L}{\\partial w_{O${idx1}H${idx2}}}$</span>
+                <br><span style="color:#78909C;font-size:12px;">新权重 = 旧权重 - 学习率 × 梯度</span>`,
+                explain: '沿着梯度的反方向更新，减小损失'
+            });
+        }
+        else if (type === 'out_b') {
+            // 输出层偏置
+            const ok = `o${idx1}`;
+            
+            steps.push({
+                text: "损失函数",
+                math: `$L = \\frac{1}{n}\\sum\\frac{1}{2}(o_i - \\hat{o}_i)^2$`,
+                explain: '同样从损失函数出发'
+            });
+            
+            steps.push({
+                text: "链式法则",
+                math: `$\\frac{\\partial L}{\\partial b_{O${idx1}}} = \\frac{\\partial L}{\\partial o_{${idx1}}} \\cdot \\frac{\\partial o_{${idx1}}}{\\partial b_{O${idx1}}}$`,
+                arrow: { from: 'loss', to: ok },
+                explain: '偏置的梯度也用链式法则'
+            });
+            
+            steps.push({
+                text: "∂L/∂o 已知",
+                math: `$\\frac{\\partial L}{\\partial o_{${idx1}}} = \\frac{1}{n}(o_{${idx1}} - \\hat{o}_{${idx1}})$`,
+                explain: '和权重一样的误差项'
+            });
+            
+            steps.push({
+                text: "∂o/∂b = 1 (关键!)",
+                math: `$\\frac{\\partial o_{${idx1}}}{\\partial b_{O${idx1}}} = 1$
+                <br><span style="color:#78909C;font-size:12px;">因为 $o = \\sum w \\cdot h + b$，b 的系数是 1</span>`,
+                explain: '偏置的"输入"恒为1，这是它和权重的区别'
+            });
+            
+            steps.push({
+                text: "偏置梯度",
+                math: `$\\frac{\\partial L}{\\partial b} = \\frac{1}{n}(o_{${idx1}} - \\hat{o}_{${idx1}})$
+                <br><span style="color:#1976D2;font-weight:bold;">= 误差本身</span>`,
+                explain: '偏置梯度就是误差，不需要乘输入'
+            });
+            
+            steps.push({
+                text: "更新公式",
+                math: `$b'_{O${idx1}} = b_{O${idx1}} - \\eta \\cdot \\frac{\\partial L}{\\partial b_{O${idx1}}}$`,
+                explain: '同样用梯度下降更新'
+            });
+        }
+        else if (type === 'hid_w') {
+            // 隐藏层权重 - 需要误差回传
+            const hj = `h${idx1}`, xi = `x${idx2}`;
+            
+            steps.push({
+                text: "隐藏层复杂性",
+                math: `$\\frac{\\partial L}{\\partial w_{H${idx1}X${idx2}}}$ 需要穿过多层！
+                <br><span style="color:#78909C;font-size:12px;">隐藏层权重影响多个输出节点，误差需要"回传"</span>`,
+                explain: '隐藏层不直接连接损失，计算更复杂'
+            });
+            
+            steps.push({
+                text: "隐藏节点表达式",
+                math: `$z_{${idx1}} = x_1 \\cdot w_{H${idx1}X1} + x_2 \\cdot w_{H${idx1}X2} + b_{H${idx1}}$
+                <br>$h_{${idx1}} = $ <span class="clickable-symbol" onclick="showSymbol('relu')">$ReLU(z_{${idx1}})$</span>`,
+                explain: '先加权求和得z，再过激活函数得h'
+            });
+            
+            steps.push({
+                text: "完整链式法则",
+                math: `$\\frac{\\partial L}{\\partial w_{H${idx1}X${idx2}}} = \\frac{\\partial L}{\\partial h_{${idx1}}} \\cdot \\frac{\\partial h_{${idx1}}}{\\partial z_{${idx1}}} \\cdot \\frac{\\partial z_{${idx1}}}{\\partial w_{H${idx1}X${idx2}}}$`,
+                explain: '要穿过3层：L→h→z→w'
+            });
+            
+            steps.push({
+                text: "误差回传 ∂L/∂h (关键!)",
+                math: `$\\frac{\\partial L}{\\partial h_{${idx1}}} = \\sum_{k=1}^{2} \\frac{\\partial L}{\\partial o_k} \\cdot \\frac{\\partial o_k}{\\partial h_{${idx1}}}$
+                <br>$= \\frac{1}{n}(o_1 - \\hat{o}_1) \\cdot w_{O1H${idx1}} + \\frac{1}{n}(o_2 - \\hat{o}_2) \\cdot w_{O2H${idx1}}$`,
+                arrows: [{from: `o1`, to: hj}, {from: `o2`, to: hj}],
+                explain: '多个输出的误差按权重比例回传到隐藏节点'
+            });
+            
+            steps.push({
+                text: "激活函数导数",
+                math: `<span class="clickable-symbol" onclick="showSymbol('fprime')">$\\frac{\\partial h_{${idx1}}}{\\partial z_{${idx1}}} = I(z_{${idx1}} > 0)$</span>
+                <br><span style="color:#78909C;font-size:12px;">ReLU导数：z>0时为1，z≤0时为0</span>`,
+                explain: 'I()是指示函数，括号内为真则为1'
+            });
+            
+            steps.push({
+                text: "输入贡献",
+                math: `$\\frac{\\partial z_{${idx1}}}{\\partial w_{H${idx1}X${idx2}}} = x_{${idx2}}$`,
+                arrow: { from: hj, to: xi },
+                explain: '这个权重连接的输入值'
+            });
+            
+            steps.push({
+                text: "合并得到梯度",
+                math: `$\\frac{\\partial L}{\\partial w} = \\delta_{h${idx1}} \\cdot I(z>0) \\cdot x_{${idx2}}$
+                <br><span style="color:#78909C;font-size:12px;">其中 $\\delta_{h${idx1}} = $ 回传误差和</span>`,
+                explain: '回传误差 × 激活导数 × 输入'
+            });
+            
+            steps.push({
+                text: "更新公式",
+                math: `$w'_{H${idx1}X${idx2}} = w_{H${idx1}X${idx2}} - \\eta \\cdot \\frac{\\partial L}{\\partial w_{H${idx1}X${idx2}}}$`,
+                explain: '同样用梯度下降更新'
+            });
+        }
+        else if (type === 'hid_b') {
+            // 隐藏层偏置
+            const hj = `h${idx1}`;
+            
+            steps.push({
+                text: "隐藏层偏置梯度",
+                math: `$\\frac{\\partial L}{\\partial b_{H${idx1}}} = \\frac{\\partial L}{\\partial h_{${idx1}}} \\cdot \\frac{\\partial h_{${idx1}}}{\\partial z_{${idx1}}} \\cdot \\frac{\\partial z_{${idx1}}}{\\partial b_{H${idx1}}}$`,
+                explain: '偏置也需要误差回传'
+            });
+            
+            steps.push({
+                text: "误差回传到 h",
+                math: `$\\frac{\\partial L}{\\partial h_{${idx1}}} = \\sum_{k} \\frac{1}{n}(o_k - \\hat{o}_k) \\cdot w_{OkH${idx1}}$`,
+                arrows: [{from: `o1`, to: hj}, {from: `o2`, to: hj}],
+                explain: '汇总所有输出节点传回的误差'
+            });
+            
+            steps.push({
+                text: "激活函数导数",
+                math: `$\\frac{\\partial h_{${idx1}}}{\\partial z_{${idx1}}} = I(z_{${idx1}} > 0)$`,
+                explain: 'ReLU的导数'
+            });
+            
+            steps.push({
+                text: "∂z/∂b = 1",
+                math: `$\\frac{\\partial z_{${idx1}}}{\\partial b_{H${idx1}}} = 1$
+                <br><span style="color:#78909C;font-size:12px;">偏置的"输入"恒为1</span>`,
+                explain: '和输出层偏置一样'
+            });
+            
+            steps.push({
+                text: "偏置梯度",
+                math: `$\\frac{\\partial L}{\\partial b} = \\delta_{h${idx1}} \\cdot I(z>0)$
+                <br><span style="color:#1976D2;font-weight:bold;">= 回传误差 × 激活导数</span>`,
+                explain: '不需要乘输入（输入恒为1）'
+            });
+            
+            steps.push({
+                text: "更新公式",
+                math: `$b'_{H${idx1}} = b_{H${idx1}} - \\eta \\cdot \\frac{\\partial L}{\\partial b_{H${idx1}}}$`,
+                explain: '梯度下降更新'
+            });
+        }
+        return steps;
+    }
+
+    // ========== 渲染步骤 ==========
+    function renderStep(idx) {
+        if (!currentScenario || idx >= currentScenario.length) return;
+        const step = currentScenario[idx];
+        
+        // 绘制反向传播箭头（青绿色虚线）
+        if (step.arrow) drawBackpropArrow(step.arrow.from, step.arrow.to);
+        if (step.arrows) step.arrows.forEach(a => drawBackpropArrow(a.from, a.to));
+        
+        // 移除之前的高亮
+        document.querySelectorAll('.step-card.current').forEach(c => c.classList.remove('current'));
+        
+        // 创建卡片
+        const card = document.createElement('div');
+        card.className = 'step-card';
+        card.id = `step-card-${idx}`;
+        card.innerHTML = `
+            <div class="step-title"><span class="step-badge">${idx+1}</span>${step.text}</div>
+            <div class="step-math">${step.math}</div>
+            ${step.explain ? `<div style="margin-top:8px;font-size:12px;color:#78909C;">💡 ${step.explain}</div>` : ''}
+        `;
+        document.getElementById('panel-content').appendChild(card);
+        
+        MathJax.typesetPromise([card]).then(() => {
+            setTimeout(() => {
+                card.classList.add('visible');
+                // 高亮当前卡片
+                card.classList.add('current');
+                // 滚动到卡片中间位置
+                scrollToCard(card);
+            }, 50);
+        });
+    }
+
+    // ========== 滚动到卡片中间 ==========
+    function scrollToCard(card) {
+        const container = document.getElementById('panel-content');
+        const containerRect = container.getBoundingClientRect();
+        const cardRect = card.getBoundingClientRect();
+        
+        // 计算需要滚动的距离，使卡片在容器中间
+        const scrollLeft = card.offsetLeft - (containerRect.width / 2) + (cardRect.width / 2);
+        
+        // 平滑滚动
+        container.scrollTo({
+            left: scrollLeft,
+            behavior: 'smooth'
+        });
+    }
+
+    function drawBackpropArrow(from, to) {
+        const svg = document.getElementById('arrows-layer');
+        const startNode = nodes[from] || { x: LAYOUT.loss.x, y: LAYOUT.loss.y };
+        const endNode = nodes[to];
+        
+        const dx = endNode.x - startNode.x;
+        const dy = endNode.y - startNode.y;
+        const angle = Math.atan2(dy, dx);
+        
+        const sx = startNode.x + (from === 'loss' ? -40 : 0);
+        const sy = startNode.y;
+        const ex = endNode.x - Math.cos(angle) * (NODE_R + 10);
+        const ey = endNode.y - Math.sin(angle) * (NODE_R + 10);
+        
+        // 曲线控制点
+        const mx = (sx + ex) / 2;
+        const my = (sy + ey) / 2;
+        let curvature = (sy > ey) ? -0.3 : 0.3;
+        if (from === 'loss') curvature = 0;
+        const cx = mx - dy * curvature;
+        const cy = my + dx * curvature;
+        
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`);
+        path.setAttribute("class", "backprop-arrow");
+        path.setAttribute("marker-end", "url(#arrow-backprop)");
+        svg.appendChild(path);
+    }
+
+    // ========== 播放控制 ==========
+    function nextStep() {
+        if (!currentScenario) return;
+        if (currentStepIdx < currentScenario.length - 1) {
+            currentStepIdx++;
+            renderStep(currentStepIdx);
+            document.getElementById('btn-prev').disabled = false;
+        }
+        if (currentStepIdx === currentScenario.length - 1) {
+            document.getElementById('btn-next').disabled = true;
+            if (isPlaying) stopPlay();
+        }
+    }
+
+    function prevStep() {
+        if (currentStepIdx > 0) {
+            currentStepIdx--;
+            // 重新渲染到当前步
+            resetPanel();
+            for (let i = 0; i <= currentStepIdx; i++) {
+                const isLast = i === currentStepIdx;
+                renderStepForReplay(i, isLast);
+            }
+            document.getElementById('btn-next').disabled = false;
+        }
+        if (currentStepIdx <= 0) {
+            document.getElementById('btn-prev').disabled = true;
+        }
+    }
+
+    // 用于回放时的渲染（不需要动画延迟）
+    function renderStepForReplay(idx, isCurrent) {
+        if (!currentScenario || idx >= currentScenario.length) return;
+        const step = currentScenario[idx];
+        
+        if (step.arrow) drawBackpropArrow(step.arrow.from, step.arrow.to);
+        if (step.arrows) step.arrows.forEach(a => drawBackpropArrow(a.from, a.to));
+        
+        const card = document.createElement('div');
+        card.className = 'step-card visible';
+        card.id = `step-card-${idx}`;
+        if (isCurrent) card.classList.add('current');
+        
+        card.innerHTML = `
+            <div class="step-title"><span class="step-badge">${idx+1}</span>${step.text}</div>
+            <div class="step-math">${step.math}</div>
+            ${step.explain ? `<div style="margin-top:8px;font-size:12px;color:#78909C;">💡 ${step.explain}</div>` : ''}
+        `;
+        document.getElementById('panel-content').appendChild(card);
+        
+        if (isCurrent) {
+            MathJax.typesetPromise([card]).then(() => {
+                scrollToCard(card);
+            });
+        } else {
+            MathJax.typesetPromise([card]);
+        }
+    }
+
+    function togglePlay() {
+        if (!currentScenario) {
+            selectConnection(connections[0]);
+        }
+        
+        isPlaying = !isPlaying;
+        const btn = document.getElementById('btn-play');
+        
+        if (isPlaying) {
+            btn.innerHTML = '⏸ 暂停';
+            btn.style.background = '#8763c5';
+            
+            if (currentStepIdx === currentScenario.length - 1) {
+                resetPanel();
+                currentStepIdx = -1;
+                document.getElementById('btn-next').disabled = false;
+            }
+            
+            if (currentStepIdx < currentScenario.length - 1) nextStep();
+            playInterval = setInterval(() => {
+                if (currentStepIdx < currentScenario.length - 1) {
+                    nextStep();
+                } else {
+                    stopPlay();
+                }
+            }, 3000);
+        } else {
+            stopPlay();
+        }
+    }
+
+    function stopPlay() {
+        isPlaying = false;
+        clearInterval(playInterval);
+        const btn = document.getElementById('btn-play');
+        btn.innerHTML = '▶ 自动播放';
+        btn.style.background = '';
+    }
+
+    // ========== 符号弹窗 ==========
+    function showSymbol(key) {
+        const info = symbolDict[key];
+        if (!info) return;
+        
+        document.getElementById('popup-symbol').innerText = info.symbol;
+        document.getElementById('popup-name').innerText = info.name;
+        document.getElementById('popup-explain').innerText = info.explain;
+        document.getElementById('popup-analogy').innerText = info.analogy;
+        
+        const overlay = document.getElementById('symbol-overlay');
+        const popup = document.getElementById('symbol-popup');
+        
+        popup.style.left = 'calc(50% - 170px)';
+        popup.style.top = 'calc(50% - 140px)';
+        
+        overlay.classList.add('visible');
+    }
+
+    function closeSymbolPopup() {
+        document.getElementById('symbol-overlay').classList.remove('visible');
+    }
+
+    // ========== 提示 ==========
+    function showNodeTooltip(nodeId) {}
+    function hideTooltip() {}
+
+    function showHelp() {
+        alert('🎯 使用指南：\n\n1. 点击网络图中的【连线】查看权重的梯度推导\n2. 点击【节点】(h1-h3, o1-o2) 查看偏置的梯度推导\n3. 点击【Loss】查看损失函数解释\n4. 公式中带虚线的符号可以点击查看解释\n5. 使用上方按钮控制播放进度\n\n颜色说明：\n• 浅咖色实线 = 前向传播连接\n• 青绿色虚线 = 反向传播路径\n\n享受学习！✨');
+    }
+
+    init();
+</script>
+</body>
+</html>
