@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>治愈系色感练习 Pro v8</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zeyada&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #fdfbf7;
+            --card-bg: #ffffff;
+            --accent-blue: #a3c4f3;
+            --accent-pink: #f1c0e8;
+            --accent-green: #cfbaf0;
+            --accent-yellow: #fbf8cc;
+            --text-color: #5d576b;
+            --border-color: #5d576b;
+            --wobbly-border: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            --hand-font: 'Zeyada', 'Ma Shan Zheng', cursive;
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#e5e5f7 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: var(--hand-font);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 0px var(--accent-pink);
+            transform: rotate(-2deg);
+        }
+
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: var(--wobbly-border);
+            padding: 25px;
+            box-shadow: 5px 5px 0px rgba(93, 87, 107, 0.1);
+            position: relative;
+        }
+
+        /* === 左侧画布区 === */
+        .canvas-area {
+            flex: 1.8;
+            min-width: 350px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .layout-toolbar {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .layout-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 5px 15px;
+            font-family: var(--hand-font);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .layout-btn:hover { background: #f0f0f0; }
+        .layout-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+            transform: rotate(-2deg);
+        }
+
+        .ambient-wrapper {
+            width: 100%;
+            padding: 40px;
+            background-color: #eeeeee;
+            border: 2px dashed var(--border-color);
+            border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
+            display: flex;
+            transition: background-color 0.3s ease;
+            position: relative;
+            min-height: 350px;
+        }
+
+        .ambient-label {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--accent-yellow);
+            padding: 2px 10px;
+            border: 1px solid var(--border-color);
+            transform: rotate(-3deg);
+            font-size: 1.1rem;
+            z-index: 10;
+        }
+
+        .box-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .color-box {
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            border: none;
+            box-shadow: none;
+            position: relative;
+            transition: all 0.5s ease;
+            cursor: pointer;
+        }
+
+        .box-label {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 1.3rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        .ambient-wrapper.mode-tiled { justify-content: space-around; align-items: flex-start; padding-top: 80px; }
+        .ambient-wrapper.mode-stacked { justify-content: center; align-items: center; }
+
+        .mode-stacked #target-container { position: absolute; transform: translate(40px, 40px); z-index: 1; }
+        .mode-stacked #target-container .color-box { width: 180px; height: 140px; border-radius: 15px; border: none; }
+        .mode-stacked #target-container .box-label { position: absolute; right: -110px; top: 50%; transform: translateY(-50%); text-align: left; }
+
+        .mode-stacked #user-container { position: absolute; transform: translate(-40px, -40px); z-index: 5; }
+        .mode-stacked #user-container .color-box { width: 180px; height: 140px; border-radius: 15px; border: none; box-shadow: none; }
+        .mode-stacked #user-container .box-label { position: absolute; left: -110px; top: 50%; transform: translateY(-50%); text-align: right; }
+
+        .pick-btn { 
+            display: inline-block; margin-top: 5px; font-size: 0.9rem; 
+            color: #666; cursor: pointer; text-decoration: underline; border: none; background: none; 
+            font-family: var(--hand-font); transition: all 0.3s;
+        }
+        .pick-btn:hover { opacity: 0.8; }
+
+        /* === 快捷取色盘 === */
+        .quick-palette-container {
+            width: 100%; margin-top: 20px; padding: 15px;
+            border: 2px solid var(--border-color); border-radius: 20px 255px 20px 225px;
+            background: #fff; display: none; position: relative;
+        }
+        .quick-palette-container::before {
+            content: ''; position: absolute; top: -15px; left: 50%;
+            width: 100px; height: 25px; background: rgba(240, 240, 240, 0.5);
+            border: 1px solid #ccc; transform: translateX(-50%) rotate(1deg); z-index: 0;
+        }
+        .quick-palette-title { font-size: 1.1rem; margin-bottom: 10px; color: var(--border-color); text-align: center; }
+        .quick-swatches { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        
+        /* === 右侧控制区 === */
+        .controls-area { flex: 1.2; min-width: 300px; display: flex; flex-direction: column; gap: 15px; }
+
+        .sv-picker-container {
+            width: 100%; height: 200px; position: relative; border: 2px solid var(--border-color);
+            border-radius: 10px; margin-bottom: 10px; cursor: crosshair; overflow: hidden;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.1); background-color: red;
+        }
+        .sv-gradient-white { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to right, #fff, rgba(255,255,255,0)); }
+        .sv-gradient-black { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, transparent, #000); }
+        .sv-cursor { width: 16px; height: 16px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 2px rgba(0,0,0,0.5); position: absolute; transform: translate(-50%, -50%); pointer-events: none; top: 0; left: 0; }
+
+        .slider-group { margin-bottom: 10px; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 1.2rem; margin-bottom: 5px; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 10px 0; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 12px; cursor: pointer; background: #eee; border: 2px solid var(--border-color); border-radius: 10px; box-shadow: 2px 2px 0px rgba(0,0,0,0.1); }
+        input[type=range]::-webkit-slider-thumb { height: 24px; width: 24px; border-radius: 50%; background: var(--card-bg); border: 2px solid var(--border-color); cursor: pointer; -webkit-appearance: none; margin-top: -8px; box-shadow: 2px 2px 0px rgba(0,0,0,0.2); transition: transform 0.1s; }
+        #hue-slider::-webkit-slider-runnable-track { background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000); }
+        #sat-slider::-webkit-slider-runnable-track { background: linear-gradient(to right, #ddd, #888); } 
+        #val-slider::-webkit-slider-runnable-track { background: linear-gradient(to right, #000, #fff); }
+
+        .mode-switch { display: flex; justify-content: space-between; background: #fff; border: 2px solid var(--border-color); border-radius: 50px; padding: 5px; margin-bottom: 10px; cursor: pointer; }
+        .mode-option { flex: 1; text-align: center; padding: 8px; border-radius: 40px; font-size: 1.2rem; transition: 0.3s; }
+        .mode-option.active { background: var(--accent-blue); color: white; border: 2px solid var(--border-color); transform: scale(1.05); }
+        .mode-option.active.ambient-mode { background: var(--accent-green); }
+
+        .btn-group { display: flex; gap: 15px; margin-top: 10px; }
+        .btn { flex: 1; padding: 12px; font-family: var(--hand-font); font-size: 1.4rem; background: var(--accent-blue); border: 2px solid var(--border-color); border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; cursor: pointer; transition: 0.2s; box-shadow: 3px 3px 0px var(--border-color); }
+        .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--border-color); }
+        .btn-reset { background: var(--accent-pink); }
+
+        /* === 拾色器弹窗 === */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(93, 87, 107, 0.5); display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px); opacity: 0; transition: opacity 0.3s; }
+        .modal-overlay.show { opacity: 1; }
+        .picker-modal { background: #fff; padding: 25px; width: 90%; max-width: 600px; border-radius: 5px; border: 3px solid var(--border-color); position: relative; display: flex; flex-direction: column; align-items: center; background-image: linear-gradient(#f0f0f0 1px, transparent 1px); background-size: 100% 30px; box-shadow: 10px 10px 0 rgba(0,0,0,0.2); transform: rotate(-1deg); max-height: 90vh; overflow-y: auto; }
+        .close-modal { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; color: var(--accent-pink); font-weight: bold; }
+        
+        .upload-area { width: 100%; min-height: 200px; border: 3px dashed #bbb; border-radius: 10px; margin: 15px 0; display: flex; justify-content: center; align-items: center; color: #888; flex-direction: column; background: rgba(255,255,255,0.9); position: relative; transition: all 0.3s; }
+        canvas#image-canvas { max-width: 100%; max-height: 300px; display: none; cursor: copy; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); } /* 鼠标变成 copy 样式 */
+        
+        /* 弹窗内的工具栏 */
+        .picker-toolbar { display: flex; gap: 10px; width: 100%; margin-bottom: 10px; justify-content: flex-end; display: none; }
+        .tool-btn { background: #fff; border: 1px solid var(--border-color); padding: 5px 12px; border-radius: 15px; cursor: pointer; font-family: var(--hand-font); transition: 0.2s; font-size: 0.9rem; }
+        .tool-btn:hover { background: #eee; }
+        .tool-btn-danger { color: #d9534f; border-color: #d9534f; }
+        .tool-btn-danger:hover { background: #fde8e8; }
+        
+        .palette-container { width: 100%; margin-top: 15px; display: none; }
+        .palette-title { font-size: 1.1rem; margin-bottom: 5px; color: var(--border-color); text-align: left; width: 100%; }
+        .palette-swatches { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; min-height: 45px; }
+        
+        /* 色块与删除按钮 */
+        .palette-swatch { 
+            width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border-color); 
+            cursor: pointer; transition: transform 0.2s; position: relative; 
+        }
+        .palette-swatch:hover { transform: scale(1.1); z-index: 2; }
+        
+        /* 删除小圆钮 */
+        .swatch-delete-btn {
+            position: absolute;
+            top: -5px; right: -5px;
+            width: 18px; height: 18px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            font-size: 14px;
+            line-height: 16px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            border: 1px solid #fff;
+        }
+        /* 鼠标悬停色块时显示删除按钮 */
+        .palette-swatch:hover .swatch-delete-btn { opacity: 1; }
+        .swatch-delete-btn:hover { background: #ff0000; transform: scale(1.2); }
+
+        .confirm-btn { margin-top: 20px; width: 100%; padding: 10px; background: var(--accent-green); border: 2px solid var(--border-color); border-radius: 10px; font-family: var(--hand-font); font-size: 1.2rem; cursor: pointer; display: none; }
+        .confirm-btn:hover { filter: brightness(0.95); }
+
+        /* === 练习结果 === */
+        .result-section { width: 100%; margin-top: 20px; padding-top: 15px; border-top: 2px dashed var(--border-color); display: none; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .result-title { font-size: 1.5rem; margin: 0 0 15px 0; color: var(--accent-blue); text-shadow: 1px 1px 0 var(--border-color); transform: rotate(-1deg); }
+        .result-row { display: flex; justify-content: space-between; align-items: center; margin: 8px 0; border-bottom: 1px dotted #ddd; padding-bottom: 2px; }
+        .tag { display: inline-block; padding: 1px 8px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem; margin-left: 10px; }
+        .tag-good { background: var(--accent-green); }
+        .tag-bad { background: var(--accent-pink); }
+        .score-container { margin-top: 15px; text-align: right; font-size: 1.8rem; color: var(--text-color); transform: rotate(-2deg); }
+
+    </style>
+</head>
+<body>
+
+    <h1>🎨 色感练习 Pro</h1>
+    <div style="font-size: 1.2rem; margin-bottom: 20px; opacity: 0.8;">观察 · 叠放 · 匹配</div>
+
+    <div class="main-container">
+        <!-- 左侧展示区 -->
+        <div class="card canvas-area">
+            <div class="layout-toolbar">
+                <button class="layout-btn active" id="btn-layout-tiled" onclick="changeLayout('tiled')">⬜ 平铺</button>
+                <button class="layout-btn" id="btn-layout-stacked" onclick="changeLayout('stacked')">🔳 叠放</button>
+            </div>
+
+            <div class="ambient-wrapper mode-tiled" id="ambient-bg">
+                <div class="ambient-label">🌍 环境色</div>
+                <div class="box-container" id="target-container">
+                    <div class="color-box" id="target-color-box"></div>
+                    <div class="box-label">
+                        <div id="target-label-text">🎯 目标颜色</div>
+                        <button class="pick-btn" id="target-pick-btn" onclick="openPickerModal()">📷 图片/粘贴</button>
+                    </div>
+                </div>
+                <div class="box-container" id="user-container">
+                    <div class="color-box" id="user-color-box"></div>
+                    <div class="box-label" id="user-label-text">🖌️ 颜色预览</div>
+                </div>
+            </div>
+            
+            <!-- 快捷取色盘 -->
+            <div class="quick-palette-container" id="quick-palette">
+                <div class="quick-palette-title">🎨 图片取色盘 (点击练习)</div>
+                <div class="quick-swatches" id="quick-swatches"></div>
+            </div>
+
+            <p style="margin-top: 15px; font-size: 1.1rem; color: #888;">
+                <span id="mode-indicator">当前正在调整：🖌️ 你的颜色</span>
+            </p>
+
+            <!-- 结果区 -->
+            <div class="result-section" id="result-panel">
+                <h3 class="result-title">📊 练习结果</h3>
+                <div class="result-row"><span>色相偏差 ΔH</span><div><span id="diff-h" style="font-weight: bold;">0</span> <span id="tag-h" class="tag"></span></div></div>
+                <div class="result-row"><span>饱和度偏差 ΔS</span><div><span id="diff-s" style="font-weight: bold;">0</span> <span id="tag-s" class="tag"></span></div></div>
+                <div class="result-row"><span>明度偏差 ΔV</span><div><span id="diff-v" style="font-weight: bold;">0</span> <span id="tag-v" class="tag"></span></div></div>
+                <div class="score-container">
+                    <span id="final-score"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧控制区 -->
+        <div class="card controls-area">
+            <div class="mode-switch">
+                <div class="mode-option active" id="mode-user" onclick="setMode('user')">🖌️ 调整画笔</div>
+                <div class="mode-option" id="mode-ambient" onclick="setMode('ambient')">🌍 调整环境</div>
+            </div>
+
+            <div class="sv-picker-container" id="sv-picker">
+                <div class="sv-gradient-white"></div>
+                <div class="sv-gradient-black"></div>
+                <div class="sv-cursor" id="sv-cursor"></div>
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>色相 (H)</span><span id="val-h">0°</span></div>
+                <input type="range" min="0" max="360" value="0" id="hue-slider">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>饱和度 (S)</span><span id="val-s">50%</span></div>
+                <input type="range" min="0" max="100" value="50" id="sat-slider">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>明度 (V)</span><span id="val-v">50%</span></div>
+                <input type="range" min="0" max="100" value="50" id="val-slider">
+            </div>
+
+            <div class="btn-group">
+                <button class="btn" onclick="submitResult()">✨ 提交答案</button>
+                <button class="btn btn-reset" onclick="resetGame()">🔄 下一题</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗部分 -->
+    <div class="modal-overlay" id="picker-modal">
+        <div class="picker-modal">
+            <span class="close-modal" onclick="closePickerModal()">×</span>
+            <h2>📷 图片拾色</h2>
+            
+            <div class="picker-toolbar" id="picker-toolbar">
+                <button class="tool-btn" onclick="document.getElementById('file-input').click()">📂 替换图片</button>
+                <button class="tool-btn tool-btn-danger" onclick="clearImage()">🗑️ 删除图片</button>
+            </div>
+
+            <div class="upload-area" id="drop-area">
+                <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+                <div id="upload-placeholder" style="text-align: center;">
+                    <p style="font-size: 2rem; margin: 0;">📂</p>
+                    <button class="tool-btn" onclick="document.getElementById('file-input').click()">选择文件...</button>
+                    <p style="font-size: 0.8rem; margin-top: 5px; color: #999;">或直接粘贴图片 (Ctrl+V)</p>
+                </div>
+                <canvas id="image-canvas"></canvas>
+            </div>
+
+            <div class="palette-container" id="palette-section">
+                <div class="palette-title">🎨 提取的色盘 (点击图片可添加颜色):</div>
+                <!-- 颜色展示区 -->
+                <div class="palette-swatches" id="palette-swatches"></div>
+                <!-- 确定按钮 -->
+                <button class="confirm-btn" id="confirm-btn" onclick="confirmPalette()">✅ 确定使用此色盘</button>
+            </div>
+            
+            <p id="picker-hint" style="display:none; color: var(--accent-blue); font-weight: bold; margin-top: 10px; font-size:0.9rem;">
+                👆 点击图片添加新颜色，悬停色块可删除
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            mode: 'user', 
+            layout: 'tiled',
+            target: { h: 0, s: 0, v: 0 },
+            user: { h: 200, s: 50, v: 80 },
+            ambient: { h: 0, s: 0, v: 95 },
+            tempColors: [] // 暂存颜色数组
+        };
+
+        const els = {
+            // ... (复用之前的DOM引用)
+            targetBox: document.getElementById('target-color-box'),
+            userBox: document.getElementById('user-color-box'),
+            ambientBg: document.getElementById('ambient-bg'),
+            ambientWrapper: document.getElementById('ambient-bg'),
+            targetLabelText: document.getElementById('target-label-text'),
+            targetPickBtn: document.getElementById('target-pick-btn'),
+            userLabelText: document.getElementById('user-label-text'),
+            
+            hueSlider: document.getElementById('hue-slider'),
+            satSlider: document.getElementById('sat-slider'),
+            valSlider: document.getElementById('val-slider'),
+            valH: document.getElementById('val-h'),
+            valS: document.getElementById('val-s'),
+            valV: document.getElementById('val-v'),
+            modeUser: document.getElementById('mode-user'),
+            modeAmbient: document.getElementById('mode-ambient'),
+            modeIndicator: document.getElementById('mode-indicator'),
+            resultPanel: document.getElementById('result-panel'),
+            
+            modal: document.getElementById('picker-modal'),
+            uploadArea: document.getElementById('drop-area'),
+            uploadPlaceholder: document.getElementById('upload-placeholder'),
+            canvas: document.getElementById('image-canvas'),
+            pickerHint: document.getElementById('picker-hint'),
+            pickerToolbar: document.getElementById('picker-toolbar'),
+            confirmBtn: document.getElementById('confirm-btn'),
+            
+            paletteSection: document.getElementById('palette-section'),
+            paletteSwatches: document.getElementById('palette-swatches'),
+            
+            quickPalette: document.getElementById('quick-palette'),
+            quickSwatches: document.getElementById('quick-swatches'),
+
+            btnLayoutTiled: document.getElementById('btn-layout-tiled'),
+            btnLayoutStacked: document.getElementById('btn-layout-stacked'),
+            svPicker: document.getElementById('sv-picker'),
+            svCursor: document.getElementById('sv-cursor')
+        };
+
+        const ctx = els.canvas.getContext('2d', { willReadFrequently: true });
+
+        // === 颜色转换 ===
+        function hsvToRgb(h, s, v) {
+            s /= 100; v /= 100;
+            let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
+            return `rgb(${Math.round(f(5) * 255)}, ${Math.round(f(3) * 255)}, ${Math.round(f(1) * 255)})`;
+        }
+        function rgbToHsv(r, g, b) {
+            r /= 255, g /= 255, b /= 255;
+            let max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, v = max;
+            let d = max - min;
+            s = max === 0 ? 0 : d / max;
+            if (max === min) h = 0;
+            else {
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return { h: Math.round(h * 360), s: Math.round(s * 100), v: Math.round(v * 100) };
+        }
+
+        // === 初始化 ===
+        function init() {
+            els.hueSlider.addEventListener('input', handleSliderChange);
+            els.satSlider.addEventListener('input', handleSliderChange);
+            els.valSlider.addEventListener('input', handleSliderChange);
+            window.addEventListener('paste', handlePaste);
+            els.canvas.addEventListener('click', handleCanvasPick);
+            initSVPicker();
+            resetGame();
+        }
+
+        // === 2D 调色板逻辑 ===
+        let isDraggingSV = false;
+        function initSVPicker() {
+            els.svPicker.addEventListener('mousedown', (e) => { isDraggingSV = true; updateSVFromMouse(e); });
+            window.addEventListener('mousemove', (e) => { if (isDraggingSV) updateSVFromMouse(e); });
+            window.addEventListener('mouseup', () => isDraggingSV = false);
+            els.svPicker.addEventListener('touchstart', (e) => { isDraggingSV = true; updateSVFromMouse(e.touches[0]); e.preventDefault(); }, {passive: false});
+            window.addEventListener('touchmove', (e) => { if (isDraggingSV) { updateSVFromMouse(e.touches[0]); e.preventDefault(); } }, {passive: false});
+            window.addEventListener('touchend', () => isDraggingSV = false);
+        }
+
+        function updateSVFromMouse(e) {
+            const rect = els.svPicker.getBoundingClientRect();
+            let x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+            let y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+            const s = Math.round((x / rect.width) * 100);
+            const v = Math.round(100 - (y / rect.height) * 100);
+            if (state.mode === 'user') { state.user.s = s; state.user.v = v; updateSliders(state.user); } 
+            else { state.ambient.s = s; state.ambient.v = v; updateSliders(state.ambient); }
+            updateUI();
+        }
+
+        function updateSVPickerUI(colorObj) {
+            els.svPicker.style.backgroundColor = `hsl(${colorObj.h}, 100%, 50%)`;
+            els.svCursor.style.left = `${colorObj.s}%`;
+            els.svCursor.style.top = `${100 - colorObj.v}%`;
+        }
+
+        // === 游戏逻辑 ===
+        function randomHSV() {
+            return { h: Math.floor(Math.random() * 360), s: Math.floor(Math.random() * 60) + 30, v: Math.floor(Math.random() * 60) + 30 };
+        }
+
+        function resetGame() {
+            state.target = randomHSV();
+            state.user = { h: Math.floor(Math.random() * 360), s: 50, v: 50 };
+            setMode('user');
+            els.resultPanel.style.display = 'none';
+            updateUI();
+        }
+
+        function changeLayout(layout) {
+            state.layout = layout;
+            if(layout === 'tiled') {
+                els.ambientWrapper.classList.add('mode-tiled'); els.ambientWrapper.classList.remove('mode-stacked');
+                els.btnLayoutTiled.classList.add('active'); els.btnLayoutStacked.classList.remove('active');
+            } else {
+                els.ambientWrapper.classList.remove('mode-tiled'); els.ambientWrapper.classList.add('mode-stacked');
+                els.btnLayoutTiled.classList.remove('active'); els.btnLayoutStacked.classList.add('active');
+            }
+        }
+
+        function setMode(mode) {
+            state.mode = mode;
+            if(mode === 'user') {
+                els.modeUser.classList.add('active'); els.modeAmbient.classList.remove('active', 'ambient-mode');
+                els.modeIndicator.textContent = "当前正在调整：🖌️ 你的颜色"; updateSliders(state.user);
+            } else {
+                els.modeUser.classList.remove('active'); els.modeAmbient.classList.add('active', 'ambient-mode');
+                els.modeIndicator.textContent = "当前正在调整：🌍 环境颜色"; updateSliders(state.ambient);
+            }
+            updateUI();
+        }
+
+        function updateSliders(colorObj) {
+            els.hueSlider.value = colorObj.h; els.satSlider.value = colorObj.s; els.valSlider.value = colorObj.v;
+        }
+
+        function handleSliderChange() {
+            const h = parseInt(els.hueSlider.value);
+            const s = parseInt(els.satSlider.value);
+            const v = parseInt(els.valSlider.value);
+            if (state.mode === 'user') { state.user = { h, s, v }; } 
+            else { state.ambient = { h, s, v }; }
+            updateUI();
+        }
+
+        function updateUI() {
+            const targetRGB = hsvToRgb(state.target.h, state.target.s, state.target.v);
+            const userRGB = hsvToRgb(state.user.h, state.user.s, state.user.v);
+            const ambientRGB = hsvToRgb(state.ambient.h, state.ambient.s, state.ambient.v);
+            els.targetBox.style.backgroundColor = targetRGB;
+            els.userBox.style.backgroundColor = userRGB;
+            els.ambientBg.style.backgroundColor = ambientRGB;
+            els.targetLabelText.style.color = targetRGB;
+            els.targetPickBtn.style.color = targetRGB;
+            els.userLabelText.style.color = userRGB;
+            const currentObj = state.mode === 'user' ? state.user : state.ambient;
+            els.valH.innerText = currentObj.h + '°';
+            els.valS.innerText = currentObj.s + '%';
+            els.valV.innerText = currentObj.v + '%';
+            updateSVPickerUI(currentObj);
+        }
+
+        // === 弹窗与图片处理 ===
+        function openPickerModal() {
+            els.modal.style.display = 'flex';
+            setTimeout(() => els.modal.classList.add('show'), 10);
+        }
+
+        function closePickerModal() {
+            els.modal.classList.remove('show');
+            setTimeout(() => els.modal.style.display = 'none', 300);
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) processImage(file);
+        }
+
+        function handlePaste(e) {
+            if (els.modal.style.display !== 'flex') return;
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) {
+                if (item.type.indexOf('image') === 0) {
+                    processImage(item.getAsFile());
+                    break;
+                }
+            }
+        }
+
+        function processImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    let width = img.width, height = img.height;
+                    const maxHeight = 300;
+                    if(height > maxHeight) { width = width * (maxHeight / height); height = maxHeight; }
+                    els.canvas.width = width; els.canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    els.uploadPlaceholder.style.display = 'none';
+                    els.canvas.style.display = 'block';
+                    els.pickerToolbar.style.display = 'flex';
+                    els.pickerHint.style.display = 'block';
+                    els.uploadArea.style.borderStyle = 'solid';
+
+                    extractDominantColors(width, height);
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function clearImage() {
+            ctx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+            els.canvas.style.display = 'none';
+            els.uploadPlaceholder.style.display = 'block';
+            els.pickerToolbar.style.display = 'none';
+            els.pickerHint.style.display = 'none';
+            els.paletteSection.style.display = 'none';
+            els.uploadArea.style.borderStyle = 'dashed';
+            state.tempColors = [];
+            document.getElementById('file-input').value = "";
+        }
+
+        function extractDominantColors(width, height) {
+            const imageData = ctx.getImageData(0, 0, width, height).data;
+            const colorCounts = {};
+            const step = 4 * 10; 
+            for (let i = 0; i < imageData.length; i += step) {
+                const r = imageData[i], g = imageData[i + 1], b = imageData[i + 2], a = imageData[i + 3];
+                if (a < 128) continue;
+                const rQ = Math.round(r / 32) * 32, gQ = Math.round(g / 32) * 32, bQ = Math.round(b / 32) * 32;
+                const key = `${rQ},${gQ},${bQ}`;
+                colorCounts[key] = (colorCounts[key] || 0) + 1;
+            }
+            const sortedColors = Object.entries(colorCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(entry => {
+                const [r, g, b] = entry[0].split(',').map(Number);
+                return { r, g, b };
+            });
+            
+            state.tempColors = sortedColors;
+            renderModalPalette();
+        }
+
+        // 渲染弹窗内的可编辑色盘
+        function renderModalPalette() {
+            els.paletteSwatches.innerHTML = '';
+            els.paletteSection.style.display = 'block';
+            els.confirmBtn.style.display = 'block';
+
+            state.tempColors.forEach((c, index) => {
+                const swatch = document.createElement('div');
+                swatch.className = 'palette-swatch';
+                swatch.style.backgroundColor = `rgb(${c.r},${c.g},${c.b})`;
+                
+                // 创建删除按钮
+                const deleteBtn = document.createElement('span');
+                deleteBtn.className = 'swatch-delete-btn';
+                deleteBtn.innerHTML = '×';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation(); // 阻止冒泡
+                    removeTempColor(index);
+                };
+                
+                swatch.appendChild(deleteBtn);
+                els.paletteSwatches.appendChild(swatch);
+            });
+        }
+
+        // 移除暂存颜色
+        function removeTempColor(index) {
+            state.tempColors.splice(index, 1);
+            renderModalPalette();
+        }
+
+        // Canvas 点击：添加颜色到暂存区
+        function handleCanvasPick(e) {
+            // 如果没有图片，不处理
+            if (els.canvas.style.display === 'none') return;
+
+            const rect = els.canvas.getBoundingClientRect();
+            const scaleX = els.canvas.width / rect.width;
+            const scaleY = els.canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+            const pixel = ctx.getImageData(x, y, 1, 1).data;
+            
+            // 新增颜色
+            const newColor = { r: pixel[0], g: pixel[1], b: pixel[2] };
+            state.tempColors.push(newColor);
+            
+            // 重新渲染
+            renderModalPalette();
+        }
+
+        // 确定使用色盘
+        function confirmPalette() {
+            if(state.tempColors.length === 0) return;
+
+            els.quickSwatches.innerHTML = '';
+            els.quickPalette.style.display = 'block';
+            
+            state.tempColors.forEach(c => {
+                const swatch = document.createElement('div');
+                swatch.className = 'palette-swatch';
+                swatch.style.backgroundColor = `rgb(${c.r},${c.g},${c.b})`;
+                swatch.title = "点击设为目标颜色";
+                swatch.onclick = () => {
+                    state.target = rgbToHsv(c.r, c.g, c.b);
+                    updateUI();
+                    swatch.style.transform = 'scale(0.9)';
+                    setTimeout(()=> swatch.style.transform = 'scale(1)', 100);
+                };
+                els.quickSwatches.appendChild(swatch);
+            });
+
+            // 选中第一个
+            const firstC = state.tempColors[0];
+            state.target = rgbToHsv(firstC.r, firstC.g, firstC.b);
+            updateUI();
+            closePickerModal();
+        }
+
+        function submitResult() {
+            const dH = Math.abs(state.target.h - state.user.h);
+            const dH_corrected = Math.min(dH, 360 - dH);
+            const dS = Math.abs(state.target.s - state.user.s);
+            const dV = Math.abs(state.target.v - state.user.v);
+            document.getElementById('diff-h').innerText = dH_corrected + '°';
+            document.getElementById('diff-s').innerText = dS + '%';
+            document.getElementById('diff-v').innerText = dV + '%';
+            setTag('tag-h', dH_corrected, 5, 15);
+            setTag('tag-s', dS, 5, 15);
+            setTag('tag-v', dV, 5, 15);
+            const score = 100 - (dH_corrected + dS/2 + dV/2);
+            let comment = score > 90 ? "色彩大师！✨" : (score > 70 ? "很不错哦 👍" : "继续加油 💪");
+            document.getElementById('final-score').innerText = Math.max(0, Math.floor(score)) + "分 - " + comment;
+            els.resultPanel.style.display = 'block';
+        }
+
+        function setTag(id, val, goodThresh, badThresh) {
+            const el = document.getElementById(id);
+            el.className = 'tag';
+            if (val <= goodThresh) { el.innerText = "完美"; el.classList.add('tag-good'); }
+            else if (val <= badThresh) { el.innerText = "接近"; el.style.background = "#fff3cd"; }
+            else { el.innerText = "偏差大"; el.classList.add('tag-bad'); }
+        }
+
+        init();
+    </script>
+</body>
+</html>
