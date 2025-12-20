@@ -97,9 +97,6 @@
         input[type="range"] { flex: 1; height: 8px; appearance: none; background: #eee; border-radius: 4px; border: 1px solid #999; }
         input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; background: var(--accent-color); border: 2px solid #333; border-radius: 50%; cursor: pointer; }
         
-        input[type="color"] { -webkit-appearance: none; border: 2px solid var(--btn-border); width: 100%; height: 30px; cursor: pointer; background: none; padding: 0; border-radius: 6px; overflow: hidden; }
-        input[type="color"]::-webkit-color-swatch { border: none; }
-
         #no-selection-mask {
             position: absolute; top: 50px; left: 0; width: 100%; height: 250px;
             background: rgba(255,255,255,0.8); z-index: 20;
@@ -117,6 +114,83 @@
 
         #drop-btn { background-color: #2ecc71; color: white; border-color: #27ae60; width: 100%; margin-top: 5px; font-weight: bold; }
         #drop-btn:hover { background-color: #27ae60; }
+
+        /* ================= 拾色器样式 ================= */
+        .color-trigger {
+            width: 100%; height: 30px; border: 2px solid var(--btn-border); border-radius: 6px;
+            cursor: pointer; background-color: #fff; position: relative; box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+        
+        /* 弹窗容器 */
+        .cp-popup {
+            position: absolute; 
+            width: 230px; background: #fff; border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3); border: 1px solid #ccc;
+            padding: 10px; z-index: 100; display: none;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Sat/Val 板 */
+        .cp-sat-val {
+            width: 100%; height: 140px; position: relative;
+            background: linear-gradient(to right, #fff, rgba(255,255,255,0)), linear-gradient(to top, #000, rgba(0,0,0,0));
+            background-color: red; /* Base Hue */
+            cursor: crosshair; margin-bottom: 10px; border-radius: 4px; overflow: hidden;
+            box-shadow: inset 0 0 2px rgba(0,0,0,0.2);
+        }
+        .cp-cursor {
+            width: 12px; height: 12px; border: 2px solid #fff; border-radius: 50%;
+            position: absolute; transform: translate(-6px, -6px); box-shadow: 0 0 3px rgba(0,0,0,0.5); pointer-events: none;
+        }
+
+        /* 控件栏 (吸管 + 预览 + 色相) */
+        .cp-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        
+        /* 吸管 (V20.1 更新图标) */
+        .cp-eyedropper {
+            width: 24px; height: 24px; cursor: pointer; flex-shrink: 0;
+            /* 使用更通用的斜向滴管图标 */
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17.66 7.93 12 2.27 3.07 11.2c-.48.48-.48 1.25 0 1.73l5.04 5.04c.48.48 1.25.48 1.73 0l8.83-8.83c.96-.96.96-2.52 0-3.48z'/%3E%3Cpath d='M14.12 11.46 9.17 16.41'/%3E%3Cpath d='M6.34 19.24 3.52 22.07'/%3E%3C/svg%3E") no-repeat center/contain;
+            transition: transform 0.1s;
+        }
+        .cp-eyedropper:active { transform: scale(0.9); }
+        .cp-eyedropper.disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* 预览圈 */
+        .cp-preview {
+            width: 24px; height: 24px; border-radius: 50%; border: 1px solid #ccc; flex-shrink: 0;
+            box-shadow: inset 0 0 2px rgba(0,0,0,0.1);
+        }
+
+        /* 色相条 */
+        .cp-hue-rail {
+            flex: 1; height: 12px; position: relative;
+            background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+            border-radius: 6px; cursor: pointer;
+        }
+        .cp-hue-thumb {
+            width: 14px; height: 14px; border: 2px solid #fff; background: transparent; border-radius: 50%;
+            position: absolute; top: -1px; transform: translateX(-7px); box-shadow: 0 0 2px rgba(0,0,0,0.5); pointer-events: none;
+        }
+
+        /* 输入区域容器 */
+        .cp-inputs-container { display: flex; align-items: center; gap: 5px; }
+        
+        /* 输入组 */
+        .cp-input-group { display: flex; flex-direction: column; align-items: center; flex: 1; }
+        .cp-num-input {
+            width: 100%; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 4px 0; margin-bottom: 2px;
+            font-size: 12px;
+        }
+        .cp-label { 
+            font-size: 11px; color: #666; font-weight: bold; cursor: pointer; user-select: none;
+            display: flex; align-items: center; gap: 2px;
+        }
+        .cp-label:hover { color: var(--accent-color); }
+        
+        /* 切换图标 */
+        .cp-switch-icon { font-size: 10px; transform: rotate(90deg); display: inline-block; margin-left: 2px; }
+
     </style>
     <script type="importmap">
         {
@@ -132,7 +206,7 @@
 <div id="left-panel" class="panel">
     <div id="left-toggle" class="toggle-btn" title="折叠">◀</div>
     <div class="panel-content">
-        <h3>✨ 光影素描室 V18</h3>
+        <h3>✨ 光影素描室 V20</h3>
         
         <div class="history-bar">
             <button id="btn-undo" class="history-btn" title="Ctrl+Z">↩️ 撤销</button>
@@ -172,11 +246,11 @@
         <span class="group-label">🌍 环境设定</span>
         <div class="control-row">
             <label>背景颜色</label>
-            <input type="color" id="bg-color" value="#fdfbf7">
+            <div id="bg-color-trigger" class="color-trigger" style="background-color:#fdfbf7;"></div>
         </div>
         <div class="control-row">
             <label>环境光色</label>
-            <input type="color" id="ambient-color" value="#999999" style="height:20px;">
+            <div id="amb-color-trigger" class="color-trigger" style="background-color:#999999;"></div>
         </div>
         <div class="control-row">
             <label>太阳旋转</label>
@@ -228,7 +302,7 @@
             <span class="group-label">🎨 基础属性 (批量)</span>
             <div class="control-row">
                 <label>固有色</label>
-                <input type="color" id="obj-color" value="#ffffff" style="flex:1;">
+                <div id="obj-color-trigger" class="color-trigger" style="flex:1; background-color:#ffffff;"></div>
             </div>
 
             <span class="group-label">📍 位置 (XYZ)</span>
@@ -288,6 +362,292 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { TransformControls } from 'three/addons/controls/TransformControls.js';
 
+    // ==========================================
+    // 拾色器类 (支持 HSB / RGB / HEX 切换 + 吸管)
+    // ==========================================
+    class ColorPicker {
+        constructor(triggerEl, initialColor, onChange) {
+            this.trigger = triggerEl;
+            this.onChange = onChange;
+            // 内部状态始终存 HSB
+            this.h = 0; this.s = 0; this.b = 100;
+            this.mode = 'hsb'; // hsb, rgb, hex
+            
+            this.initUI();
+            this.setColorFromHex(initialColor);
+            
+            this.trigger.onclick = (e) => {
+                e.stopPropagation();
+                // 仅关闭其他拾色器
+                document.querySelectorAll('.cp-popup').forEach(p => {
+                    if (p !== this.popup) p.style.display = 'none';
+                });
+                
+                const rect = this.trigger.getBoundingClientRect();
+                // 智能定位：优先向下，不够位置则向上
+                let top = rect.bottom + 5;
+                if (top + 250 > window.innerHeight) top = rect.top - 250;
+                let left = rect.left;
+                if (left + 230 > window.innerWidth) left = window.innerWidth - 240;
+                
+                this.popup.style.top = top + 'px';
+                this.popup.style.left = left + 'px';
+                this.popup.style.display = (this.popup.style.display === 'block') ? 'none' : 'block';
+            };
+        }
+
+        initUI() {
+            this.popup = document.createElement('div');
+            this.popup.className = 'cp-popup';
+            document.body.appendChild(this.popup);
+
+            // 1. Sat/Val Box
+            this.svBox = document.createElement('div');
+            this.svBox.className = 'cp-sat-val';
+            this.cursor = document.createElement('div');
+            this.cursor.className = 'cp-cursor';
+            this.svBox.appendChild(this.cursor);
+            this.popup.appendChild(this.svBox);
+
+            // 2. Controls Row (Eyedropper, Preview, Hue Rail)
+            const controls = document.createElement('div');
+            controls.className = 'cp-controls';
+            
+            // Eyedropper
+            this.eyedropperBtn = document.createElement('div');
+            this.eyedropperBtn.className = 'cp-eyedropper';
+            this.eyedropperBtn.title = "吸取屏幕颜色";
+            if (!window.EyeDropper) this.eyedropperBtn.classList.add('disabled');
+            this.eyedropperBtn.onclick = () => this.pickColor();
+            controls.appendChild(this.eyedropperBtn);
+
+            // Preview
+            this.preview = document.createElement('div');
+            this.preview.className = 'cp-preview';
+            controls.appendChild(this.preview);
+
+            // Hue Rail
+            this.hueRail = document.createElement('div');
+            this.hueRail.className = 'cp-hue-rail';
+            this.hueThumb = document.createElement('div');
+            this.hueThumb.className = 'cp-hue-thumb';
+            this.hueRail.appendChild(this.hueThumb);
+            controls.appendChild(this.hueRail);
+
+            this.popup.appendChild(controls);
+
+            // 3. Inputs Container
+            this.inputsContainer = document.createElement('div');
+            this.inputsContainer.className = 'cp-inputs-container';
+            this.popup.appendChild(this.inputsContainer);
+
+            this.renderInputs();
+
+            // Bind Events
+            this.bindDrag(this.svBox, (x, y) => {
+                this.s = x * 100;
+                this.b = (1 - y) * 100;
+                this.updateUI();
+                this.fireChange();
+            });
+
+            this.bindDrag(this.hueRail, (x, y) => {
+                this.h = x * 360;
+                this.updateUI();
+                this.fireChange();
+            });
+
+            window.addEventListener('mousedown', (e) => {
+                if (!this.popup.contains(e.target) && e.target !== this.trigger) {
+                    this.popup.style.display = 'none';
+                }
+            });
+        }
+
+        async pickColor() {
+            if (!window.EyeDropper) { alert("您的浏览器不支持吸管工具"); return; }
+            try {
+                const ed = new EyeDropper();
+                const result = await ed.open();
+                this.setColorFromHex(result.sRGBHex);
+                this.fireChange();
+            } catch (e) { /* Cancelled */ }
+        }
+
+        toggleMode() {
+            const modes = ['hsb', 'rgb', 'hex'];
+            const idx = modes.indexOf(this.mode);
+            this.mode = modes[(idx + 1) % modes.length];
+            this.renderInputs();
+            this.updateUI();
+        }
+
+        renderInputs() {
+            this.inputsContainer.innerHTML = ''; // Clear
+            
+            // Labels
+            const labels = { 'hsb': ['H', 'S', 'B'], 'rgb': ['R', 'G', 'B'], 'hex': ['HEX'] };
+            const currentLabels = labels[this.mode];
+
+            currentLabels.forEach((lbl, idx) => {
+                const group = document.createElement('div');
+                group.className = 'cp-input-group';
+                
+                const input = document.createElement('input');
+                input.className = 'cp-num-input';
+                
+                if (this.mode === 'hex') {
+                    input.type = 'text';
+                    input.onchange = () => this.handleHexInput(input.value);
+                } else {
+                    input.type = 'number';
+                    input.onchange = () => this.handleNumInput(idx, input.value);
+                }
+
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'cp-label';
+                labelDiv.innerHTML = lbl + (idx === currentLabels.length - 1 ? ' <span class="cp-switch-icon">›</span>' : '');
+                
+                // 点击最后一个标签切换模式
+                if (idx === currentLabels.length - 1) {
+                    labelDiv.onclick = () => this.toggleMode();
+                    labelDiv.title = "点击切换模式 (HSB/RGB/HEX)";
+                }
+
+                group.appendChild(input);
+                group.appendChild(labelDiv);
+                this.inputsContainer.appendChild(group);
+            });
+        }
+
+        handleNumInput(idx, val) {
+            val = parseInt(val);
+            if (isNaN(val)) return;
+
+            if (this.mode === 'hsb') {
+                if (idx === 0) this.h = (val % 360 + 360) % 360;
+                if (idx === 1) this.s = Math.max(0, Math.min(100, val));
+                if (idx === 2) this.b = Math.max(0, Math.min(100, val));
+            } else if (this.mode === 'rgb') {
+                const rgb = this.hsbToRgbObj(this.h, this.s, this.b);
+                if (idx === 0) rgb.r = Math.max(0, Math.min(255, val));
+                if (idx === 1) rgb.g = Math.max(0, Math.min(255, val));
+                if (idx === 2) rgb.b = Math.max(0, Math.min(255, val));
+                this.setColorFromRgb(rgb.r, rgb.g, rgb.b);
+            }
+            this.updateUI();
+            this.fireChange();
+        }
+
+        handleHexInput(val) {
+            if (/^#[0-9A-Fa-f]{6}$/.test(val) || /^[0-9A-Fa-f]{6}$/.test(val)) {
+                if (!val.startsWith('#')) val = '#' + val;
+                this.setColorFromHex(val);
+                this.fireChange();
+            }
+        }
+
+        updateUI() {
+            // SV Bg
+            this.svBox.style.backgroundColor = `hsl(${this.h}, 100%, 50%)`;
+            
+            // Cursors
+            this.cursor.style.left = this.s + '%';
+            this.cursor.style.top = (100 - this.b) + '%';
+            this.hueThumb.style.left = (this.h / 360 * 100) + '%';
+
+            // Preview & Trigger
+            const hex = this.hsbToHex(this.h, this.s, this.b);
+            this.trigger.style.backgroundColor = hex;
+            this.preview.style.backgroundColor = hex;
+
+            // Inputs
+            const inputs = this.inputsContainer.querySelectorAll('input');
+            if (this.mode === 'hsb') {
+                inputs[0].value = Math.round(this.h);
+                inputs[1].value = Math.round(this.s);
+                inputs[2].value = Math.round(this.b);
+            } else if (this.mode === 'rgb') {
+                const rgb = this.hsbToRgbObj(this.h, this.s, this.b);
+                inputs[0].value = rgb.r;
+                inputs[1].value = rgb.g;
+                inputs[2].value = rgb.b;
+            } else {
+                inputs[0].value = hex;
+            }
+        }
+
+        bindDrag(el, callback) {
+            const handle = (e) => {
+                e.preventDefault();
+                const rect = el.getBoundingClientRect();
+                let x = (e.clientX - rect.left) / rect.width;
+                let y = (e.clientY - rect.top) / rect.height;
+                x = Math.max(0, Math.min(1, x));
+                y = Math.max(0, Math.min(1, y));
+                callback(x, y);
+            };
+            el.addEventListener('mousedown', (e) => {
+                handle(e);
+                const move = (em) => handle(em);
+                const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+                window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+            });
+        }
+
+        // --- Helpers ---
+        setColorFromHex(hex) {
+            const rgb = this.hexToRgbObj(hex);
+            this.setColorFromRgb(rgb.r, rgb.g, rgb.b);
+        }
+
+        setColorFromRgb(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            let max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, v = max;
+            let d = max - min;
+            s = max === 0 ? 0 : d / max;
+            if (max === min) h = 0;
+            else {
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            this.h = h * 360; this.s = s * 100; this.b = v * 100;
+            this.updateUI();
+        }
+
+        hsbToRgbObj(h, s, b) {
+            s /= 100; b /= 100;
+            const k = (n) => (n + h / 60) % 6;
+            const f = (n) => b * (1 - s * Math.max(0, Math.min(k(n), 4 - k(n), 1)));
+            return { r: Math.round(f(5) * 255), g: Math.round(f(3) * 255), b: Math.round(f(1) * 255) };
+        }
+
+        hsbToHex(h, s, b) {
+            const rgb = this.hsbToRgbObj(h, s, b);
+            const toHex = (x) => { const hex = x.toString(16); return hex.length === 1 ? '0' + hex : hex; };
+            return `#${toHex(rgb.r)}${toHex(rgb.g)}${toHex(rgb.b)}`;
+        }
+
+        hexToRgbObj(hex) {
+            if (hex.startsWith('#')) hex = hex.slice(1);
+            if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+            const bigInt = parseInt(hex, 16);
+            return { r: (bigInt >> 16) & 255, g: (bigInt >> 8) & 255, b: bigInt & 255 };
+        }
+
+        fireChange() { if (this.onChange) this.onChange(this.hsbToHex(this.h, this.s, this.b)); }
+    }
+
+
+    // ==========================================
+    // 主逻辑
+    // ==========================================
+
     // === 1. 初始化变量 ===
     const allObjects = []; 
     let currentMode = 'pbr'; 
@@ -306,69 +666,37 @@
     function saveState() {
         if (isRestoring) return;
         if (historyPointer < historyStack.length - 1) { historyStack.splice(historyPointer + 1); }
-        
         const state = allObjects.map(obj => {
-            const worldPos = new THREE.Vector3();
-            const worldQuat = new THREE.Quaternion();
-            const worldScale = new THREE.Vector3();
-            obj.getWorldPosition(worldPos);
-            obj.getWorldQuaternion(worldQuat);
-            obj.getWorldScale(worldScale);
+            const worldPos = new THREE.Vector3(); const worldQuat = new THREE.Quaternion(); const worldScale = new THREE.Vector3();
+            obj.getWorldPosition(worldPos); obj.getWorldQuaternion(worldQuat); obj.getWorldScale(worldScale);
             const rotation = new THREE.Euler().setFromQuaternion(worldQuat);
-
             return {
-                type: obj.userData.type,
-                pos: worldPos.toArray(),
-                rot: rotation.toArray(),
-                scale: worldScale.toArray(),
-                color: obj.userData.baseColor
+                type: obj.userData.type, pos: worldPos.toArray(), rot: rotation.toArray(), scale: worldScale.toArray(), color: obj.userData.baseColor
             };
         });
-        
         const selectionIndices = selectedObjects.map(obj => allObjects.indexOf(obj));
         const fullState = { scene: state, selection: selectionIndices };
-
         const stateStr = JSON.stringify(fullState);
         if (historyPointer >= 0 && JSON.stringify(historyStack[historyPointer]) === stateStr) return;
-        
-        historyStack.push(fullState); 
-        historyPointer++;
+        historyStack.push(fullState); historyPointer++;
         if (historyStack.length > 20) { historyStack.shift(); historyPointer--; }
         updateHistoryButtons();
     }
 
     function restoreState(stateObj) {
         if (!stateObj) return;
-        isRestoring = true;
-        clearScene(false);
-        
-        const stateData = stateObj.scene || [];
-        const selectionData = stateObj.selection || [];
-
+        isRestoring = true; clearScene(false);
+        const stateData = stateObj.scene || []; const selectionData = stateObj.selection || [];
         stateData.forEach(data => {
             try {
-                if(data.type === 'light') { 
-                    addPointLightInternal({x:data.pos[0], y:data.pos[1], z:data.pos[2]}, data.color); 
-                } else {
-                    addGeoInternal(data.type, 
-                        {x:data.pos[0], y:data.pos[1], z:data.pos[2]}, 
-                        {x:data.rot[0], y:data.rot[1], z:data.rot[2]}, 
-                        {x:data.scale[0], y:data.scale[1], z:data.scale[2]}, 
-                        data.color
-                    );
-                }
+                if(data.type === 'light') { addPointLightInternal({x:data.pos[0], y:data.pos[1], z:data.pos[2]}, data.color); } 
+                else { addGeoInternal(data.type, {x:data.pos[0], y:data.pos[1], z:data.pos[2]}, {x:data.rot[0], y:data.rot[1], z:data.rot[2]}, {x:data.scale[0], y:data.scale[1], z:data.scale[2]}, data.color); }
             } catch(e) { console.error(e); }
         });
-
         selectedObjects = [];
-        selectionData.forEach(idx => {
-            if (allObjects[idx]) selectedObjects.push(allObjects[idx]);
-        });
-        updateSelectionGroup();
-        updateUI();
-        
-        isRestoring = false; 
-        updateHistoryButtons();
+        selectionData.forEach(idx => { if (allObjects[idx]) selectedObjects.push(allObjects[idx]); });
+        updateSelectionGroup(); updateUI();
+        isRestoring = false; updateHistoryButtons();
     }
 
     function undo() { if (historyPointer > 0) { historyPointer--; restoreState(historyStack[historyPointer]); } }
@@ -388,11 +716,7 @@
         if (mode === 'pbr') return new THREE.MeshStandardMaterial({ color: color, roughness: 0.6, metalness: 0.05 }); 
         else if (mode === 'clay') return new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 1.0, metalness: 0.0 });
         else if (mode === 'normal') return new THREE.MeshNormalMaterial();
-        else if (mode === 'wire') {
-            return new THREE.MeshBasicMaterial({ 
-                color: color, transparent: true, opacity: 0.15, depthWrite: false, side: THREE.DoubleSide 
-            });
-        }
+        else if (mode === 'wire') return new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.15, depthWrite: false, side: THREE.DoubleSide });
         else return new THREE.MeshStandardMaterial({ color: color, roughness: 0.6, metalness: 0.05 });
     }
 
@@ -405,13 +729,11 @@
                 const outline = obj.children.find(c => c.userData.isOutline);
                 if(outline) outline.visible = false;
                 if(structure) structure.visible = false;
-
                 if (currentMode === 'wire') {
                     if(structure) { structure.visible = true; structure.material = blackLineMat; } 
                     else if(outline) { outline.visible = true; outline.material = blackLineMat; }
                 } 
-                obj.castShadow = true; 
-                obj.receiveShadow = (currentMode !== 'wire');
+                obj.castShadow = true; obj.receiveShadow = (currentMode !== 'wire');
             }
         });
         if(gridHelper) gridHelper.visible = true;
@@ -452,33 +774,43 @@
     scene.add(sunHelper);
 
     gridHelper = new THREE.GridHelper(30, 30, 0xa4b0be, 0xdfe4ea); 
-    gridHelper.position.y = -0.01; 
-    scene.add(gridHelper);
+    gridHelper.position.y = -0.01; scene.add(gridHelper);
     
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.ShadowMaterial({ opacity: 0.2, color: 0x2c3e50 }));
-    ground.rotation.x = -Math.PI/2; 
-    ground.position.y = -0.02; 
-    ground.receiveShadow = true; 
-    scene.add(ground);
+    ground.rotation.x = -Math.PI/2; ground.position.y = -0.02; ground.receiveShadow = true; scene.add(ground);
     
     const gridInput = document.getElementById('grid-height');
-    if(gridInput) { 
-        gridInput.addEventListener('input', () => { 
-            const h = parseFloat(gridInput.value); 
-            gridHelper.position.y = h; ground.position.y = h - 0.01; 
-        }); 
-        gridHelper.position.y = -0.01; ground.position.y = -0.02;
-    }
-    const bgInput = document.getElementById('bg-color');
-    if(bgInput) { bgInput.addEventListener('input', (e) => { scene.background = new THREE.Color(e.target.value); scene.fog.color = new THREE.Color(e.target.value); }); }
+    if(gridInput) { gridInput.addEventListener('input', () => { const h = parseFloat(gridInput.value); gridHelper.position.y = h; ground.position.y = h - 0.01; }); gridHelper.position.y = -0.01; ground.position.y = -0.02; }
 
-    // === 7. 控制器 ===
+    // === 7. 接入自定义拾色器 ===
+    new ColorPicker(document.getElementById('bg-color-trigger'), '#fdfbf7', (hex) => {
+        scene.background = new THREE.Color(hex);
+        scene.fog.color = new THREE.Color(hex);
+    });
+    
+    new ColorPicker(document.getElementById('amb-color-trigger'), '#999999', (hex) => {
+        ambientLight.color.set(hex);
+    });
+
+    const objColorPicker = new ColorPicker(document.getElementById('obj-color-trigger'), '#ffffff', (hex) => {
+        selectedObjects.forEach(obj => {
+            obj.userData.baseColor = hex;
+            if(obj.userData.type !== 'light') { 
+                if(currentMode!=='wire' && currentMode!=='clay' && currentMode!=='normal') obj.material.color.set(hex); 
+            } 
+            else { 
+                obj.material.color.set(hex); 
+                if(obj.children[0].isLight) obj.children[0].color.set(hex); 
+            }
+        });
+        saveState();
+    });
+
+
+    // === 8. 控制器 ===
     const orbit = new OrbitControls(camera, renderer.domElement);
     transformControl = new TransformControls(camera, renderer.domElement);
-    transformControl.addEventListener('dragging-changed', e => {
-        orbit.enabled = !e.value;
-        if (!e.value) saveState(); 
-    });
+    transformControl.addEventListener('dragging-changed', e => { orbit.enabled = !e.value; if (!e.value) saveState(); });
     scene.add(transformControl);
 
     const selectionGroup = new THREE.Group();
@@ -501,7 +833,7 @@
     }
     transformControl.addEventListener('change', () => { if (selectedObjects.length > 0) updateUIFromObject(selectionGroup); });
 
-    // === 8. 物体管理 (内部函数，不触发保存) ===
+    // === 9. 物体管理 (内部函数) ===
     function getRandomColor() { return `hsl(${Math.floor(Math.random()*360)}, 75%, 75%)`; }
     const isSmooth = (type) => ['sphere', 'cylinder', 'cone', 'hemi', 'capsule', 'torus', 'ring', 'tube', 'knot', 'arch'].includes(type);
 
@@ -536,14 +868,12 @@
             case 'house': geo = new THREE.CylinderGeometry(0, 1.5, 2, 5, 1); break;
             case 'knot': geo = new THREE.TorusKnotGeometry(0.8, 0.25, 64, 16); break;
             case 'tile': geo = new THREE.BoxGeometry(3, 0.2, 3); break;
-            default: geo = new THREE.BoxGeometry(1,1,1); console.warn("Unknown type, using box:", type);
         }
         
         const c = colorStr || DEFAULT_COLOR;
         const hex = new THREE.Color(c).getHexString();
         const mesh = new THREE.Mesh(geo, getMaterials('#'+hex, currentMode));
-        // 关键修复：正确存储 type，而不是 'geometry'
-        mesh.userData = { type: type, baseColor: '#'+hex };
+        mesh.userData = { type: 'geometry', baseColor: '#'+hex };
         mesh.castShadow = true; mesh.receiveShadow = true;
         if(type === 'tube') mesh.material.side = THREE.DoubleSide; 
 
@@ -571,7 +901,6 @@
         return mesh;
     }
 
-    // 公开的添加函数 (触发保存)
     function addGeo(type, pos, rot, scale, colorStr) {
         const mesh = addGeoInternal(type, pos, rot, scale, colorStr);
         if(!isRestoring) {
@@ -599,9 +928,9 @@
         if(!isRestoring) { selectedObjects = [bulb]; updateSelectionGroup(); updateUI(); saveState(); }
     }
 
+    // === 10. UI ===
     const uiMask = document.getElementById('no-selection-mask');
     const statusText = document.getElementById('selection-status');
-    const inputColor = document.getElementById('obj-color');
     const inputs = {
         px: document.getElementById('pos-x'), py: document.getElementById('pos-y'), pz: document.getElementById('pos-z'),
         rx: document.getElementById('rot-x'), ry: document.getElementById('rot-y'), rz: document.getElementById('rot-z'),
@@ -610,7 +939,12 @@
 
     function updateUI() {
         if (selectedObjects.length === 0) { uiMask.style.display = 'flex'; statusText.textContent = "当前选中: 0 个物体"; } 
-        else { uiMask.style.display = 'none'; statusText.textContent = `当前选中: ${selectedObjects.length} 个物体`; updateUIFromObject(selectionGroup); inputColor.value = selectedObjects[0].userData.baseColor || '#ffffff'; }
+        else { 
+            uiMask.style.display = 'none'; statusText.textContent = `当前选中: ${selectedObjects.length} 个物体`; 
+            updateUIFromObject(selectionGroup);
+            const color = selectedObjects[0].userData.baseColor || '#ffffff';
+            objColorPicker.setColorFromHex(color);
+        }
     }
 
     function updateUIFromObject(obj) {
@@ -629,17 +963,6 @@
     }
     Object.values(inputs).forEach(i => { if(i) { i.addEventListener('input', updateObjectFromUI); i.addEventListener('change', () => { updateObjectFromUI(); saveState(); }); } });
 
-    if(inputColor) inputColor.addEventListener('input', (e) => {
-        const val = e.target.value;
-        selectedObjects.forEach(obj => {
-            obj.userData.baseColor = val;
-            if(obj.userData.type !== 'light') { if(currentMode!=='wire' && currentMode!=='clay' && currentMode!=='normal') obj.material.color.set(val); } 
-            else { obj.material.color.set(val); if(obj.children[0].isLight) obj.children[0].color.set(val); }
-        });
-        updateMaterials();
-    });
-    if(inputColor) inputColor.addEventListener('change', saveState);
-
     safeBind('drop-btn', () => {
         if(selectedObjects.length === 0) return;
         updateSelectionGroup(); [...selectionGroup.children].forEach(c => scene.attach(c));
@@ -655,7 +978,7 @@
 
     const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
     window.addEventListener('mousedown', (e) => {
-        if(e.target.closest('.panel')) return;
+        if(e.target.closest('.panel') || e.target.closest('.cp-popup')) return;
         const rect = renderer.domElement.getBoundingClientRect();
         mouse.x = ((e.clientX - rect.left)/rect.width)*2-1; mouse.y = -((e.clientY-rect.top)/rect.height)*2+1;
         raycaster.setFromCamera(mouse, camera);
@@ -669,7 +992,7 @@
         updateSelectionGroup(); updateUI();
     });
 
-    // === 10. 功能绑定 ===
+    // === 11. 功能绑定 ===
     function clearScene(triggerSave = true) { 
         updateSelectionGroup(); [...selectionGroup.children].forEach(c => scene.attach(c));
         allObjects.forEach(o => scene.remove(o)); allObjects.length=0; selectedObjects = []; 
@@ -740,38 +1063,13 @@
 
     safeBind('clear-btn', () => clearScene(true));
     
-    // 监听键盘事件，修复焦点冲突和组合键
     window.addEventListener('keydown', (e) => {
-        // 如果焦点在输入框，且不是按下 ESC，则不触发快捷键
-        if (['input', 'textarea'].includes(document.activeElement.tagName.toLowerCase())) {
-            if (e.key === 'Escape') document.activeElement.blur();
-            return;
-        }
-
-        const key = e.key.toLowerCase();
-        const isCtrl = e.ctrlKey || e.metaKey;
-
-        // Undo: Ctrl + Z
-        if (isCtrl && key === 'z' && !e.shiftKey) {
-            e.preventDefault();
-            undo();
-            return;
-        }
-
-        // Redo: Ctrl + Y 或 Ctrl + Shift + Z
-        if ((isCtrl && key === 'y') || (isCtrl && key === 'z' && e.shiftKey)) {
-            e.preventDefault();
-            redo();
-            return;
-        }
-
-        // Tools
-        if (key === 'w') document.getElementById('tool-translate').click();
-        if (key === 'e') document.getElementById('tool-rotate').click();
-        if (key === 'r') document.getElementById('tool-scale').click();
-
-        // Delete
-        if ((key === 'delete' || key === 'backspace') && selectedObjects.length > 0) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); return; }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); return; }
+        if(e.key === 'w') document.getElementById('tool-translate').click();
+        if(e.key === 'e') document.getElementById('tool-rotate').click();
+        if(e.key === 'r') document.getElementById('tool-scale').click();
+        if((e.key === 'Delete'||e.key === 'Backspace') && selectedObjects.length>0) { 
             updateSelectionGroup(); [...selectionGroup.children].forEach(c => scene.attach(c)); 
             selectedObjects.forEach(o => { scene.remove(o); allObjects.splice(allObjects.indexOf(o), 1); });
             selectedObjects = []; updateSelectionGroup(); updateUI();
@@ -801,13 +1099,11 @@
     safeBind('export-btn', () => {
         transformControl.detach(); sunHelper.visible=false; allObjects.forEach(o => { if(o.userData.type==='light') o.children[1].visible=false; });
         renderer.render(scene, camera);
-        const link = document.createElement('a'); link.download = 'sketch-v18.png'; link.href = renderer.domElement.toDataURL('image/png'); link.click();
+        const link = document.createElement('a'); link.download = 'sketch-v20.png'; link.href = renderer.domElement.toDataURL('image/png'); link.click();
         sunHelper.visible=true; if(selectedObjects.length>0) transformControl.attach(selectionGroup); allObjects.forEach(o => { if(o.userData.type==='light') o.children[1].visible=true; });
     });
 
-    // 初始保存
     saveState();
-
     function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
     animate();
     window.addEventListener('resize', () => { camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
