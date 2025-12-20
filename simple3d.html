@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>🎨 全能光影素描室 V18.0 (快捷键修复版)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Zcool+KuaiLe&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper-color: #fdfbf7;
+            --btn-border: #4a4a4a;
+            --accent-color: #ff9f43;
+            --tool-active: #3498db;
+            --panel-width: 320px;
+        }
+
+        body { 
+            margin: 0; overflow: hidden; 
+            font-family: 'Patrick Hand', 'Zcool KuaiLe', cursive; 
+            background-color: var(--paper-color);
+            background-image: radial-gradient(#ccc 1px, transparent 1px); 
+            background-size: 20px 20px;
+            user-select: none;
+        }
+
+        #canvas-container { width: 100vw; height: 100vh; }
+        
+        .panel {
+            position: absolute; top: 15px; bottom: 15px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 3px solid var(--btn-border);
+            border-radius: 15px;
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.1);
+            width: var(--panel-width);
+            z-index: 10;
+            display: flex; flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .panel-content { padding: 15px 20px; overflow-y: auto; flex: 1; }
+        .panel-content::-webkit-scrollbar { width: 6px; }
+        .panel-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+        #left-panel { left: 15px; }
+        #left-panel.collapsed { transform: translateX(calc(-100% - 20px)); }
+        #right-panel { right: 15px; box-shadow: -6px 6px 0px rgba(0,0,0,0.1); }
+        #right-panel.collapsed { transform: translateX(calc(100% + 20px)); }
+
+        .toggle-btn {
+            position: absolute; top: 50%; width: 24px; height: 50px;
+            background: #fff; border: 3px solid var(--btn-border);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 14px; color: #555;
+            transition: background 0.2s; z-index: 11;
+        }
+        .toggle-btn:hover { background: #ffeb3b; }
+        #left-toggle { right: -27px; border-left: none; border-radius: 0 10px 10px 0; box-shadow: 3px 2px 0px rgba(0,0,0,0.1); }
+        #right-toggle { left: -27px; border-right: none; border-radius: 10px 0 0 10px; box-shadow: -3px 2px 0px rgba(0,0,0,0.1); }
+
+        h3 { 
+            margin: 0 0 10px 0; font-size: 20px; color: #2c3e50; 
+            text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 8px;
+        }
+
+        .group-label { 
+            font-size: 14px; color: #e67e22; margin-top: 15px; margin-bottom: 6px; 
+            display: block; font-weight: bold; border-left: 4px solid #ffcc00; padding-left: 6px;
+        }
+
+        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+
+        button {
+            padding: 6px 2px; cursor: pointer; 
+            border: 2px solid var(--btn-border);
+            background: #fff; border-radius: 8px; 
+            font-family: inherit; font-size: 12px;
+            transition: all 0.1s ease;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        button:hover { transform: translateY(-2px); background: #fff9c4; }
+        button:active { transform: translateY(1px); box-shadow: inset 1px 1px 2px rgba(0,0,0,0.1); }
+        button.active { background: var(--accent-color); color: white; border-color: #2c3e50; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2); transform: none; }
+        .tool-btn.active { background: var(--tool-active); color: white; }
+
+        .history-bar { display: flex; gap: 5px; margin-bottom: 10px; }
+        .history-btn { flex: 1; background: #e3f2fd; border-color: #2196f3; color: #1565c0; font-weight: bold; }
+        .history-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #eee; border-color: #ccc; color: #999; transform: none; box-shadow: none; }
+
+        .prop-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+        .input-group { display: flex; gap: 3px; flex: 1; }
+        .input-group input { width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 4px; font-family: inherit; font-size: 12px; text-align: center; }
+        
+        .control-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 13px; color: #555; }
+        .control-row label { width: 60px; text-align: right; margin-right: 8px;}
+        input[type="range"] { flex: 1; height: 8px; appearance: none; background: #eee; border-radius: 4px; border: 1px solid #999; }
+        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; background: var(--accent-color); border: 2px solid #333; border-radius: 50%; cursor: pointer; }
+        
+        input[type="color"] { -webkit-appearance: none; border: 2px solid var(--btn-border); width: 100%; height: 30px; cursor: pointer; background: none; padding: 0; border-radius: 6px; overflow: hidden; }
+        input[type="color"]::-webkit-color-swatch { border: none; }
+
+        #no-selection-mask {
+            position: absolute; top: 50px; left: 0; width: 100%; height: 250px;
+            background: rgba(255,255,255,0.8); z-index: 20;
+            display: flex; justify-content: center; align-items: center;
+            color: #888; font-size: 14px; text-align: center;
+            pointer-events: none;
+        }
+        
+        #add-light-btn { background: #f1c40f; color: #fff; border-color: #f39c12; grid-column: span 3; font-weight: bold;}
+        
+        #selection-status {
+            font-size: 14px; color: var(--tool-active); text-align: center; 
+            margin-bottom: 10px; font-weight: bold; border-bottom: 1px dashed #ccc; padding-bottom: 5px;
+        }
+
+        #drop-btn { background-color: #2ecc71; color: white; border-color: #27ae60; width: 100%; margin-top: 5px; font-weight: bold; }
+        #drop-btn:hover { background-color: #27ae60; }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+<div id="left-panel" class="panel">
+    <div id="left-toggle" class="toggle-btn" title="折叠">◀</div>
+    <div class="panel-content">
+        <h3>✨ 光影素描室 V18</h3>
+        
+        <div class="history-bar">
+            <button id="btn-undo" class="history-btn" title="Ctrl+Z">↩️ 撤销</button>
+            <button id="btn-redo" class="history-btn" title="Ctrl+Y">↪️ 重做</button>
+        </div>
+
+        <span class="group-label">📦 基础几何体</span>
+        <div class="btn-grid">
+            <button id="add-cube">📦 方块</button>
+            <button id="add-sphere">⚽ 球球</button>
+            <button id="add-cone">🎉 圆锥</button>
+            <button id="add-cylinder">🛢️ 圆柱</button>
+            <button id="add-hemi">🥣 半球</button>
+            <button id="add-capsule">💊 胶囊</button>
+            <button id="add-torus">🍩 甜甜圈</button>
+            <button id="add-ring">⭕ 圆环</button>
+            <button id="add-lshape">🪑 L型体</button>
+        </div>
+
+        <span class="group-label">📐 棱柱与特殊体</span>
+        <div class="btn-grid">
+            <button id="add-pyramid">📐 四棱锥</button>
+            <button id="add-prism">🔺 三棱柱</button>
+            <button id="add-wedge">📐 楔形</button>
+            <button id="add-cross">✚ 十字</button>
+            <button id="add-star">⭐ 五角星</button>
+            <button id="add-arch">⛩️ 拱形</button>
+            <button id="add-house">🏠 小房子</button>
+            <button id="add-knot">🥨 绳结</button>
+            <button id="add-tile">⬜ 地砖</button>
+        </div>
+        
+        <div style="margin-top:5px">
+            <button id="add-light-btn" style="width:100%">💡 + 添加辅助光源</button>
+        </div>
+
+        <span class="group-label">🌍 环境设定</span>
+        <div class="control-row">
+            <label>背景颜色</label>
+            <input type="color" id="bg-color" value="#fdfbf7">
+        </div>
+        <div class="control-row">
+            <label>环境光色</label>
+            <input type="color" id="ambient-color" value="#999999" style="height:20px;">
+        </div>
+        <div class="control-row">
+            <label>太阳旋转</label>
+            <input type="range" id="light-azimuth" min="0" max="360" value="45">
+        </div>
+        <div class="control-row">
+            <label>太阳高度</label>
+            <input type="range" id="light-elevation" min="10" max="90" value="45">
+        </div>
+        <div class="control-row">
+            <label>地平线</label>
+            <input type="range" id="grid-height" min="-5" max="2" step="0.1" value="-0.01">
+        </div>
+
+        <span class="group-label">👀 渲染模式</span>
+        <div class="btn-grid" style="grid-template-columns: 1fr 1fr;">
+            <button id="mode-pbr" class="active">🌑 PBR (物理)</button>
+            <button id="mode-clay">🗿 白模 (泥塑)</button>
+            <button id="mode-normal">🌈 法线 (检测)</button>
+            <button id="mode-wire">🕸️ 线框 (透视)</button>
+        </div>
+
+        <span class="group-label">🔧 工具</span>
+        <div class="btn-grid">
+            <button id="tool-translate" class="tool-btn active">↔️ 移动</button>
+            <button id="tool-rotate" class="tool-btn">🔄 旋转</button>
+            <button id="tool-scale" class="tool-btn">↗️ 缩放</button>
+        </div>
+
+        <div style="margin-top:15px;">
+            <button id="clear-btn" style="width:100%; color:#c0392b; border-color:#e74c3c;">🗑️ 清空场景</button>
+            <button id="export-btn" style="width:100%; margin-top:5px; background:#2ecc71; color:white; border:2px solid #27ae60;">📸 保存图片</button>
+        </div>
+    </div>
+</div>
+
+<div id="right-panel" class="panel">
+    <div id="right-toggle" class="toggle-btn" title="折叠">▶</div>
+    <div class="panel-content">
+        <h3>📐 属性 & 组合</h3>
+        
+        <div style="position:relative;">
+            <div id="no-selection-mask">
+                👈 Shift + 点击<br>可选中多个物体
+            </div>
+            
+            <div id="selection-status">当前选中: 0 个物体</div>
+
+            <span class="group-label">🎨 基础属性 (批量)</span>
+            <div class="control-row">
+                <label>固有色</label>
+                <input type="color" id="obj-color" value="#ffffff" style="flex:1;">
+            </div>
+
+            <span class="group-label">📍 位置 (XYZ)</span>
+            <div class="prop-row">
+                <div class="input-group">
+                    <input type="number" id="pos-x" step="0.1" placeholder="X">
+                    <input type="number" id="pos-y" step="0.1" placeholder="Y">
+                    <input type="number" id="pos-z" step="0.1" placeholder="Z">
+                </div>
+            </div>
+            
+            <button id="drop-btn">👇 一键落地 (Y=0)</button>
+
+            <span class="group-label">🔄 旋转 (角度°)</span>
+            <div class="prop-row">
+                <div class="input-group">
+                    <input type="number" id="rot-x" step="15" placeholder="X">
+                    <input type="number" id="rot-y" step="15" placeholder="Y">
+                    <input type="number" id="rot-z" step="15" placeholder="Z">
+                </div>
+            </div>
+
+            <span class="group-label">📏 缩放</span>
+            <div class="prop-row">
+                <div class="input-group">
+                    <input type="number" id="scale-x" step="0.1" placeholder="X">
+                    <input type="number" id="scale-y" step="0.1" placeholder="Y">
+                    <input type="number" id="scale-z" step="0.1" placeholder="Z">
+                </div>
+            </div>
+        </div>
+
+        <span class="group-label">🧩 场景预设 (14种)</span>
+        <div class="preset-grid">
+            <button id="pre-basic">🍏 三大面</button>
+            <button id="pre-still">🍎 静物穿插</button>
+            <button id="pre-tower">🗼 几何塔</button>
+            <button id="pre-arch">⛩️ 拱门</button>
+            <button id="pre-table">🪑 桌椅</button>
+            <button id="pre-castle">🏰 城堡</button>
+            <button id="pre-snowman">⛄ 雪人</button>
+            <button id="pre-pillars">🏛️ 列柱</button>
+            <button id="pre-room">🖼️ 室内</button>
+            <button id="pre-stairs">🪜 阶梯</button>
+            <button id="pre-snake">🐍 蛇形</button>
+            <button id="pre-atom">⚛️ 原子</button>
+            <button id="pre-robot">🤖 机器人</button>
+            <button id="pre-chaos">🎲 乱石阵</button>
+        </div>
+    </div>
+</div>
+
+<div id="canvas-container"></div>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { TransformControls } from 'three/addons/controls/TransformControls.js';
+
+    // === 1. 初始化变量 ===
+    const allObjects = []; 
+    let currentMode = 'pbr'; 
+    const DEFAULT_COLOR = '#fdfbf7'; 
+    let selectedObjects = [];
+    let transformControl;
+    let gridHelper;
+    let blackLineMat; 
+    let wireStructureMat;
+
+    // === 2. 撤销/重做系统 ===
+    const historyStack = [];
+    let historyPointer = -1;
+    let isRestoring = false;
+
+    function saveState() {
+        if (isRestoring) return;
+        if (historyPointer < historyStack.length - 1) { historyStack.splice(historyPointer + 1); }
+        
+        const state = allObjects.map(obj => {
+            const worldPos = new THREE.Vector3();
+            const worldQuat = new THREE.Quaternion();
+            const worldScale = new THREE.Vector3();
+            obj.getWorldPosition(worldPos);
+            obj.getWorldQuaternion(worldQuat);
+            obj.getWorldScale(worldScale);
+            const rotation = new THREE.Euler().setFromQuaternion(worldQuat);
+
+            return {
+                type: obj.userData.type,
+                pos: worldPos.toArray(),
+                rot: rotation.toArray(),
+                scale: worldScale.toArray(),
+                color: obj.userData.baseColor
+            };
+        });
+        
+        const selectionIndices = selectedObjects.map(obj => allObjects.indexOf(obj));
+        const fullState = { scene: state, selection: selectionIndices };
+
+        const stateStr = JSON.stringify(fullState);
+        if (historyPointer >= 0 && JSON.stringify(historyStack[historyPointer]) === stateStr) return;
+        
+        historyStack.push(fullState); 
+        historyPointer++;
+        if (historyStack.length > 20) { historyStack.shift(); historyPointer--; }
+        updateHistoryButtons();
+    }
+
+    function restoreState(stateObj) {
+        if (!stateObj) return;
+        isRestoring = true;
+        clearScene(false);
+        
+        const stateData = stateObj.scene || [];
+        const selectionData = stateObj.selection || [];
+
+        stateData.forEach(data => {
+            try {
+                if(data.type === 'light') { 
+                    addPointLightInternal({x:data.pos[0], y:data.pos[1], z:data.pos[2]}, data.color); 
+                } else {
+                    addGeoInternal(data.type, 
+                        {x:data.pos[0], y:data.pos[1], z:data.pos[2]}, 
+                        {x:data.rot[0], y:data.rot[1], z:data.rot[2]}, 
+                        {x:data.scale[0], y:data.scale[1], z:data.scale[2]}, 
+                        data.color
+                    );
+                }
+            } catch(e) { console.error(e); }
+        });
+
+        selectedObjects = [];
+        selectionData.forEach(idx => {
+            if (allObjects[idx]) selectedObjects.push(allObjects[idx]);
+        });
+        updateSelectionGroup();
+        updateUI();
+        
+        isRestoring = false; 
+        updateHistoryButtons();
+    }
+
+    function undo() { if (historyPointer > 0) { historyPointer--; restoreState(historyStack[historyPointer]); } }
+    function redo() { if (historyPointer < historyStack.length - 1) { historyPointer++; restoreState(historyStack[historyPointer]); } }
+    function updateHistoryButtons() {
+        document.getElementById('btn-undo').disabled = (historyPointer <= 0);
+        document.getElementById('btn-redo').disabled = (historyPointer >= historyStack.length - 1);
+    }
+    document.getElementById('btn-undo').onclick = undo; document.getElementById('btn-redo').onclick = redo;
+
+    // === 3. 材质定义 ===
+    blackLineMat = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1.5 });
+    wireStructureMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3 });
+    
+    function getMaterials(colorHex, mode) {
+        const color = new THREE.Color(colorHex);
+        if (mode === 'pbr') return new THREE.MeshStandardMaterial({ color: color, roughness: 0.6, metalness: 0.05 }); 
+        else if (mode === 'clay') return new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 1.0, metalness: 0.0 });
+        else if (mode === 'normal') return new THREE.MeshNormalMaterial();
+        else if (mode === 'wire') {
+            return new THREE.MeshBasicMaterial({ 
+                color: color, transparent: true, opacity: 0.15, depthWrite: false, side: THREE.DoubleSide 
+            });
+        }
+        else return new THREE.MeshStandardMaterial({ color: color, roughness: 0.6, metalness: 0.05 });
+    }
+
+    // === 4. 更新材质函数 ===
+    window.updateMaterials = function() {
+        allObjects.forEach(obj => {
+            if (obj.userData.type !== 'light') {
+                obj.material = getMaterials(obj.userData.baseColor, currentMode);
+                const structure = obj.children.find(c => c.userData.isStructure);
+                const outline = obj.children.find(c => c.userData.isOutline);
+                if(outline) outline.visible = false;
+                if(structure) structure.visible = false;
+
+                if (currentMode === 'wire') {
+                    if(structure) { structure.visible = true; structure.material = blackLineMat; } 
+                    else if(outline) { outline.visible = true; outline.material = blackLineMat; }
+                } 
+                obj.castShadow = true; 
+                obj.receiveShadow = (currentMode !== 'wire');
+            }
+        });
+        if(gridHelper) gridHelper.visible = true;
+    };
+
+    function safeBind(id, action) {
+        const btn = document.getElementById(id);
+        if (btn) btn.onclick = action;
+    }
+
+    safeBind('left-toggle', () => { const p = document.getElementById('left-panel'); p.classList.toggle('collapsed'); document.getElementById('left-toggle').innerText = p.classList.contains('collapsed') ? '▶' : '◀'; });
+    safeBind('right-toggle', () => { const p = document.getElementById('right-panel'); p.classList.toggle('collapsed'); document.getElementById('right-toggle').innerText = p.classList.contains('collapsed') ? '◀' : '▶'; });
+
+    // === 5. 场景 ===
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xfdfbf7);
+    scene.fog = new THREE.Fog(0xfdfbf7, 10, 60);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(10, 8, 10);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+    container.appendChild(renderer.domElement);
+
+    // === 6. 灯光 ===
+    const ambientLight = new THREE.AmbientLight(0x999999, 0.7); scene.add(ambientLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    dirLight.position.set(5, 8, 5); dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048; dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.bias = -0.00005; dirLight.shadow.normalBias = 0.02; 
+    scene.add(dirLight);
+    const sunHelper = new THREE.Mesh(new THREE.SphereGeometry(0.3,8,8), new THREE.MeshBasicMaterial({color:0xffcc00, wireframe:true}));
+    scene.add(sunHelper);
+
+    gridHelper = new THREE.GridHelper(30, 30, 0xa4b0be, 0xdfe4ea); 
+    gridHelper.position.y = -0.01; 
+    scene.add(gridHelper);
+    
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.ShadowMaterial({ opacity: 0.2, color: 0x2c3e50 }));
+    ground.rotation.x = -Math.PI/2; 
+    ground.position.y = -0.02; 
+    ground.receiveShadow = true; 
+    scene.add(ground);
+    
+    const gridInput = document.getElementById('grid-height');
+    if(gridInput) { 
+        gridInput.addEventListener('input', () => { 
+            const h = parseFloat(gridInput.value); 
+            gridHelper.position.y = h; ground.position.y = h - 0.01; 
+        }); 
+        gridHelper.position.y = -0.01; ground.position.y = -0.02;
+    }
+    const bgInput = document.getElementById('bg-color');
+    if(bgInput) { bgInput.addEventListener('input', (e) => { scene.background = new THREE.Color(e.target.value); scene.fog.color = new THREE.Color(e.target.value); }); }
+
+    // === 7. 控制器 ===
+    const orbit = new OrbitControls(camera, renderer.domElement);
+    transformControl = new TransformControls(camera, renderer.domElement);
+    transformControl.addEventListener('dragging-changed', e => {
+        orbit.enabled = !e.value;
+        if (!e.value) saveState(); 
+    });
+    scene.add(transformControl);
+
+    const selectionGroup = new THREE.Group();
+    scene.add(selectionGroup);
+
+    function attachToGroup(obj) { if (obj.parent !== scene) scene.attach(obj); selectionGroup.attach(obj); }
+    function detachFromGroup(obj) { scene.attach(obj); }
+
+    function updateSelectionGroup() {
+        [...selectionGroup.children].forEach(child => detachFromGroup(child));
+        if (selectedObjects.length === 0) {
+            transformControl.detach(); selectionGroup.position.set(0,0,0); selectionGroup.rotation.set(0,0,0); selectionGroup.scale.set(1,1,1); return;
+        }
+        const center = new THREE.Vector3();
+        selectedObjects.forEach(obj => center.add(obj.position));
+        center.divideScalar(selectedObjects.length);
+        selectionGroup.position.copy(center); selectionGroup.rotation.set(0,0,0); selectionGroup.scale.set(1,1,1);
+        selectedObjects.forEach(obj => attachToGroup(obj));
+        transformControl.attach(selectionGroup);
+    }
+    transformControl.addEventListener('change', () => { if (selectedObjects.length > 0) updateUIFromObject(selectionGroup); });
+
+    // === 8. 物体管理 (内部函数，不触发保存) ===
+    function getRandomColor() { return `hsl(${Math.floor(Math.random()*360)}, 75%, 75%)`; }
+    const isSmooth = (type) => ['sphere', 'cylinder', 'cone', 'hemi', 'capsule', 'torus', 'ring', 'tube', 'knot', 'arch'].includes(type);
+
+    function addGeoInternal(type, pos, rot, scale, colorStr) {
+        let geo;
+        switch(type) {
+            case 'cube': geo = new THREE.BoxGeometry(2,2,2); break;
+            case 'sphere': geo = new THREE.SphereGeometry(1.3, 32, 32); break;
+            case 'cone': geo = new THREE.ConeGeometry(1.3, 2.8, 32); break;
+            case 'cylinder': geo = new THREE.CylinderGeometry(1.1, 1.1, 2.8, 32); break;
+            case 'hemi': geo = new THREE.SphereGeometry(1.3, 32, 16, 0, Math.PI*2, 0, Math.PI/2); break;
+            case 'capsule': geo = new THREE.CapsuleGeometry(0.8, 1.5, 4, 16); break;
+            case 'torus': geo = new THREE.TorusGeometry(1.0, 0.4, 16, 48); break;
+            case 'ring': geo = new THREE.TorusGeometry(1.2, 0.1, 8, 48); geo.rotateX(Math.PI/2); break;
+            case 'lshape': 
+                const shape = new THREE.Shape();
+                shape.moveTo(0,0); shape.lineTo(0,3); shape.lineTo(1,3); shape.lineTo(1,1); shape.lineTo(3,1); shape.lineTo(3,0); shape.lineTo(0,0);
+                geo = new THREE.ExtrudeGeometry(shape, { depth: 1, bevelEnabled: false }); geo.center(); break;
+            case 'pyramid': geo = new THREE.CylinderGeometry(0, 1.5, 2.5, 4, 1); if(!rot) geo.rotateY(Math.PI/4); break;
+            case 'prism': geo = new THREE.CylinderGeometry(1, 1, 2.5, 3); break;
+            case 'wedge': geo = new THREE.CylinderGeometry(1, 1, 2, 3); geo.rotateZ(Math.PI/2); break;
+            case 'cross': 
+                const s2 = new THREE.Shape();
+                s2.moveTo(1,0); s2.lineTo(2,0); s2.lineTo(2,1); s2.lineTo(3,1); s2.lineTo(3,2); s2.lineTo(2,2); s2.lineTo(2,3); s2.lineTo(1,3); s2.lineTo(1,2); s2.lineTo(0,2); s2.lineTo(0,1); s2.lineTo(1,1); s2.lineTo(1,0);
+                geo = new THREE.ExtrudeGeometry(s2, {depth:1, bevelEnabled:false}); geo.center(); break;
+            case 'star':
+                const s3 = new THREE.Shape();
+                const pts = [];
+                for(let i=0;i<10;i++){ const r = (i%2===0)? 1.5 : 0.6; const a = i/10 * Math.PI*2; pts.push(new THREE.Vector2(Math.cos(a)*r, Math.sin(a)*r)); }
+                s3.setFromPoints(pts); geo = new THREE.ExtrudeGeometry(s3, {depth:1, bevelEnabled:false}); break;
+            case 'arch': geo = new THREE.TorusGeometry(1.5, 0.5, 16, 32, Math.PI); break;
+            case 'house': geo = new THREE.CylinderGeometry(0, 1.5, 2, 5, 1); break;
+            case 'knot': geo = new THREE.TorusKnotGeometry(0.8, 0.25, 64, 16); break;
+            case 'tile': geo = new THREE.BoxGeometry(3, 0.2, 3); break;
+            default: geo = new THREE.BoxGeometry(1,1,1); console.warn("Unknown type, using box:", type);
+        }
+        
+        const c = colorStr || DEFAULT_COLOR;
+        const hex = new THREE.Color(c).getHexString();
+        const mesh = new THREE.Mesh(geo, getMaterials('#'+hex, currentMode));
+        // 关键修复：正确存储 type，而不是 'geometry'
+        mesh.userData = { type: type, baseColor: '#'+hex };
+        mesh.castShadow = true; mesh.receiveShadow = true;
+        if(type === 'tube') mesh.material.side = THREE.DoubleSide; 
+
+        if (!isSmooth(type)) {
+            const edges = new THREE.EdgesGeometry(geo);
+            const outline = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x2c3e50 }));
+            outline.userData.isOutline = true; 
+            outline.visible = false; 
+            mesh.add(outline);
+        }
+
+        if (isSmooth(type)) {
+            const wireGeo = new THREE.WireframeGeometry(geo);
+            const structure = new THREE.LineSegments(wireGeo, blackLineMat);
+            structure.userData.isStructure = true;
+            structure.visible = false;
+            mesh.add(structure);
+        }
+
+        if(pos) mesh.position.set(pos.x, pos.y, pos.z); else mesh.position.set((Math.random()-0.5)*4, 0, (Math.random()-0.5)*4);
+        if(rot) mesh.rotation.set(rot.x, rot.y, rot.z);
+        if(scale) mesh.scale.set(scale.x, scale.y, scale.z);
+        scene.add(mesh); allObjects.push(mesh);
+        
+        return mesh;
+    }
+
+    // 公开的添加函数 (触发保存)
+    function addGeo(type, pos, rot, scale, colorStr) {
+        const mesh = addGeoInternal(type, pos, rot, scale, colorStr);
+        if(!isRestoring) {
+            selectedObjects = [mesh];
+            updateSelectionGroup(); updateUI(); updateMaterials(); 
+            saveState();
+        }
+        return mesh;
+    }
+
+    function addPointLightInternal(pos, colorStr) {
+        const color = colorStr || '#ffaa00';
+        const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.3,16,16), new THREE.MeshBasicMaterial({color:color}));
+        const light = new THREE.PointLight(color, 0.8, 15);
+        light.castShadow = true; light.shadow.bias = -0.0001; light.shadow.normalBias = 0.02; bulb.add(light);
+        bulb.add(new THREE.LineSegments(new THREE.WireframeGeometry(new THREE.SphereGeometry(0.5,8,8)), new THREE.LineBasicMaterial({color:0x444444})));
+        bulb.position.set(pos.x, pos.y, pos.z);
+        bulb.userData = { type: 'light', baseColor: color };
+        scene.add(bulb); allObjects.push(bulb);
+        return bulb;
+    }
+
+    function addPointLight(pos={x:0, y:3, z:0}) {
+        const bulb = addPointLightInternal(pos);
+        if(!isRestoring) { selectedObjects = [bulb]; updateSelectionGroup(); updateUI(); saveState(); }
+    }
+
+    const uiMask = document.getElementById('no-selection-mask');
+    const statusText = document.getElementById('selection-status');
+    const inputColor = document.getElementById('obj-color');
+    const inputs = {
+        px: document.getElementById('pos-x'), py: document.getElementById('pos-y'), pz: document.getElementById('pos-z'),
+        rx: document.getElementById('rot-x'), ry: document.getElementById('rot-y'), rz: document.getElementById('rot-z'),
+        sx: document.getElementById('scale-x'), sy: document.getElementById('scale-y'), sz: document.getElementById('scale-z')
+    };
+
+    function updateUI() {
+        if (selectedObjects.length === 0) { uiMask.style.display = 'flex'; statusText.textContent = "当前选中: 0 个物体"; } 
+        else { uiMask.style.display = 'none'; statusText.textContent = `当前选中: ${selectedObjects.length} 个物体`; updateUIFromObject(selectionGroup); inputColor.value = selectedObjects[0].userData.baseColor || '#ffffff'; }
+    }
+
+    function updateUIFromObject(obj) {
+        inputs.px.value = parseFloat(obj.position.x.toFixed(2)); inputs.py.value = parseFloat(obj.position.y.toFixed(2)); inputs.pz.value = parseFloat(obj.position.z.toFixed(2));
+        const deg = 180/Math.PI;
+        inputs.rx.value = Math.round(obj.rotation.x * deg); inputs.ry.value = Math.round(obj.rotation.y * deg); inputs.rz.value = Math.round(obj.rotation.z * deg);
+        inputs.sx.value = parseFloat(obj.scale.x.toFixed(2)); inputs.sy.value = parseFloat(obj.scale.y.toFixed(2)); inputs.sz.value = parseFloat(obj.scale.z.toFixed(2));
+    }
+
+    function updateObjectFromUI() {
+        if(selectedObjects.length === 0) return;
+        selectionGroup.position.set(parseFloat(inputs.px.value)||0, parseFloat(inputs.py.value)||0, parseFloat(inputs.pz.value)||0);
+        const rad = Math.PI/180;
+        selectionGroup.rotation.set((parseFloat(inputs.rx.value)||0)*rad, (parseFloat(inputs.ry.value)||0)*rad, (parseFloat(inputs.rz.value)||0)*rad);
+        selectionGroup.scale.set(parseFloat(inputs.sx.value)||1, parseFloat(inputs.sy.value)||1, parseFloat(inputs.sz.value)||1);
+    }
+    Object.values(inputs).forEach(i => { if(i) { i.addEventListener('input', updateObjectFromUI); i.addEventListener('change', () => { updateObjectFromUI(); saveState(); }); } });
+
+    if(inputColor) inputColor.addEventListener('input', (e) => {
+        const val = e.target.value;
+        selectedObjects.forEach(obj => {
+            obj.userData.baseColor = val;
+            if(obj.userData.type !== 'light') { if(currentMode!=='wire' && currentMode!=='clay' && currentMode!=='normal') obj.material.color.set(val); } 
+            else { obj.material.color.set(val); if(obj.children[0].isLight) obj.children[0].color.set(val); }
+        });
+        updateMaterials();
+    });
+    if(inputColor) inputColor.addEventListener('change', saveState);
+
+    safeBind('drop-btn', () => {
+        if(selectedObjects.length === 0) return;
+        updateSelectionGroup(); [...selectionGroup.children].forEach(c => scene.attach(c));
+        const tempGroup = new THREE.Group(); scene.add(tempGroup);
+        selectedObjects.forEach(obj => tempGroup.attach(obj));
+        const box = new THREE.Box3().setFromObject(tempGroup);
+        const bottomY = box.min.y;
+        const gridH = parseFloat(document.getElementById('grid-height').value);
+        tempGroup.position.y += (gridH - bottomY);
+        [...tempGroup.children].forEach(c => scene.attach(c)); scene.remove(tempGroup);
+        updateSelectionGroup(); updateUI(); saveState();
+    });
+
+    const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
+    window.addEventListener('mousedown', (e) => {
+        if(e.target.closest('.panel')) return;
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left)/rect.width)*2-1; mouse.y = -((e.clientY-rect.top)/rect.height)*2+1;
+        raycaster.setFromCamera(mouse, camera);
+        const targetObjects = [...allObjects];
+        const intersects = raycaster.intersectObjects(targetObjects, false);
+        if(intersects.length > 0) {
+            const hit = intersects[0].object;
+            if (e.shiftKey) { const idx = selectedObjects.indexOf(hit); if (idx > -1) selectedObjects.splice(idx, 1); else selectedObjects.push(hit); } 
+            else { selectedObjects = [hit]; }
+        } else { if (!e.shiftKey) selectedObjects = []; }
+        updateSelectionGroup(); updateUI();
+    });
+
+    // === 10. 功能绑定 ===
+    function clearScene(triggerSave = true) { 
+        updateSelectionGroup(); [...selectionGroup.children].forEach(c => scene.attach(c));
+        allObjects.forEach(o => scene.remove(o)); allObjects.length=0; selectedObjects = []; 
+        updateSelectionGroup(); updateUI();
+        if(triggerSave) saveState();
+    }
+    
+    const btnBindings = {
+        'add-cube': () => addGeo('cube'),
+        'add-sphere': () => addGeo('sphere'),
+        'add-cone': () => addGeo('cone'),
+        'add-cylinder': () => addGeo('cylinder'),
+        'add-hemi': () => addGeo('hemi'),
+        'add-capsule': () => addGeo('capsule'),
+        'add-torus': () => addGeo('torus'),
+        'add-ring': () => addGeo('ring'),
+        'add-lshape': () => addGeo('lshape'),
+        'add-pyramid': () => addGeo('pyramid'),
+        'add-prism': () => addGeo('prism'),
+        'add-wedge': () => addGeo('wedge'),
+        'add-cross': () => addGeo('cross'),
+        'add-star': () => addGeo('star'),
+        'add-arch': () => addGeo('arch'),
+        'add-house': () => addGeo('house'),
+        'add-knot': () => addGeo('knot'),
+        'add-tile': () => addGeo('tile')
+    };
+    Object.keys(btnBindings).forEach(id => safeBind(id, btnBindings[id]));
+    safeBind('add-light-btn', () => addPointLight());
+
+    function loadPreset(fn) { isRestoring = true; clearScene(false); isRestoring = false; fn(); saveState(); }
+
+    safeBind('pre-basic', () => loadPreset(() => { addGeo('cube', {x:-1.5,y:0,z:0}); addGeo('sphere', {x:1.5,y:0,z:0}); addGeo('cone', {x:0,y:0,z:1.5}); }));
+    safeBind('pre-still', () => loadPreset(() => { addGeo('cube', {x:-1,y:0,z:0}, {x:0,y:0.5,z:0}); addGeo('cone', {x:1,y:0,z:0.5}); addGeo('sphere', {x:0,y:0,z:-1.5}); }));
+    safeBind('pre-tower', () => loadPreset(() => { addGeo('cube', {x:0,y:-1,z:0}, null, {x:2,y:0.5,z:2}); addGeo('cylinder', {x:0,y:0.5,z:0}, null, {x:1,y:1,z:1}); addGeo('cone', {x:0,y:2.5,z:0}, null, {x:1.2,y:1,z:1.2}); }));
+    safeBind('pre-arch', () => loadPreset(() => { addGeo('cube', {x:-1.5,y:1,z:0}, null, {x:0.5,y:2,z:0.5}); addGeo('cube', {x:1.5,y:1,z:0}, null, {x:0.5,y:2,z:0.5}); addGeo('cube', {x:0,y:3.2,z:0}, null, {x:4,y:0.5,z:0.8}); }));
+    safeBind('pre-balance', () => loadPreset(() => { addGeo('sphere', {x:0,y:-0.5,z:0}, null, {x:1,y:1,z:1}); addGeo('cube', {x:0,y:1.2,z:0}, {x:0.2,y:0,z:0.2}, {x:2.5,y:0.2,z:0.5}); addGeo('cone', {x:-1,y:2.5,z:0}, null, {x:0.5,y:0.8,z:0.5}); }));
+    safeBind('pre-wall', () => loadPreset(() => { for(let i=0;i<3;i++) for(let j=0;j<3;j++) addGeo('cube', {x:(i-1)*2.1, y:j*2.1-1, z:-2}); }));
+    safeBind('pre-stairs', () => loadPreset(() => { for(let i=0;i<5;i++) addGeo('cube', {x:i-2, y:i*0.5-1, z:i-2}, null, {x:1,y:0.5,z:1}); }));
+    safeBind('pre-snake', () => loadPreset(() => { for(let i=0;i<6;i++) addGeo('sphere', {x:Math.sin(i)*1.5, y:0, z:i*1.2-3}, null, {x:0.6,y:0.6,z:0.6}); }));
+    safeBind('pre-tunnel', () => loadPreset(() => { for(let i=0;i<5;i++) addGeo('torus', {x:0,y:0,z:i*1.5-3}); }));
+    safeBind('pre-atom', () => loadPreset(() => { addGeo('sphere', {x:0,y:0,z:0}); addGeo('sphere', {x:2.5,y:0,z:0}, null, {x:0.3,y:0.3,z:0.3}); addGeo('sphere', {x:-2.5,y:0,z:0}, null, {x:0.3,y:0.3,z:0.3}); addGeo('sphere', {x:0,y:0,z:2.5}, null, {x:0.3,y:0.3,z:0.3}); }));
+    safeBind('pre-robot', () => loadPreset(() => { addGeo('cube', {x:0,y:0,z:0}, null, {x:1.5,y:2,z:1}); addGeo('cube', {x:0,y:2.5,z:0}, null, {x:1,y:1,z:1}); addGeo('cylinder', {x:-1,y:0,z:0}, {x:0,y:0,z:1.5}, {x:0.3,y:1.5,z:0.3}); addGeo('cylinder', {x:1,y:0,z:0}, {x:0,y:0,z:-1.5}, {x:0.3,y:1.5,z:0.3}); addGeo('cube', {x:-0.5,y:-2,z:0}, null, {x:0.5,y:2,z:0.5}); addGeo('cube', {x:0.5,y:-2,z:0}, null, {x:0.5,y:2,z:0.5}); }));
+    safeBind('pre-chaos', () => loadPreset(() => { for(let i=0;i<10;i++) addGeo(['cube','sphere','cone'][Math.floor(Math.random()*3)], {x:(Math.random()-0.5)*5, y:(Math.random())*3, z:(Math.random()-0.5)*5}, {x:Math.random(),y:Math.random(),z:Math.random()}); }));
+    safeBind('pre-table', () => loadPreset(() => { addGeo('cube',{x:0,y:0,z:0},null,{x:4,y:0.2,z:3}); addGeo('cube',{x:1.5,y:-1.5,z:1},null,{x:0.2,y:3,z:0.2}); addGeo('cube',{x:-1.5,y:-1.5,z:1},null,{x:0.2,y:3,z:0.2}); addGeo('cube',{x:1.5,y:-1.5,z:-1},null,{x:0.2,y:3,z:0.2}); addGeo('cube',{x:-1.5,y:-1.5,z:-1},null,{x:0.2,y:3,z:0.2}); addGeo('cube',{x:0,y:-1,z:2.5},null,{x:1.5,y:0.1,z:1.5}); addGeo('cube',{x:0,y:-0.2,z:3.2},{x:0.2,y:0,z:0},{x:1.5,y:1.5,z:0.1}); }));
+    safeBind('pre-castle', () => loadPreset(() => { addGeo('cylinder',{x:-2,y:0,z:-2},null,{x:1,y:2,z:1}); addGeo('cone',{x:-2,y:2.5,z:-2}); addGeo('cylinder',{x:2,y:0,z:-2},null,{x:1,y:2,z:1}); addGeo('cone',{x:2,y:2.5,z:-2}); addGeo('cylinder',{x:-2,y:0,z:2},null,{x:1,y:2,z:1}); addGeo('cone',{x:-2,y:2.5,z:2}); addGeo('cylinder',{x:2,y:0,z:2},null,{x:1,y:2,z:1}); addGeo('cone',{x:2,y:2.5,z:2}); addGeo('cube',{x:0,y:-0.5,z:0},null,{x:4,y:1.5,z:4}); }));
+    safeBind('pre-snowman', () => loadPreset(() => { addGeo('sphere',{x:0,y:-1.5,z:0},null,{x:1.5,y:1.5,z:1.5}); addGeo('sphere',{x:0,y:1,z:0},null,{x:1.1,y:1.1,z:1.1}); addGeo('sphere',{x:0,y:2.8,z:0},null,{x:0.8,y:0.8,z:0.8}); addGeo('cone',{x:0,y:3.5,z:0.8},{x:Math.PI/2,y:0,z:0},{x:0.2,y:1,z:0.2}); }));
+    safeBind('pre-pillars', () => loadPreset(() => { for(let i=0;i<4;i++){ addGeo('cylinder',{x:i*2-3, y:0, z:-2},null,{x:0.5,y:3,z:0.5}); addGeo('cylinder',{x:i*2-3, y:0, z:2},null,{x:0.5,y:3,z:0.5}); } addGeo('cube',{x:0,y:1.7,z:0},null,{x:8,y:0.5,z:6}); }));
+    safeBind('pre-room', () => loadPreset(() => { addGeo('cube',{x:0,y:0,z:-3},null,{x:8,y:4,z:0.2}); addGeo('cube',{x:-4,y:0,z:0},null,{x:0.2,y:4,z:6}); addGeo('tile',{x:0,y:-2,z:0},null,{x:3,y:1,z:2}); addGeo('cube',{x:0,y:-1.5,z:0}); addGeo('sphere',{x:-1,y:-1,z:1}); }));
+
+    const modes = ['pbr', 'clay', 'normal', 'wire'];
+    modes.forEach(m => {
+        safeBind('mode-'+m, () => { 
+            currentMode = m; 
+            modes.forEach(mm=>document.getElementById('mode-'+mm).classList.remove('active')); 
+            document.getElementById('mode-'+m).classList.add('active'); 
+            updateMaterials(); 
+        });
+    });
+    
+    ['translate', 'rotate', 'scale'].forEach(t => {
+        safeBind('tool-'+t, () => {
+            transformControl.setMode(t);
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tool-'+t).classList.add('active');
+        });
+    });
+
+    safeBind('clear-btn', () => clearScene(true));
+    
+    // 监听键盘事件，修复焦点冲突和组合键
+    window.addEventListener('keydown', (e) => {
+        // 如果焦点在输入框，且不是按下 ESC，则不触发快捷键
+        if (['input', 'textarea'].includes(document.activeElement.tagName.toLowerCase())) {
+            if (e.key === 'Escape') document.activeElement.blur();
+            return;
+        }
+
+        const key = e.key.toLowerCase();
+        const isCtrl = e.ctrlKey || e.metaKey;
+
+        // Undo: Ctrl + Z
+        if (isCtrl && key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            undo();
+            return;
+        }
+
+        // Redo: Ctrl + Y 或 Ctrl + Shift + Z
+        if ((isCtrl && key === 'y') || (isCtrl && key === 'z' && e.shiftKey)) {
+            e.preventDefault();
+            redo();
+            return;
+        }
+
+        // Tools
+        if (key === 'w') document.getElementById('tool-translate').click();
+        if (key === 'e') document.getElementById('tool-rotate').click();
+        if (key === 'r') document.getElementById('tool-scale').click();
+
+        // Delete
+        if ((key === 'delete' || key === 'backspace') && selectedObjects.length > 0) {
+            updateSelectionGroup(); [...selectionGroup.children].forEach(c => scene.attach(c)); 
+            selectedObjects.forEach(o => { scene.remove(o); allObjects.splice(allObjects.indexOf(o), 1); });
+            selectedObjects = []; updateSelectionGroup(); updateUI();
+            saveState();
+        }
+    });
+
+    function updateSun() {
+        const azEl = document.getElementById('light-azimuth');
+        const elEl = document.getElementById('light-elevation');
+        if(azEl && elEl) {
+            const az = azEl.value * (Math.PI/180);
+            const el = (90-elEl.value) * (Math.PI/180);
+            dirLight.position.set(8*Math.sin(el)*Math.sin(az), 8*Math.cos(el), 8*Math.sin(el)*Math.cos(az));
+            sunHelper.position.copy(dirLight.position); sunHelper.lookAt(0,0,0);
+            dirLight.updateMatrixWorld();
+        }
+    }
+    ['light-azimuth','light-elevation'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.addEventListener('input', updateSun);
+    });
+    
+    const ambEl = document.getElementById('ambient-color');
+    if(ambEl) ambEl.addEventListener('input', e => ambientLight.color.set(e.target.value));
+
+    safeBind('export-btn', () => {
+        transformControl.detach(); sunHelper.visible=false; allObjects.forEach(o => { if(o.userData.type==='light') o.children[1].visible=false; });
+        renderer.render(scene, camera);
+        const link = document.createElement('a'); link.download = 'sketch-v18.png'; link.href = renderer.domElement.toDataURL('image/png'); link.click();
+        sunHelper.visible=true; if(selectedObjects.length>0) transformControl.attach(selectionGroup); allObjects.forEach(o => { if(o.userData.type==='light') o.children[1].visible=true; });
+    });
+
+    // 初始保存
+    saveState();
+
+    function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+    animate();
+    window.addEventListener('resize', () => { camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+
+</script>
+</body>
+</html>
