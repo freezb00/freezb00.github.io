@@ -146,10 +146,9 @@
         /* 控件栏 (吸管 + 预览 + 色相) */
         .cp-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
         
-        /* 吸管 (V20.1 更新图标) */
+        /* 吸管 */
         .cp-eyedropper {
             width: 24px; height: 24px; cursor: pointer; flex-shrink: 0;
-            /* 使用更通用的斜向滴管图标 */
             background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17.66 7.93 12 2.27 3.07 11.2c-.48.48-.48 1.25 0 1.73l5.04 5.04c.48.48 1.25.48 1.73 0l8.83-8.83c.96-.96.96-2.52 0-3.48z'/%3E%3Cpath d='M14.12 11.46 9.17 16.41'/%3E%3Cpath d='M6.34 19.24 3.52 22.07'/%3E%3C/svg%3E") no-repeat center/contain;
             transition: transform 0.1s;
         }
@@ -187,8 +186,6 @@
             display: flex; align-items: center; gap: 2px;
         }
         .cp-label:hover { color: var(--accent-color); }
-        
-        /* 切换图标 */
         .cp-switch-icon { font-size: 10px; transform: rotate(90deg); display: inline-block; margin-left: 2px; }
 
     </style>
@@ -206,7 +203,7 @@
 <div id="left-panel" class="panel">
     <div id="left-toggle" class="toggle-btn" title="折叠">◀</div>
     <div class="panel-content">
-        <h3>✨ 光影素描室 V20</h3>
+        <h3>✨ 光影素描室</h3>
         
         <div class="history-bar">
             <button id="btn-undo" class="history-btn" title="Ctrl+Z">↩️ 撤销</button>
@@ -369,22 +366,18 @@
         constructor(triggerEl, initialColor, onChange) {
             this.trigger = triggerEl;
             this.onChange = onChange;
-            // 内部状态始终存 HSB
             this.h = 0; this.s = 0; this.b = 100;
-            this.mode = 'hsb'; // hsb, rgb, hex
+            this.mode = 'hsb';
             
             this.initUI();
             this.setColorFromHex(initialColor);
             
             this.trigger.onclick = (e) => {
                 e.stopPropagation();
-                // 仅关闭其他拾色器
                 document.querySelectorAll('.cp-popup').forEach(p => {
                     if (p !== this.popup) p.style.display = 'none';
                 });
-                
                 const rect = this.trigger.getBoundingClientRect();
-                // 智能定位：优先向下，不够位置则向上
                 let top = rect.bottom + 5;
                 if (top + 250 > window.innerHeight) top = rect.top - 250;
                 let left = rect.left;
@@ -401,7 +394,6 @@
             this.popup.className = 'cp-popup';
             document.body.appendChild(this.popup);
 
-            // 1. Sat/Val Box
             this.svBox = document.createElement('div');
             this.svBox.className = 'cp-sat-val';
             this.cursor = document.createElement('div');
@@ -409,11 +401,9 @@
             this.svBox.appendChild(this.cursor);
             this.popup.appendChild(this.svBox);
 
-            // 2. Controls Row (Eyedropper, Preview, Hue Rail)
             const controls = document.createElement('div');
             controls.className = 'cp-controls';
             
-            // Eyedropper
             this.eyedropperBtn = document.createElement('div');
             this.eyedropperBtn.className = 'cp-eyedropper';
             this.eyedropperBtn.title = "吸取屏幕颜色";
@@ -421,12 +411,10 @@
             this.eyedropperBtn.onclick = () => this.pickColor();
             controls.appendChild(this.eyedropperBtn);
 
-            // Preview
             this.preview = document.createElement('div');
             this.preview.className = 'cp-preview';
             controls.appendChild(this.preview);
 
-            // Hue Rail
             this.hueRail = document.createElement('div');
             this.hueRail.className = 'cp-hue-rail';
             this.hueThumb = document.createElement('div');
@@ -436,14 +424,12 @@
 
             this.popup.appendChild(controls);
 
-            // 3. Inputs Container
             this.inputsContainer = document.createElement('div');
             this.inputsContainer.className = 'cp-inputs-container';
             this.popup.appendChild(this.inputsContainer);
 
             this.renderInputs();
 
-            // Bind Events
             this.bindDrag(this.svBox, (x, y) => {
                 this.s = x * 100;
                 this.b = (1 - y) * 100;
@@ -483,9 +469,7 @@
         }
 
         renderInputs() {
-            this.inputsContainer.innerHTML = ''; // Clear
-            
-            // Labels
+            this.inputsContainer.innerHTML = '';
             const labels = { 'hsb': ['H', 'S', 'B'], 'rgb': ['R', 'G', 'B'], 'hex': ['HEX'] };
             const currentLabels = labels[this.mode];
 
@@ -507,8 +491,6 @@
                 const labelDiv = document.createElement('div');
                 labelDiv.className = 'cp-label';
                 labelDiv.innerHTML = lbl + (idx === currentLabels.length - 1 ? ' <span class="cp-switch-icon">›</span>' : '');
-                
-                // 点击最后一个标签切换模式
                 if (idx === currentLabels.length - 1) {
                     labelDiv.onclick = () => this.toggleMode();
                     labelDiv.title = "点击切换模式 (HSB/RGB/HEX)";
@@ -548,20 +530,14 @@
         }
 
         updateUI() {
-            // SV Bg
             this.svBox.style.backgroundColor = `hsl(${this.h}, 100%, 50%)`;
-            
-            // Cursors
             this.cursor.style.left = this.s + '%';
             this.cursor.style.top = (100 - this.b) + '%';
             this.hueThumb.style.left = (this.h / 360 * 100) + '%';
-
-            // Preview & Trigger
             const hex = this.hsbToHex(this.h, this.s, this.b);
             this.trigger.style.backgroundColor = hex;
             this.preview.style.backgroundColor = hex;
 
-            // Inputs
             const inputs = this.inputsContainer.querySelectorAll('input');
             if (this.mode === 'hsb') {
                 inputs[0].value = Math.round(this.h);
@@ -595,7 +571,6 @@
             });
         }
 
-        // --- Helpers ---
         setColorFromHex(hex) {
             const rgb = this.hexToRgbObj(hex);
             this.setColorFromRgb(rgb.r, rgb.g, rgb.b);
@@ -648,7 +623,6 @@
     // 主逻辑
     // ==========================================
 
-    // === 1. 初始化变量 ===
     const allObjects = []; 
     let currentMode = 'pbr'; 
     const DEFAULT_COLOR = '#fdfbf7'; 
@@ -658,7 +632,7 @@
     let blackLineMat; 
     let wireStructureMat;
 
-    // === 2. 撤销/重做系统 ===
+    // === 撤销系统 ===
     const historyStack = [];
     let historyPointer = -1;
     let isRestoring = false;
@@ -707,7 +681,7 @@
     }
     document.getElementById('btn-undo').onclick = undo; document.getElementById('btn-redo').onclick = redo;
 
-    // === 3. 材质定义 ===
+    // === 材质定义 ===
     blackLineMat = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1.5 });
     wireStructureMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3 });
     
@@ -720,7 +694,7 @@
         else return new THREE.MeshStandardMaterial({ color: color, roughness: 0.6, metalness: 0.05 });
     }
 
-    // === 4. 更新材质函数 ===
+    // === 更新材质 ===
     window.updateMaterials = function() {
         allObjects.forEach(obj => {
             if (obj.userData.type !== 'light') {
@@ -739,15 +713,11 @@
         if(gridHelper) gridHelper.visible = true;
     };
 
-    function safeBind(id, action) {
-        const btn = document.getElementById(id);
-        if (btn) btn.onclick = action;
-    }
-
+    function safeBind(id, action) { const btn = document.getElementById(id); if (btn) btn.onclick = action; }
     safeBind('left-toggle', () => { const p = document.getElementById('left-panel'); p.classList.toggle('collapsed'); document.getElementById('left-toggle').innerText = p.classList.contains('collapsed') ? '▶' : '◀'; });
     safeBind('right-toggle', () => { const p = document.getElementById('right-panel'); p.classList.toggle('collapsed'); document.getElementById('right-toggle').innerText = p.classList.contains('collapsed') ? '◀' : '▶'; });
 
-    // === 5. 场景 ===
+    // === 场景 ===
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xfdfbf7);
@@ -763,7 +733,7 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
     container.appendChild(renderer.domElement);
 
-    // === 6. 灯光 ===
+    // === 灯光 ===
     const ambientLight = new THREE.AmbientLight(0x999999, 0.7); scene.add(ambientLight);
     const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
     dirLight.position.set(5, 8, 5); dirLight.castShadow = true;
@@ -782,10 +752,9 @@
     const gridInput = document.getElementById('grid-height');
     if(gridInput) { gridInput.addEventListener('input', () => { const h = parseFloat(gridInput.value); gridHelper.position.y = h; ground.position.y = h - 0.01; }); gridHelper.position.y = -0.01; ground.position.y = -0.02; }
 
-    // === 7. 接入自定义拾色器 ===
+    // === 接入自定义拾色器 ===
     new ColorPicker(document.getElementById('bg-color-trigger'), '#fdfbf7', (hex) => {
-        scene.background = new THREE.Color(hex);
-        scene.fog.color = new THREE.Color(hex);
+        scene.background = new THREE.Color(hex); scene.fog.color = new THREE.Color(hex);
     });
     
     new ColorPicker(document.getElementById('amb-color-trigger'), '#999999', (hex) => {
@@ -795,19 +764,13 @@
     const objColorPicker = new ColorPicker(document.getElementById('obj-color-trigger'), '#ffffff', (hex) => {
         selectedObjects.forEach(obj => {
             obj.userData.baseColor = hex;
-            if(obj.userData.type !== 'light') { 
-                if(currentMode!=='wire' && currentMode!=='clay' && currentMode!=='normal') obj.material.color.set(hex); 
-            } 
-            else { 
-                obj.material.color.set(hex); 
-                if(obj.children[0].isLight) obj.children[0].color.set(hex); 
-            }
+            if(obj.userData.type !== 'light') { if(currentMode!=='wire' && currentMode!=='clay' && currentMode!=='normal') obj.material.color.set(hex); } 
+            else { obj.material.color.set(hex); if(obj.children[0].isLight) obj.children[0].color.set(hex); }
         });
         saveState();
     });
 
-
-    // === 8. 控制器 ===
+    // === 控制器 ===
     const orbit = new OrbitControls(camera, renderer.domElement);
     transformControl = new TransformControls(camera, renderer.domElement);
     transformControl.addEventListener('dragging-changed', e => { orbit.enabled = !e.value; if (!e.value) saveState(); });
@@ -833,7 +796,7 @@
     }
     transformControl.addEventListener('change', () => { if (selectedObjects.length > 0) updateUIFromObject(selectionGroup); });
 
-    // === 9. 物体管理 (内部函数) ===
+    // === 物体管理 ===
     function getRandomColor() { return `hsl(${Math.floor(Math.random()*360)}, 75%, 75%)`; }
     const isSmooth = (type) => ['sphere', 'cylinder', 'cone', 'hemi', 'capsule', 'torus', 'ring', 'tube', 'knot', 'arch'].includes(type);
 
@@ -868,12 +831,14 @@
             case 'house': geo = new THREE.CylinderGeometry(0, 1.5, 2, 5, 1); break;
             case 'knot': geo = new THREE.TorusKnotGeometry(0.8, 0.25, 64, 16); break;
             case 'tile': geo = new THREE.BoxGeometry(3, 0.2, 3); break;
+            default: geo = new THREE.BoxGeometry(1,1,1);
         }
         
         const c = colorStr || DEFAULT_COLOR;
         const hex = new THREE.Color(c).getHexString();
         const mesh = new THREE.Mesh(geo, getMaterials('#'+hex, currentMode));
-        mesh.userData = { type: 'geometry', baseColor: '#'+hex };
+        // 关键修复：正确存储 type
+        mesh.userData = { type: type, baseColor: '#'+hex };
         mesh.castShadow = true; mesh.receiveShadow = true;
         if(type === 'tube') mesh.material.side = THREE.DoubleSide; 
 
@@ -928,7 +893,7 @@
         if(!isRestoring) { selectedObjects = [bulb]; updateSelectionGroup(); updateUI(); saveState(); }
     }
 
-    // === 10. UI ===
+    // === UI ===
     const uiMask = document.getElementById('no-selection-mask');
     const statusText = document.getElementById('selection-status');
     const inputs = {
@@ -992,7 +957,7 @@
         updateSelectionGroup(); updateUI();
     });
 
-    // === 11. 功能绑定 ===
+    // === 功能绑定 ===
     function clearScene(triggerSave = true) { 
         updateSelectionGroup(); [...selectionGroup.children].forEach(c => scene.attach(c));
         allObjects.forEach(o => scene.remove(o)); allObjects.length=0; selectedObjects = []; 
