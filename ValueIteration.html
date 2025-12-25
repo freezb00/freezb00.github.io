@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>值迭代公式与模型五要素详解</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Balsamiq+Sans:wght@400;700&family=ZCOOL+KuaiLe&display=swap');
+
+        :root {
+            --bg-paper: #FAFAFA;
+            --grid-line: #EEEEEE;
+            --panel: #ffffff;
+            --primary: #424242;
+            --accent: #757575;
+            --ink-color: #212121;
+            --border-color: #424242;
+            --text-main: #212121;
+            --text-sub: #616161;
+            --shadow: rgba(0, 0, 0, 0.12);
+            
+            /* 公式关键点配色 - 保留鲜明色彩区分 */
+            --c-r: #E91E63;      /* R 奖励 - 粉红 */
+            --c-g: #4CAF50;      /* γ 折扣 - 绿色 */
+            --c-v: #2196F3;      /* V 价值 - 蓝色 */
+            --c-p: #FF9800;      /* P 概率 - 橙色 */
+        }
+
+        body {
+            font-family: 'Balsamiq Sans', 'ZCOOL KuaiLe', cursive;
+            background-color: var(--bg-paper);
+            background-image: 
+                linear-gradient(var(--grid-line) 2px, transparent 2px),
+                linear-gradient(90deg, var(--grid-line) 2px, transparent 2px);
+            background-size: 25px 25px;
+            color: var(--ink-color);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        /* 顶部：标题 + 公式 */
+        header {
+            background: var(--panel);
+            border-bottom: 3px solid var(--border-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            box-shadow: 0 4px 0px var(--shadow);
+        }
+
+        .header-left h1 { 
+            margin: 0; 
+            font-size: 1.2rem; 
+            color: var(--primary); 
+            text-shadow: 2px 2px 0px var(--grid-line);
+        }
+        .header-left p { 
+            margin: 0; 
+            font-size: 0.85rem; 
+            color: var(--text-sub); 
+        }
+
+        /* 核心公式展示区 */
+        .formula-box {
+            background: #FAFAFA;
+            padding: 10px 20px;
+            border-radius: 12px 20px 15px 25px;
+            border: 3px solid #424242;
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+            font-size: 1.15rem;
+            color: #212121;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.15);
+        }
+        .math-term { display: inline-block; padding: 0 2px; }
+        .m-max { font-weight: bold; color: #212121; }
+        .m-r { color: #E91E63; font-weight: bold; }    /* 奖励 R - 粉红 */
+        .m-g { color: #4CAF50; font-weight: bold; }    /* 折扣 γ - 绿色 */
+        .m-p { color: #FF9800; font-weight: bold; }    /* 概率 P - 橙色 */
+        .m-v { color: #2196F3; font-weight: bold; }    /* 价值 V - 蓝色 */
+
+        /* 主容器 */
+        .container {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+            overflow: hidden;
+        }
+
+        /* 面板通用样式 */
+        .panel {
+            background: var(--panel);
+            border-radius: 15px 25px 15px 25px;
+            border: 3px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 5px 5px 0px var(--shadow);
+        }
+        .panel-head {
+            background: #F5F5F5;
+            padding: 12px 15px;
+            border-bottom: 3px solid #424242;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #424242;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 左侧：可视化 S 和 R */
+        .grid-panel { flex: 2; }
+        .grid-content {
+            flex: 1; display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .grid-wrapper {
+            display: grid; grid-template-columns: repeat(3, 110px); gap: 15px;
+        }
+        .cell {
+            width: 110px; height: 110px;
+            border: 3px solid #CFD8DC; 
+            border-radius: 12px 20px 15px 25px;
+            position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.3s;
+            background: #FAFAFA;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.05);
+        }
+        .cell-id { position: absolute; top: 5px; left: 8px; color: #BDBDBD; font-size: 0.85rem; font-weight: bold; }
+        .cell-r { position: absolute; top: 5px; right: 8px; font-weight: bold; font-size: 0.9rem; }
+        .cell-v { font-size: 1.8rem; font-weight: bold; color: var(--c-v); z-index: 2; }
+        
+        .cell.active { 
+            border-color: #212121; 
+            background-color: #F5F5F5; 
+            transform: scale(1.05);
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .cell.target { 
+            border-color: #616161; 
+            background: linear-gradient(135deg, #E0E0E0, #BDBDBD); 
+        }
+
+        /* 箭头 */
+        .arrows { position: absolute; inset: 0; pointer-events: none; }
+        .arr { position: absolute; color: #E0E0E0; transition: all 0.2s; font-size: 18px; }
+        .arr.active { color: #212121; transform: scale(1.3); font-weight: bold; }
+        .arr-up { top: 5px; left: 45%; } .arr-down { bottom: 5px; left: 45%; }
+        .arr-left { top: 45%; left: 5px; } .arr-right { top: 45%; right: 5px; }
+
+        /* 中间：日志 */
+        .log-panel { flex: 3; }
+        .log-content { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 15px; 
+            font-family: 'Consolas', 'Balsamiq Sans', monospace; 
+            font-size: 0.9rem; 
+        }
+        .log-item { 
+            margin-bottom: 10px; 
+            padding: 8px 12px; 
+            border-left: 4px solid transparent; 
+            border-radius: 0 8px 8px 0;
+            background: #FAFAFA;
+        }
+        .l-phase { 
+            border-color: #424242; 
+            background: #F5F5F5; 
+            font-weight: bold; 
+            margin-top: 15px; 
+        }
+        .l-calc { 
+            border-color: #BDBDBD; 
+            color: #555; 
+        }
+        .l-res { 
+            border-color: #212121; 
+            background: #EEEEEE; 
+            color: #212121; 
+            font-weight: bold;
+        }
+
+        /* 右侧：模型与上帝视角 */
+        .model-panel { 
+            flex: 2; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            background: transparent; 
+            border: none; 
+            box-shadow: none;
+        }
+        
+        /* 1. MDP 五要素定义卡片 */
+        .mdp-card {
+            background: #fff; 
+            border-radius: 15px 25px 15px 25px; 
+            padding: 15px; 
+            border: 3px solid var(--border-color);
+            box-shadow: 5px 5px 0px var(--shadow);
+        }
+        .tuple-list { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: #555; }
+        .tuple-item { margin-bottom: 8px; display: flex; align-items: flex-start; }
+        .tuple-key { font-weight: bold; width: 30px; display: inline-block; color: var(--primary); }
+        .tuple-val { flex: 1; }
+
+        /* 2. Oracle 动态卡片 */ 
+        .oracle-card {
+            background: #FAFAFA;
+            border-left: 6px solid #424242;
+            border-radius: 15px 25px 15px 25px;
+            padding: 15px;
+            border: 3px solid #616161;
+            box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.12);
+            transition: all 0.2s;
+        }
+        .oracle-card.querying {
+            background: #EEEEEE;
+            transform: scale(1.02);
+        }
+        .oracle-title { color: #424242; font-weight: bold; font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase; }
+        .oracle-data { font-family: 'Consolas', monospace; font-size: 1rem; color: #212121; line-height: 1.8; }
+        .oracle-note { font-size: 0.85rem; color: #616161; margin-top: 10px; line-height: 1.5; }
+
+        .hl-math { background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 3px; }
+
+        /* 底部控制栏 */
+        .controls-bar {
+            background: #fff;
+            border-top: 3px solid var(--border-color);
+            padding: 12px 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 -4px 0px var(--shadow);
+        }
+
+        /* 按钮 */
+        .controls-bar button {
+            padding: 10px 22px; 
+            border-radius: 12px; 
+            border: 3px solid var(--border-color); 
+            cursor: pointer; 
+            font-weight: 700; 
+            font-size: 0.95rem; 
+            font-family: inherit;
+            box-shadow: 3px 3px 0px var(--border-color);
+            transition: all 0.2s;
+        }
+        .controls-bar button:hover { 
+            transform: translateY(-2px); 
+        }
+        .controls-bar button:active { 
+            transform: translate(3px, 3px); 
+            box-shadow: none; 
+        }
+        .controls-bar button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-reset { 
+            background: #EEEEEE; 
+            color: #424242; 
+            border-color: #9E9E9E;
+            box-shadow: 3px 3px 0px #9E9E9E;
+        }
+        .btn-reset:hover { background: #E0E0E0; }
+        .btn-prev {
+            background: #ECEFF1;
+            color: var(--ink-color);
+        }
+        .btn-prev:hover { background: #CFD8DC; }
+        .btn-next { 
+            background: #424242; 
+            color: white; 
+            border-color: #212121;
+            box-shadow: 3px 3px 0px #212121;
+        }
+        .btn-next:hover { 
+            background: #616161;
+        }
+        .btn-auto {
+            background: #EEEEEE;
+            color: #424242;
+            border-color: #9E9E9E;
+            box-shadow: 3px 3px 0px #9E9E9E;
+        }
+        .btn-auto:hover { background: #E0E0E0; }
+        .btn-auto.playing {
+            background: #E0E0E0;
+            color: #212121;
+            border-color: #616161;
+            box-shadow: 3px 3px 0px #616161;
+        }
+        .btn-auto.playing:hover { background: #BDBDBD; }
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            color: var(--ink-color);
+        }
+        .speed-control input {
+            width: 80px;
+        }
+
+        /* 收敛信息显示 */
+        .convergence-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+            padding: 8px 15px;
+            background: #F5F5F5;
+            border-radius: 10px;
+            border: 2px solid #9E9E9E;
+        }
+        .conv-label { color: #424242; font-weight: bold; }
+        .conv-formula { font-family: 'Cambria Math', serif; color: #212121; }
+        .conv-value { color: #212121; background: #E0E0E0; padding: 2px 8px; border-radius: 5px; }
+        .conv-delta { color: #212121; font-family: 'Consolas', monospace; }
+        .conv-status { font-weight: bold; padding: 2px 10px; border-radius: 5px; }
+        .conv-status.converged { background: #C8E6C9; color: #2E7D32; }
+        .conv-status.running { background: #EEEEEE; color: #616161; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-left">
+        <h1>📊 Value Iteration (Model-Based)</h1>
+        <p>基于贝尔曼最优方程的规划</p>
+    </div>
+    
+    <!-- 收敛条件显示 -->
+    <div class="convergence-info" id="convergenceInfo">
+        <span class="conv-label">收敛条件:</span>
+        <span class="conv-formula">max|ΔV| < ε</span>
+        <span class="conv-value">ε = 0.01</span>
+        <span class="conv-delta" id="convDelta">当前 max|ΔV| = --</span>
+        <span class="conv-status" id="convStatus">⏳ 等待开始</span>
+    </div>
+    
+    <!-- 核心公式展示 -->
+    <div class="formula-box">
+        V<sub>k+1</sub>(s) = <span class="m-max">max</span><sub>a</sub> 
+        [ 
+        <span class="m-r">R</span> + 
+        <span class="m-g">γ</span> · 
+        <span class="m-p">ΣP</span> · 
+        <span class="m-v">V<sub>k</sub>(s')</span> 
+        ]
+    </div>
+</header>
+
+<div class="container">
+    
+    <!-- 1. 可视化层：只有 S 和 R -->
+    <div class="panel grid-panel">
+        <div class="panel-head">
+            <span>🌍 Visual World (S & R)</span>
+            <span style="font-size:0.75rem; font-weight:normal; color:#999;">智能体眼中的网格</span>
+        </div>
+        <div class="grid-content">
+            <div class="grid-wrapper" id="grid">
+                <!-- JS 生成格子 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 过程层：日志 -->
+    <div class="panel log-panel">
+        <div class="panel-head">📝 Calculation History</div>
+        <div class="log-content" id="logContent">
+            <div style="text-align:center; color:#aaa; margin-top:20px;">点击"下一步"开始推演</div>
+        </div>
+    </div>
+
+    <!-- 3. 模型层：五要素与 P -->
+    <div class="model-panel">
+        
+        <!-- 静态：MDP 定义 -->
+        <div class="mdp-card">
+            <div style="font-weight:bold; margin-bottom:10px; border-bottom:2px dashed #BDBDBD; padding-bottom:8px; color: #424242;">
+                📋 MDP 五要素 (The Known Model)
+            </div>
+            <ul class="tuple-list">
+                <li class="tuple-item">
+                    <span class="tuple-key">S</span>
+                    <span class="tuple-val">状态空间 (左侧的 6 个格子)</span>
+                </li>
+                <li class="tuple-item">
+                    <span class="tuple-key">A</span>
+                    <span class="tuple-val">动作空间 {上, 下, 左, 右}</span>
+                </li>
+                <li class="tuple-item">
+                    <span class="tuple-key" style="color:var(--c-p)">P</span>
+                    <span class="tuple-val"><b>状态转移概率 (隐形规则)</b><br>例如: 撞墙回原位, 概率=1.0</span>
+                </li>
+                <li class="tuple-item">
+                    <span class="tuple-key" style="color:var(--c-r)">R</span>
+                    <span class="tuple-val">奖励函数 (S2=+10, S5=-10)</span>
+                </li>
+                <li class="tuple-item">
+                    <span class="tuple-key" style="color:var(--c-g)">γ</span>
+                    <span class="tuple-val">折扣因子 = 0.9</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 动态：模型查询 (Oracle) -->
+        <div class="oracle-card" id="oracleCard">
+            <div class="oracle-title">
+                🔮 Model Query (上帝视角)
+            </div>
+            <div id="oracleContent" class="oracle-data">
+                <span style="color:#aaa">// 等待算法查询 P 和 R...</span>
+            </div>
+            <div class="oracle-note" id="oracleDesc">
+                当算法尝试动作时，会在这里从 P 矩阵中读取结果。
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- 底部控制栏 -->
+<div class="controls-bar">
+    <button class="btn-reset" onclick="reset()">🔄 重置</button>
+    <button class="btn-prev" onclick="prev()" id="btnPrev" disabled>⏮ 上一步</button>
+    <button class="btn-auto" onclick="toggleAutoPlay()" id="btnAuto">▶️ 自动播放</button>
+    <div class="speed-control">
+        <span>速度:</span>
+        <input type="range" id="speedSlider" min="100" max="2000" value="800" onchange="updateSpeed()">
+        <span id="speedLabel">0.8s</span>
+    </div>
+    <button class="btn-next" onclick="next()" id="btnNext">下一步 ⏭</button>
+</div>
+
+<script>
+    // --- 配置 ---
+    const GAMMA = 0.9;
+    const ROWS = 2, COLS = 3;
+    const ACTIONS = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+    const ACTION_SYMBOLS = { UP: '↑', DOWN: '↓', LEFT: '←', RIGHT: '→' };
+
+    // 状态定义 (S, R)
+    const MODEL = [
+        { id: 0, r: 0,   type: 'normal' },
+        { id: 1, r: 0,   type: 'normal' },
+        { id: 2, r: 10,  type: 'terminal' },
+        { id: 3, r: 0,   type: 'normal' },
+        { id: 4, r: 0,   type: 'normal' },
+        { id: 5, r: -10, type: 'terminal' }
+    ];
+
+    // === 历史记录系统 ===
+    let history = [];
+    let historyIndex = -1;
+
+    // 运行时变量
+    let V = Array(6).fill(0);
+    let V_next = Array(6).fill(0);
+    let stateIdx = 0;
+    let actionIdx = 0;
+    let tempQValues = [];
+    let phase = 'INIT'; // INIT -> STATE -> ACTION -> UPDATE -> DONE
+    let iteration = 1;
+    let logs = [];
+    let maxDelta = 0;  // 收敛检测
+    const EPSILON = 0.01;  // 收敛阈值
+    let isConverged = false;
+    let autoPlayTimer = null;  // 自动播放定时器
+    let autoPlaySpeed = 800;   // 播放速度(ms)
+
+    // DOM Elements
+    const gridEl = document.getElementById('grid');
+    const logEl = document.getElementById('logContent');
+    const oracleContent = document.getElementById('oracleContent');
+    const oracleDesc = document.getElementById('oracleDesc');
+    const oracleCard = document.getElementById('oracleCard');
+    const btnNext = document.getElementById('btnNext');
+    const btnPrev = document.getElementById('btnPrev');
+
+    // --- 状态保存与恢复 ---
+    function saveState() {
+        return {
+            V: [...V],
+            V_next: [...V_next],
+            stateIdx,
+            actionIdx,
+            tempQValues: [...tempQValues],
+            phase,
+            iteration,
+            logs: [...logs],
+            maxDelta,
+            isConverged
+        };
+    }
+
+    function restoreState(state) {
+        V = [...state.V];
+        V_next = [...state.V_next];
+        stateIdx = state.stateIdx;
+        actionIdx = state.actionIdx;
+        tempQValues = [...state.tempQValues];
+        phase = state.phase;
+        iteration = state.iteration;
+        logs = [...state.logs];
+        maxDelta = state.maxDelta || 0;
+        isConverged = state.isConverged || false;
+    }
+
+    function pushHistory() {
+        history = history.slice(0, historyIndex + 1);
+        history.push(saveState());
+        historyIndex = history.length - 1;
+        updateButtons();
+    }
+
+    function updateButtons() {
+        btnPrev.disabled = historyIndex <= 0;
+    }
+
+    // --- 初始化 ---
+    function init() {
+        // 终止状态的V值初始化为其奖励值
+        MODEL.forEach((m, i) => {
+            if(m.type === 'terminal') {
+                V[i] = m.r;
+                V_next[i] = m.r;
+            }
+        });
+        renderGrid();
+        updateConvergenceDisplay();
+        logs = ['<div style="padding:10px; color:#666;">系统初始化: 终止状态 V(S2)=10, V(S5)=-10，其他 V(s)=0<br>点击"下一步"开始值迭代。</div>'];
+        renderLogs();
+        resetOracle();
+        pushHistory();
+    }
+
+    function renderLogs() {
+        logEl.innerHTML = logs.join('');
+        setTimeout(() => logEl.scrollTop = logEl.scrollHeight, 10);
+    }
+
+    function renderGrid() {
+        gridEl.innerHTML = '';
+        MODEL.forEach((m, i) => {
+            let div = document.createElement('div');
+            div.className = `cell ${m.type === 'terminal' ? 'target' : ''}`;
+            div.id = `cell-${i}`;
+            
+            // 奖励展示
+            let rText = '';
+            if(m.r !== 0) {
+                let color = m.r > 0 ? '#4CAF50' : '#F44336';  // 正奖励绿色，负奖励红色
+                rText = `<div class="cell-r" style="color:${color}">R=${m.r}</div>`;
+            }
+
+            div.innerHTML = `
+                <div class="cell-id">S${i}</div>
+                ${rText}
+                <div class="cell-v">${V[i].toFixed(2)}</div>
+                <div class="arrows">
+                    <div class="arr arr-up">▲</div>
+                    <div class="arr arr-down">▼</div>
+                    <div class="arr arr-left">◀</div>
+                    <div class="arr arr-right">▶</div>
+                </div>
+            `;
+            gridEl.appendChild(div);
+        });
+    }
+
+    // --- 模型逻辑 P(s'|s,a) ---
+    function getNextState(s, a) {
+        let r = Math.floor(s / COLS);
+        let c = s % COLS;
+        if(a === 'UP') r--;
+        if(a === 'DOWN') r++;
+        if(a === 'LEFT') c--;
+        if(a === 'RIGHT') c++;
+        if(r < 0 || r >= ROWS || c < 0 || c >= COLS) return s; // 撞墙
+        return r * COLS + c;
+    }
+
+    // --- 步进逻辑 ---
+    function next() {
+        pushHistory();
+
+        switch(phase) {
+            case 'INIT':
+                addLog(`🚀 第 ${iteration} 轮迭代开始`, 'l-phase');
+                addLog(`<small style="color:#78909C">依次遍历所有非终止状态，计算新的价值估计</small>`, 'l-calc');
+                stateIdx = 0;
+                V_next = [...V]; // 关键：每轮开始时复制当前V值
+                phase = 'STATE';
+                next();
+                break;
+
+            case 'STATE':
+                clearVisuals();
+                highlightCell(stateIdx);
+                
+                // 终止状态处理
+                if(MODEL[stateIdx].type === 'terminal') {
+                    addLog(`⏭ S${stateIdx} 是终止状态 (R=${MODEL[stateIdx].r})，跳过更新`, 'l-calc');
+                    showTerminalOracle(stateIdx);
+                    stateIdx++;
+                    if(stateIdx >= 6) phase = 'DONE';
+                    return; // 暂停让用户看
+                }
+
+                addLog(`📍 开始计算 <b>S${stateIdx}</b> 的价值`, 'l-calc');
+                addLog(`<small style="color:#78909C">需要尝试4个动作，找出最大Q值</small>`, 'l-calc');
+                actionIdx = 0;
+                tempQValues = [];
+                phase = 'ACTION';
+                next(); // 自动进动作
+                break;
+
+            case 'ACTION':
+                let action = ACTIONS[actionIdx];
+                let nextS = getNextState(stateIdx, action);
+                // 奖励是进入下一状态获得的（只有进入终止状态才有非零奖励）
+                let reward = MODEL[nextS].r; 
+                let vOld = V[nextS];
+                // 如果进入终止状态，后续价值为0（因为游戏结束）
+                let futureV = MODEL[nextS].type === 'terminal' ? 0 : vOld;
+                
+                // UI
+                highlightArrow(stateIdx, action);
+                updateOracle(stateIdx, action, nextS, reward);
+
+                // 核心计算: Q(s,a) = R(s,a) + γ * V(s')
+                // 进入终止状态时，futureV=0（游戏结束，无后续价值）
+                let q = reward + GAMMA * futureV;
+                tempQValues.push(q);
+
+                let futureNote = MODEL[nextS].type === 'terminal' ? ' (终止)' : '';
+                addLog(`
+                    &nbsp;&nbsp;${ACTION_SYMBOLS[action]} ${action} → S${nextS}${futureNote}: 
+                    <span style="color:var(--c-r)">${reward}</span> + 
+                    <span style="color:var(--c-g)">${GAMMA}</span> × 
+                    <span style="color:var(--c-v)">${futureV.toFixed(2)}</span> = 
+                    <b>${q.toFixed(2)}</b>
+                `, 'l-calc');
+
+                actionIdx++;
+                if(actionIdx >= ACTIONS.length) {
+                    phase = 'UPDATE';
+                    btnNext.textContent = "更新 V(s) ✓";
+                }
+                break;
+
+            case 'UPDATE':
+                let maxQ = Math.max(...tempQValues);
+                let bestIdx = tempQValues.indexOf(maxQ);
+                V_next[stateIdx] = maxQ;
+
+                // UI: 显示待更新值（用不同颜色标记，但不改变V数组）
+                let cellV = document.querySelector(`#cell-${stateIdx} .cell-v`);
+                cellV.textContent = `${V[stateIdx].toFixed(2)}→${maxQ.toFixed(2)}`;
+                cellV.style.color = 'var(--primary)';
+                cellV.style.fontSize = '1.2rem';
+
+                addLog(`✅ V(S${stateIdx}) ← max(Q) = <b>${maxQ.toFixed(2)}</b> (最优动作: ${ACTION_SYMBOLS[ACTIONS[bestIdx]]})`, 'l-res');
+                
+                resetOracle();
+                stateIdx++;
+                if(stateIdx >= 6) {
+                    phase = 'DONE';
+                    btnNext.textContent = "完成本轮 🎉";
+                } else {
+                    phase = 'STATE';
+                    btnNext.textContent = "下一个状态 ⏭";
+                }
+                break;
+                
+            case 'DONE':
+                // 计算收敛性: max|ΔV|
+                maxDelta = 0;
+                for(let i = 0; i < 6; i++) {
+                    if(MODEL[i].type !== 'terminal') {
+                        let delta = Math.abs(V_next[i] - V[i]);
+                        if(delta > maxDelta) maxDelta = delta;
+                    }
+                }
+                
+                V = [...V_next]; // 真正同步
+                renderGrid(); // 刷新显示
+                clearVisuals();
+                updateConvergenceDisplay();
+                
+                if(maxDelta < EPSILON) {
+                    isConverged = true;
+                    addLog(`🎉 <span style="color:#2E7D32">已收敛! max|ΔV| = ${maxDelta.toFixed(4)} < ε = ${EPSILON}</span>`, 'l-res');
+                    addLog(`🏁 第 ${iteration} 轮结束，值迭代完成！`, 'l-phase');
+                    
+                    // 显示最优解
+                    showOptimalSolution();
+                    
+                    btnNext.textContent = "✅ 已收敛";
+                    btnNext.disabled = true;
+                } else {
+                    addLog(`📊 max|ΔV| = <b>${maxDelta.toFixed(4)}</b> (阈值 ε=${EPSILON})`, 'l-calc');
+                    addLog(`🏁 第 ${iteration} 轮结束，尚未收敛，继续迭代...`, 'l-phase');
+                    btnNext.textContent = "开始下一轮 ⏭";
+                }
+                iteration++;
+                phase = 'INIT';
+                break;
+        }
+
+        renderLogs();
+        updateButtons();
+    }
+
+    function prev() {
+        if (historyIndex <= 0) return;
+        historyIndex--;
+        restoreState(history[historyIndex]);
+        renderGrid();
+        renderLogs();
+        clearVisuals();
+        updateConvergenceDisplay();
+        
+        if (phase === 'ACTION' || phase === 'UPDATE' || phase === 'STATE') {
+            highlightCell(stateIdx);
+        }
+        
+        btnNext.textContent = "下一步 ⏭";
+        btnNext.disabled = false;
+        updateButtons();
+    }
+
+    function reset() {
+        stopAutoPlay();  // 停止自动播放
+        V = Array(6).fill(0); V_next = Array(6).fill(0);
+        stateIdx = 0; iteration = 1; phase = 'INIT';
+        maxDelta = 0; isConverged = false;
+        history = [];
+        historyIndex = -1;
+        btnNext.disabled = false;
+        renderGrid();
+        logs = [];
+        resetOracle();
+        btnNext.textContent = "下一步 ⏭";
+        init();
+    }
+
+    // --- UI 辅助 ---
+    function updateOracle(s, a, nextS, r) {
+        oracleCard.classList.add('querying');
+        let futureV = MODEL[nextS].type === 'terminal' ? 0 : V[nextS];
+        let terminalNote = MODEL[nextS].type === 'terminal' ? ' <span style="color:#9E9E9E">(终止→0)</span>' : '';
+        oracleContent.innerHTML = `
+            <div>P(S${nextS} | S${s}, ${ACTION_SYMBOLS[a]}) = <span style="color:var(--c-p); font-weight:bold;">1.0</span></div>
+            <div>R(S${s}, ${ACTION_SYMBOLS[a]}) = <span style="color:var(--c-r); font-weight:bold;">${r}</span></div>
+            <div>V(S${nextS}) = <span style="color:var(--c-v); font-weight:bold;">${futureV.toFixed(2)}</span>${terminalNote}</div>
+        `;
+        oracleDesc.innerHTML = `从 <b>S${s}</b> 执行 <b>${ACTION_SYMBOLS[a]}</b> 确定性转移到 <b>S${nextS}</b>`;
+    }
+
+    function showTerminalOracle(s) {
+        oracleCard.classList.remove('querying');
+        oracleContent.innerHTML = `<span style="color:#aaa">Terminal State (R=${MODEL[s].r})</span>`;
+        oracleDesc.textContent = `S${s} 是终点，没有后续转移，价值固定为即时奖励。`;
+    }
+
+    function resetOracle() {
+        oracleCard.classList.remove('querying');
+        oracleContent.innerHTML = `<span style="color:#aaa">// 等待查询...</span>`;
+        oracleDesc.textContent = "当算法遍历动作时，此处显示 P 和 R。";
+    }
+
+    function addLog(html, type) {
+        logs.push(`<div class="log-item ${type}">${html}</div>`);
+    }
+
+    function updateConvergenceDisplay() {
+        const convDelta = document.getElementById('convDelta');
+        const convStatus = document.getElementById('convStatus');
+        
+        if(iteration === 1 && maxDelta === 0) {
+            convDelta.textContent = '当前 max|ΔV| = --';
+            convStatus.textContent = '⏳ 等待开始';
+            convStatus.className = 'conv-status running';
+        } else if(isConverged) {
+            convDelta.textContent = `当前 max|ΔV| = ${maxDelta.toFixed(4)}`;
+            convStatus.textContent = '✅ 已收敛';
+            convStatus.className = 'conv-status converged';
+        } else {
+            convDelta.textContent = `当前 max|ΔV| = ${maxDelta.toFixed(4)}`;
+            convStatus.textContent = '⏳ 迭代中';
+            convStatus.className = 'conv-status running';
+        }
+    }
+
+    function highlightCell(i) {
+        document.querySelectorAll('.cell').forEach(c => c.classList.remove('active'));
+        document.getElementById(`cell-${i}`).classList.add('active');
+    }
+    function highlightArrow(s, a) {
+        let map = {'UP':'arr-up','DOWN':'arr-down','LEFT':'arr-left','RIGHT':'arr-right'};
+        document.querySelectorAll('.arr').forEach(arr => arr.classList.remove('active'));
+        document.querySelector(`#cell-${s} .${map[a]}`).classList.add('active');
+    }
+    function clearVisuals() {
+        document.querySelectorAll('.cell').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.arr').forEach(a => a.classList.remove('active'));
+    }
+
+    // --- 显示最优解 ---
+    function showOptimalSolution() {
+        addLog(`<div style="margin-top:10px; padding:12px; background:#E8F5E9; border-radius:8px; border:2px solid #4CAF50;">
+            <div style="font-weight:bold; color:#2E7D32; margin-bottom:10px; font-size:1.1rem;">🏆 最优解 (Optimal Solution)</div>
+            <div style="margin-bottom:8px; font-weight:bold; color:#1976D2;">📊 最优价值函数 V*(s):</div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-bottom:12px;">
+                ${MODEL.map((m, i) => `<span style="background:#fff; padding:4px 8px; border-radius:4px; text-align:center;">V*(S${i})=${V[i].toFixed(2)}</span>`).join('')}
+            </div>
+            <div style="font-weight:bold; color:#E91E63; margin-bottom:8px;">🎯 最优策略 π*(s):</div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px;">
+                ${MODEL.map((m, i) => {
+                    if(m.type === 'terminal') {
+                        return `<span style="background:#EEEEEE; padding:4px 8px; border-radius:4px; text-align:center; color:#9E9E9E;">S${i}: 终止</span>`;
+                    }
+                    let bestAction = getBestAction(i);
+                    return `<span style="background:#fff; padding:4px 8px; border-radius:4px; text-align:center;">π*(S${i})=${ACTION_SYMBOLS[bestAction]}</span>`;
+                }).join('')}
+            </div>
+        </div>`, 'l-res');
+        
+        // 在格子上显示最优动作箭头
+        renderOptimalPolicy();
+    }
+
+    function getBestAction(s) {
+        let bestAction = ACTIONS[0];
+        let bestQ = -Infinity;
+        for(let a of ACTIONS) {
+            let nextS = getNextState(s, a);
+            let reward = MODEL[nextS].r;
+            let futureV = MODEL[nextS].type === 'terminal' ? 0 : V[nextS];
+            let q = reward + GAMMA * futureV;
+            if(q > bestQ) {
+                bestQ = q;
+                bestAction = a;
+            }
+        }
+        return bestAction;
+    }
+
+    function renderOptimalPolicy() {
+        // 高亮每个非终止状态的最优动作箭头
+        MODEL.forEach((m, i) => {
+            if(m.type !== 'terminal') {
+                let bestAction = getBestAction(i);
+                let map = {'UP':'arr-up','DOWN':'arr-down','LEFT':'arr-left','RIGHT':'arr-right'};
+                let arrow = document.querySelector(`#cell-${i} .${map[bestAction]}`);
+                if(arrow) {
+                    arrow.classList.add('active');
+                    arrow.style.color = '#4CAF50';  // 绿色表示最优
+                }
+            }
+        });
+    }
+
+    // --- 自动播放功能 ---
+    function toggleAutoPlay() {
+        const btnAuto = document.getElementById('btnAuto');
+        if(autoPlayTimer) {
+            // 停止播放
+            clearInterval(autoPlayTimer);
+            autoPlayTimer = null;
+            btnAuto.textContent = '▶️ 自动播放';
+            btnAuto.classList.remove('playing');
+        } else {
+            // 开始播放
+            if(isConverged) return; // 已收敛不播放
+            btnAuto.textContent = '⏸️ 暂停';
+            btnAuto.classList.add('playing');
+            autoPlayTimer = setInterval(() => {
+                if(isConverged || btnNext.disabled) {
+                    stopAutoPlay();
+                    return;
+                }
+                next();
+            }, autoPlaySpeed);
+        }
+    }
+
+    function stopAutoPlay() {
+        const btnAuto = document.getElementById('btnAuto');
+        if(autoPlayTimer) {
+            clearInterval(autoPlayTimer);
+            autoPlayTimer = null;
+        }
+        btnAuto.textContent = '▶️ 自动播放';
+        btnAuto.classList.remove('playing');
+    }
+
+    function updateSpeed() {
+        const slider = document.getElementById('speedSlider');
+        const label = document.getElementById('speedLabel');
+        autoPlaySpeed = parseInt(slider.value);
+        label.textContent = (autoPlaySpeed / 1000).toFixed(1) + 's';
+        
+        // 如果正在播放，重新设置定时器
+        if(autoPlayTimer) {
+            clearInterval(autoPlayTimer);
+            autoPlayTimer = setInterval(() => {
+                if(isConverged || btnNext.disabled) {
+                    stopAutoPlay();
+                    return;
+                }
+                next();
+            }, autoPlaySpeed);
+        }
+    }
+
+    init();
+</script>
+
+</body>
+</html>
