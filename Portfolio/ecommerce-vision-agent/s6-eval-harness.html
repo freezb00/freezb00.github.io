@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S5 PRD 核心规约</title>
+<style>
+:root{
+--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#0f52ba;--accent-light:#eef4fc;--ok:#2f6b45;--bad:#a12a2a;--warn:#a8761f;--code:#f2f2ef;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#4d8bf0;--accent-light:#192538;--ok:#7ab88f;--bad:#e08585;--warn:#d6a75a;--code:#202020;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:15.5px/1.75 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:24px 24px 0}
+h1{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-.01em;font-weight:700}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 12px}
+h2{font-size:16px;margin:56px 0 16px;padding-bottom:9px;border-bottom:1px solid var(--line);
+letter-spacing:.02em;font-weight:700}
+h2 .n{background:var(--accent);color:#fff;font-size:11px;padding:2px 6px;border-radius:4px;margin-right:8px;}
+h3{font-size:15px;margin:28px 0 10px;font-weight:600}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 14px;padding-left:20px}li{margin:6px 0}
+strong{font-weight:600}
+em{font-style:normal;color:var(--accent);font-weight:600}
+.lead{font-size:16.5px;line-height:1.65;border-left:3px solid var(--accent);
+padding:4px 0 4px 18px;margin:28px 0 34px;background:var(--accent-light);border-radius:0 6px 6px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px 22px;margin:0 0 18px}
+.card h4{margin:0 0 12px;font-size:14px;letter-spacing:.02em;color:var(--fg);font-weight:600;border-bottom:1px dashed var(--line);padding-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 18px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+th{font-weight:600;font-size:12.5px;color:var(--muted);letter-spacing:.03em;background:var(--code)}
+td.c,th.c{text-align:center;font-variant-numeric:tabular-nums}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.wn{color:var(--warn);font-weight:600}
+code{background:var(--code);padding:2px 6px;border-radius:4px;font-size:13px;
+font-family:ui-monospace,"SF Mono",Menlo,monospace;color:var(--accent)}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border:1px solid var(--line);
+border-radius:20px;color:var(--muted);margin-right:6px}
+.tag.a{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.tag.status{border-radius:4px;font-weight:600;padding:2px 6px;font-size:11px;text-transform:uppercase}
+.status-warn{background:rgba(168,118,31,0.1);color:var(--warn);border:1px solid var(--warn)}
+.status-bad{background:rgba(161,42,42,0.1);color:var(--bad);border:1px solid var(--bad)}
+.status-ok{background:rgba(47,107,69,0.1);color:var(--ok);border:1px solid var(--ok)}
+.q{border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin:0 0 16px;background:var(--card);border-left:4px solid var(--warn)}
+.q b{display:block;margin-bottom:6px;font-size:14.5px;color:var(--fg)}
+.q span{color:var(--muted);font-size:13.5px}
+hr{border:0;border-top:1px solid var(--line);margin:48px 0}
+.nav-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.nav-link{font-size:13px;color:var(--muted);text-decoration:none}
+.nav-link:hover{color:var(--accent)}
+</style>
+</head><body><div class="wrap">
+
+<div class="nav-bar">
+  <a href="index.html" style="font-weight:700;font-size:14px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:6px;">← 返回目录 (Index)</a>
+  <div style="display:flex;gap:14px;font-size:13px">
+    <a href="s0-project-brief.html" class="nav-link">S0 Brief</a>
+    <a href="s1-target-hypothesis.html" class="nav-link">S1 目标假说</a>
+    <a href="s2-competitive-evidence.html" class="nav-link">S2 竞品实测</a>
+    <a href="s3-architecture-adr.html" class="nav-link">S3 架构ADR</a>
+    <a href="s5-prd-v0.1.html" class="nav-link">S5 PRD</a>
+    <a href="s6-eval-harness.html" class="nav-link" style="color:var(--accent);font-weight:600">S6 评测验收</a>
+  </div>
+</div>
+
+<div style="background:var(--accent-light);border:1px solid rgba(15,82,186,0.25);border-radius:8px;padding:14px 18px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+  <div>
+    <span style="font-size:11.5px;color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase">评测金标集与护栏 · S6</span>
+    <p style="margin:4px 0 0;font-size:13px;color:var(--muted)">定义算法级评测 (Eval) 与防御性回归测试的硬核验收标准。</p>
+  </div>
+  <span class="tag a">S6 Milestone</span>
+</div>
+
+<h1>AI 出图自动化平台：核心评测金标集与验收护栏</h1>
+<p class="sub">一份高级 PM 的核心壁垒：不仅能写功能 PRD，更懂得如何定义 AI 系统的成败。</p>
+<h2><span class="n">01</span> 核心验收逻辑 (UAT & Eval Harness)</h2>
+
+<p>与传统的 CRUD 软件不同，基于生成式 AI 的业务中台必须具备<strong>“算法级评测 (Eval)”</strong>与<strong>“防御性回归测试”</strong>。本产品上线前，需通过以下三大维度的硬核验收：</p>
+
+<div class="card">
+  <h4>1.1 测试打靶集构造 (Test Set Construction)</h4>
+  <p class="q">为了防止开发团队“对着简单的 Demo 数据优化”，我们构造了包含 2,000 个复杂 SKU 的极端边缘场景（Corner Cases）打靶库：</p>
+  <ul>
+    <li><strong>材质光影地狱集</strong>：包含高反光羽绒服、半透明防晒衣、细密网格针织衫。验收 SAM 抠图的边缘准确率与光影重建是否自然。</li>
+    <li><strong>UI 碰撞极端集</strong>：包含长达 30 个字的促销文案、高达 6 位的价格数字（如 9999.00）。验收 Critic Agent 是否能精准检测与抖音/天猫 UI 的碰撞，并触发自动排版降级。</li>
+    <li><strong>极限词陷阱集</strong>：包含“纯棉”、“第一”、“顶级”等广告法灰产词汇，测试合规防火墙的拦截命中率。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h4>1.2 核心业务验收红线指标 (Success Metrics)</h4>
+  <p class="q">摒弃虚无缥缈的“图像美观度打分”，直接锚定企业关注的降本增效核心商业指标：</p>
+  <ul>
+    <li><strong style="color:var(--bad)">人工接管兜底率 (Human Takeover Rate) &lt; 5%</strong>：在 2000 张打靶测试中，被系统挂起需要人工前往工作台拖拽排版或重绘的比例，必须控制在 5% 以内。这是商业化落地的生死线。</li>
+    <li><strong style="color:var(--ok)">商品本体特征变形率 = 0%</strong>：坚决执行物理像素保护（Masking），只要商品本身的纽扣、褶皱、Logo 发生 1 个像素的 AI 幻觉变异，该批次算作直接失败。</li>
+    <li><strong>价格排版错误率 = 0%</strong>：通过 SVG 无头浏览器二次渲染引擎，确保传入的 <code>$199</code> 不会发生扩散模型常见的“字母乱码”，100% 确定性。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h4>1.3 灰度上线与熔断机制 (Rollout & Fallback)</h4>
+  <ul>
+    <li><strong>影子模式 (Shadow Mode) 试运行</strong>：第一周，截取线上真实产生的美工生图需求，同时分发给人工团队和 AI 管线。由业务总监进行盲测（Blind Test），对两者的合规率和转化率进行对标。</li>
+    <li><strong>10% 真实流量灰度</strong>：针对某单品类的“聚划算”小促进行真实链路灰度发布。</li>
+    <li><strong>全局熔断阀值</strong>：如果在真实环境运行中，<code>Critic_Failed</code> 循环重试导致 GPU 算力池排队时间超过 10 分钟，或人工接管率突增至 15% 以上，系统自动降级回退至“全人工手动分发”的老工作流，并触发钉钉 P0 级报警。</li>
+  </ul>
+</div>
+
+
+</div></body></html>

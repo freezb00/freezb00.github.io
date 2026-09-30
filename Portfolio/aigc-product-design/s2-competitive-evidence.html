@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S2 竞品取证 · 交付层位差与结构性断层</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#b4531f;--ok:#2f6b45;--bad:#a12a2a;--code:#f2f2ef}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#e08a52;--ok:#7ab88f;--bad:#e08585;--code:#202020}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:16px/1.72 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:800px;margin:0 auto;padding:20px 24px 120px}
+h1{font-size:25px;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 8px}
+h2{font-size:15px;margin:58px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--line);letter-spacing:.02em}
+h2 .n{color:var(--muted);font-weight:400;margin-right:10px;font-variant-numeric:tabular-nums}
+h3{font-size:14.5px;margin:26px 0 8px}
+p{margin:0 0 14px}ul,ol{margin:0 0 14px;padding-left:20px}li{margin:6px 0}
+em{font-style:normal;color:var(--accent);font-weight:600}
+.lead{font-size:17px;line-height:1.62;border-left:2px solid var(--accent);padding:2px 0 2px 18px;margin:26px 0 34px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 16px}
+th,td{text-align:left;padding:9px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:12px;color:var(--muted);letter-spacing:.03em}
+td.c,th.c{text-align:center}
+.win{color:var(--ok);font-weight:600}.lose{color:var(--bad);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin:0 0 16px}
+.card h4{margin:0 0 8px;font-size:13px;letter-spacing:.03em;color:var(--muted);text-transform:uppercase}
+.card.hot{border-color:var(--accent);border-width:1.5px}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border:1px solid var(--line);border-radius:20px;color:var(--muted);margin-right:6px}
+.tag.a{border-color:var(--accent);color:var(--accent)}
+.lv{border:1px solid var(--line);border-radius:7px;padding:11px 15px;margin:0 0 8px;background:var(--card);font-size:14px}
+.lv b{color:var(--fg)}
+.lv.gap{border-color:var(--accent);border-width:1.5px}
+.lv small{display:block;color:var(--muted);font-size:12.5px;margin-top:3px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+hr{border:0;border-top:1px solid var(--line);margin:52px 0}
+.foot{color:var(--muted);font-size:12.5px;line-height:1.7}
+</style></head><body><div class="wrap">
+
+<nav style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:14px;border-bottom:1px solid var(--line)">
+<a href="index.html" style="font-size:13px;color:var(--muted);text-decoration:none;font-weight:600;letter-spacing:.04em">&#8592; &#26041;&#26696;&#24635;&#35272;</a>
+<div style="display:flex;gap:16px;font-size:13px">
+<a href="s0-project-brief.html" style="color:var(--muted);text-decoration:none">Brief</a>
+<a href="s2-competitive-evidence.html" style="color:var(--muted);text-decoration:none">&#31454;&#21697;</a>
+<a href="s4-feature-derivation.html" style="color:var(--muted);text-decoration:none">&#21151;&#33021;&#25512;&#23548;</a>
+</div>
+</nav>
+<div style="background:rgba(180,83,31,0.06);border:1px solid rgba(180,83,31,0.25);border-radius:8px;padding:14px 18px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+<div>
+<span style="font-size:11.5px;color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase">竞品分析 · 结构性断层与空档成因</span>
+<p style="margin:4px 0 0;font-size:13px;color:var(--muted)">原创 L0–L5 视觉交付成熟度模型，揭示在位者不做交付层的四大结构性原因。</p>
+</div>
+<a href="index.html" style="font-size:13px;color:var(--accent);text-decoration:none;white-space:nowrap;font-weight:600">&#8592; &#36820;&#22238;&#26041;&#26696;&#24635;&#35272;</a>
+</div>
+
+
+<h1>竞品位差矩阵 · 交付层结构性断层与空档成因</h1>
+<p class="sub">核心问题：为什么 Adobe、Canva、基座生图厂商没有顺手把商业交付管线做掉？</p>
+
+
+<p class="lead"><strong>核心发现：在位者的优势正是他们的枷锁。</strong><br>
+生图厂商拼模型参数，无暇做脏活；Adobe 靠庞大繁复的专业操作面板维持订阅壁垒，自动化交付会消解其“专业门槛”溢价；Canva 守在低端小白模板闭环，无法承载 500MB+ 的专业工业工程文件。商业交付断层是<strong>结构性必然</strong>，而非技术偶然。</p>
+
+<h2><span class="n">01</span>视觉交付成熟度六级模型（L0–L5）</h2>
+
+<p>把从“生成”到“交付”的能力切分为六层，市面竞品的断层位置立刻一目了然：</p>
+
+<div class="lv"><b>L0 扁平位图生成</b><small>Midjourney / Flux / SD：输出烘焙好的 PNG/JPG，潜空间无对象概念，改一个字需重跑整图。</small></div>
+<div class="lv"><b>L1 单点工具增强</b><small>Topaz（超分）、Vectorizer（矢量描摹）、Remove.bg（扣底）：单点算法优秀，但互相孤立，画师需跨 4 个软件倒腾文件。</small></div>
+<div class="lv"><b>L2 画布内局部生成</b><small>Photoshop Firefly（创成式填充）：直接在 PS 画布内生成，但产物依旧是位图蒙版，不支持文字排版解耦与印刷预检。</small></div>
+<div class="lv"><b>L3 传统印前被动预检</b><small>Adobe Acrobat Pro 预检 / 柯达印能捷：只能在最后阶段报错（告警：分辨率低、缺出血、RGB溢出），但无法智能修复。</small></div>
+<div class="lv gap"><b>L4 [核心空档] 智能解耦与分层交付管线</b><small><b>Handoff 的核心战场</b>：在宿主（PS/AI）内，将生成图的文本、主体、背景一键解耦分层；文本预留安全区自动无损补底；实时 CMYK 溢出告警；一键打包全规格物料（Web/印刷/海洛供稿）。</small></div>
+<div class="lv gap"><b>L5 权属存证与尾款交付闭环</b><small>记录创作演进时间戳与手工图层差分，输出司法级商用版权溯源报告，让甲方无挑刺借口，快速结算尾款。</small></div>
+
+<h2><span class="n">02</span>在位竞品位差矩阵</h2>
+
+<table>
+<tr><th>竞品阵营</th><th>代表产品</th><th>当前覆盖层级</th><th>致命断层（为什么不能解决交付痛点）</th><th>产品定位启示</th></tr>
+<tr>
+<td><strong>基座生图模型</strong></td>
+<td>Midjourney, Flux, SD WebUI</td>
+<td class="c">L0</td>
+<td>受限于 <strong>C1（无图层）</strong> 与 <strong>C3（下采样）</strong>，无法生成可编辑文本和路径；对印刷规范（CMYK/出血/转曲）完全无知。</td>
+<td>绝不跟基座竞争生成，本产品只做它们下游的“收口与净化管线”。</td>
+</tr>
+<tr>
+<td><strong>宿主霸主</strong></td>
+<td>Adobe (PS + Firefly)</td>
+<td class="c">L2</td>
+<td>Firefly 聚焦在“无版权争议生图”上。交付依然让用户手动在几百个专业工具栏（通道、色域、图层蒙版、另存为）里折腾。</td>
+<td><strong>寄生在其插件体系（UXP Panel）中</strong>，替画师把繁琐的 20 步手工操作收敛为一个一键预检与导出按钮。</td>
+</tr>
+<tr>
+<td><strong>轻量设计平台</strong></td>
+<td>Canva, 稿定设计</td>
+<td class="c">L1–L2</td>
+<td>基于浏览器轻量模板；无法解析 500MB+ 复杂分层 PSD，且不支持 CMYK 专业色彩转换与印刷刀模。脱离画师原生工具链。</td>
+<td>画师不会离开 PS 去网页做专业交付；做轻量在线画布必死。</td>
+</tr>
+<tr>
+<td><strong>垂直算法单点</strong></td>
+<td>Topaz Photo AI, Vectorizer.ai</td>
+<td class="c">L1</td>
+<td>只管单点算法（单纯放大像素或单纯描摹轮廓），缺乏项目交付概念，无法实现文案无损替换与规范化打包。</td>
+<td>将优质算子集成到交付流底层，以“交付结果”而非“算法工具”交付给用户。</td>
+</tr>
+</table>
+
+<h2><span class="n">03</span>为什么在位者不做？四大结构性原因</h2>
+
+<div class="card hot">
+<h4>1. 商业模式与产品心智冲突：Adobe 的“工具复杂度壁垒”</h4>
+<p>Adobe 靠 Creative Cloud 全家桶的专业订阅活着。其产品护城河正是“专业操作的高门槛”——几百个滤镜、色彩设置、动作脚本。如果 Adobe 官方做一个傻瓜式的“AI 商业交付一键通”，反而在稀释其专业工具壁垒。此外，Adobe 内部按软件事业部划分（PS 团队、AI 团队、InDesign 团队各管一块），跨软件的自动化交付管线存在严重的组织协同摩擦。</p>
+</div>
+
+<div class="card">
+<h4>2. 商业模式冲突：生图厂商的“Token 消耗驱动”</h4>
+<p>Midjourney / 商业生图 API 的商业逻辑是“抽卡消耗算力”。让用户一遍遍重跑 Prompt 换文字、改颜色，才能消耗更多的 GPU 点数与订阅额度。<strong>“让用户一次生成后在本地自由改文案、永不重抽生图”</strong>，在商业利益上与生图基座厂商天然相悖。</p>
+</div>
+
+<div class="card">
+<h4>3. 组织边界：脏活累活的行业壁垒</h4>
+<p>不同场景的交付规范极其琐碎（站酷海洛要单画板 EPS 转曲、印厂要 3mm 出血 + CMYK FOGRA39、App 要 @2x/@3x PNG）。这种和印刷供应链、素材分销平台深度绑定的“工业脏活”，技术大厂的 AI 科学家和算法工程师根本不屑于做，也缺乏领域认知。</p>
+</div>
+
+<h2><span class="n">04</span>S2 裁决结论与产品护城河</h2>
+
+<ol>
+<li><strong>位差极其真实且坚固</strong>：L4/L5 层处于绝对空白状态，市面上既无工具将“文本解耦/无损补底”做成确定性交付，也无工具一键输出“多用途交付物料包 + 权属证明”。</li>
+<li><strong>产品形态确定性</strong>：<strong>做 Photoshop / Illustrator 原生插件（UXP Panel）</strong>。画师画完或垫图后，在 PS 右侧边栏一键调用：
+   <ul>
+   <li><strong>安全区文字解耦</strong>：选中文本，一键提至独立真文本层，底图无缝 Inpainting 补平；</li>
+   <li><strong>一键印前体检</strong>：自动检测 RGB→CMYK 溢出、标出暗调发灰区域、自动添加 3mm 智能延伸出血位；</li>
+   <li><strong>一键 Handoff 打包</strong>：导出符合站酷海洛 / 印厂 / 网页三套规格的标准交付 ZIP 包，附带生成参数与图层时间戳存证。</li>
+   </ul>
+</li>
+</ol>
+
+</div></body></html>

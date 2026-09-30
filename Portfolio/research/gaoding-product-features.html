@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>稿定设计 · 产品功能拆解、技术架构与商业化深度调研报告</title>
+<style>
+:root{
+  --bg:#fafaf9; --ink:#1c1917; --mute:#78716c; --line:#e7e5e4; --soft:#f5f5f4;
+  --accent:#2563eb; --accent-hover:#1d4ed8; --warn:#b45309; --bad:#b91c1c; --ok:#15803d;
+  --side: 280px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f172a; --ink:#f8fafc; --mute:#94a3b8; --line:#1e293b; --soft:#1e293b;
+        --accent:#38bdf8; --accent-hover:#0ea5e9; --warn:#f59e0b; --bad:#ef4444; --ok:#10b981;}
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:24px; scroll-behavior: smooth;}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  transition:background .2s,color .2s; overflow-x: hidden;}
+
+/* 导航展开按钮（侧边栏收起时显示） */
+.sidebar-open-btn {
+  position: fixed; top: 16px; left: 16px; z-index: 40;
+  width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--ink); cursor: pointer;
+  display: none; align-items: center; justify-content: center; font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.sidebar-open-btn:hover { color: var(--accent); border-color: var(--accent); }
+body.sidebar-closed .sidebar-open-btn { display: flex; }
+
+aside.side, #sidebar {
+  position:fixed;left:0;top:0;bottom:0;width:var(--side);
+  background:var(--soft);border-right:1px solid var(--line);
+  padding:24px 16px 20px;overflow-y:auto;display:flex;flex-direction:column;z-index:50;
+  transition: transform .25s ease-in-out;
+}
+body.sidebar-closed aside.side, body.sidebar-closed #sidebar { transform: translateX(-100%); }
+
+/* 导航收起按钮 */
+.sidebar-close-btn {
+  position: absolute; top: 18px; right: 14px;
+  background: transparent; border: none; font-size: 18px; color: var(--mute);
+  cursor: pointer; padding: 6px; border-radius: 6px; line-height: 1;
+}
+.sidebar-close-btn:hover { background: var(--bg); color: var(--ink); }
+
+aside.side .brand, #sidebar h3, #sidebar .brand {font-size:15px;font-weight:650;margin-bottom:18px;color:var(--ink); padding-right: 28px; line-height: 1.4;}
+.side .brand b{color:var(--accent);}
+.navlinks, #sidebar ul {display:flex;flex-direction:column;gap:3px;flex:1;}
+.navlinks a, #sidebar a {font-size:13px;color:var(--mute);text-decoration:none;padding:7px 10px;
+  border-radius:6px;line-height:1.4;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;transition: background .15s, color .15s;}
+.navlinks a:hover, #sidebar a:hover {color:var(--ink);background:var(--line);}
+.navlinks a.active, #sidebar a.active {color:var(--accent);background:var(--bg);font-weight:600;}
+
+.main, #main-content {margin-left:var(--side); padding-top: 36px; padding-bottom: 96px; transition: margin-left .25s ease-in-out;}
+body.sidebar-closed .main, body.sidebar-closed #main-content { margin-left: 0; }
+
+.container, .wrap {max-width:980px;margin:0 auto;padding:0 24px;}
+h1{font-size:30px;line-height:1.3;margin:0 0 16px;color:var(--ink);font-weight:750;}
+h2{font-size:22px;margin:44px 0 18px;padding-bottom:10px;border-bottom:1.5px solid var(--line);color:var(--ink);font-weight:700;}
+h3{font-size:17.5px;margin:28px 0 12px;color:var(--ink);font-weight:650;}
+p,li{font-size:15px;color:var(--ink);line-height:1.8;}
+ul,ol{padding-left:22px;margin:12px 0;}
+li{margin:6px 0;}
+strong{color:var(--ink);font-weight:650;}
+code{background:var(--soft);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:13.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;}
+pre{background:var(--soft);border:1px solid var(--line);padding:16px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.6;margin:18px 0;}
+pre code{background:transparent;padding:0;color:var(--ink);}
+
+.badge{display:inline-block;padding:2px 9px;border-radius:6px;font-size:12px;font-weight:600;line-height:1.5;}
+.badge-pending{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+.badge-pass{background:#dcfce7;color:#166534;border:1px solid #bbf7d0;}
+.badge-gray{background:var(--soft);color:var(--mute);border:1px solid var(--line);}
+
+.thesis-box{background:#eff6ff;border:1.5px solid #bfdbfe;border-left:5px solid var(--accent);border-radius:8px;padding:20px 22px;margin:24px 0;}
+.thesis-box strong.title{display:block;font-size:16px;color:#1e40af;margin-bottom:8px;letter-spacing:0.5px;}
+.thesis-box p{color:#1e3a8a;margin:0;font-size:15px;line-height:1.75;}
+
+.conclusion-item {
+  background: var(--soft);
+  border-left: 4px solid var(--accent);
+  padding: 16px 20px;
+  margin: 18px 0;
+  border-radius: 0 8px 8px 0;
+}
+.conclusion-item h4 { margin: 0 0 8px; color: var(--ink); font-size: 16px; font-weight: 700; }
+.conclusion-item p { margin: 0 0 6px; font-size: 14.5px; }
+.source-tag { font-size: 12.5px; color: var(--mute); display: block; margin-top: 4px; }
+
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:20px 0;}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,0.02);}
+.card .k{font-size:12.5px;color:var(--mute);font-weight:600;text-transform:uppercase;margin-bottom:6px;}
+.card .v{font-size:22px;font-weight:750;color:var(--accent);line-height:1.2;margin-bottom:6px;}
+.card .d{font-size:13px;color:var(--mute);line-height:1.5;}
+
+.tablewrap{overflow-x:auto;margin:22px 0;border:1px solid var(--line);border-radius:8px;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th,td{border-bottom:1px solid var(--line);padding:10px 14px;text-align:left;vertical-align:top;}
+th{background:var(--soft);font-weight:650;color:var(--ink);white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+tr:nth-child(even){background:rgba(0,0,0,0.015);}
+
+.callout{border-left:4px solid var(--accent);background:var(--soft);padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0;}
+.callout.warn{border-left-color:var(--warn);background:#fffbeb;}
+.callout.warn strong{color:var(--warn);}
+.callout.danger{border-left-color:var(--bad);background:#fef2f2;}
+hr{border:none;border-top:1px solid var(--line);margin:36px 0;}
+</style>
+</head>
+<body>
+
+<button class="sidebar-open-btn" id="sidebarOpen" title="展开导航">☰</button>
+
+<aside class="side" id="sidebar">
+  <button class="sidebar-close-btn" id="sidebarClose" title="收起导航">✕</button>
+  <div class="brand">Deep Research · <b>Report</b></div>
+  <nav class="navlinks" id="nl">
+    <a href="../portfolio.html" style="margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px; color: var(--accent); font-weight: bold;">🏠 返回作品集主页</a>
+    <a class="active" href="#sec-thesis">核心 Thesis 判断系统</a>
+    <a href="#sec-1">1. 核心战略研判 (5条结论)</a>
+    <a href="#sec-2">2. 产品功能全景拆解 (电商流水线)</a>
+    <a href="#sec-3">3. 编辑器内核架构与渲染工程</a>
+    <a href="#sec-4">4. 商业模式与商业化深度调研</a>
+    <a href="#sec-5">5. 可借鉴设计点与 PM 启发</a>
+    <a href="#sec-6">6. 局限性与平台下场威胁</a>
+    <a href="#sec-7">7. 标杆矩阵：Canva vs 稿定 vs 即梦</a>
+    <a href="#sec-appendix">附录：证据账本与可证伪信号</a>
+  </nav>
+</aside>
+
+<div class="main" id="main-content">
+  <div class="container">
+    
+    <h1>稿定设计 · 产品功能拆解、技术架构与商业化深度调研报告</h1>
+    <p style="font-size: 16px; color: var(--mute); margin-bottom: 28px;">
+      以电商商家与新媒体运营为基本盘的本土商业视觉 SaaS · 从模板拼贴到 AI 工业化流水线全景拆解
+    </p>
+
+    <!-- Thesis 核心判断 -->
+    <div class="thesis-box" id="sec-thesis">
+      <strong class="title">核心 Thesis 判断系统</strong>
+      <p>
+        <strong>旧共识将稿定设计误判为“中国版的 Canva”，并预言其将被原生 AIGC 工具和电商平台官方工具彻底卷死；真实变量是：稿定的本质不是通用设计画布，而是以“中国本土版权强防御 + 电商跨端高频履约”为变现锚点的垂直生产力中台。</strong>
+        其核心护城河由四根承重柱支撑：
+        ① <strong>编辑器双能力栈</strong>（L1 运营级模板拖拽 + L4 美工级图层/蒙版/PSD 导入），卡位在 Canva 之上、Photoshop 之下；
+        ② <strong>端到端电商流水线</strong>（9 年淘宝淘拍档 know-how 沉淀，打通主图、详情页、发丝级精抠、智能商拍与全网碎裂尺寸适配）；
+        ③ <strong>商用授权作定价第一锚点</strong>（针对国内字体/图片诉讼高发环境的刚需版权保险）；
+        ④ <strong>私有化部署 + 开放平台中台化</strong>（成为国企/金融/头部品牌无法采购海外 SaaS 的地缘准入门票）。
+        在 AI 时代，稿定通过协议层主动限制 AI 纯生成内容商用（保护模板授权现金牛），同时通过“稿定豆”将 AI 算力成本完全商品化按量转嫁，构建了极度务实的防御型商业生态。
+      </p>
+    </div>
+
+    <!-- 1. 核心结论 -->
+    <h2 id="sec-1">1. 核心结论（5 条核心判断）</h2>
+
+    <div class="conclusion-item">
+      <h4>结论 1：编辑器采用「双能力栈」（L1 新手 + L4 进阶），纵深超越 Canva、门槛低于真 PS</h4>
+      <p>
+        稿定 Web 编辑器上层面向 L1 级新手运营提供“零门槛模板替换”，下层则面向 L4 级进阶美工提供完整的 <strong>图层树、矢量锚点、蒙版遮罩、图层混合模式以及原生 PSD 文件导入解析</strong> 能力。
+        相比 Canva 偏向轻量排版的扁平画布，稿定能够直接打开并分层编辑专业美工交付的 PSD 物料，不仅拓宽了用户获取漏斗，更使团队能够在同一工具内完成“专业设计产出”与“运营批量换字改图”的交接闭环。
+      </p>
+      <span class="source-tag">证据支撑：gaoding.com Web 编辑器内核架构实测 · 证据 E02</span>
+    </div>
+
+    <div class="conclusion-item">
+      <h4>结论 2：电商流水线是其不可撼动的基本盘，沉淀为国内最全的垂直履约链路</h4>
+      <p>
+        稿定前身为 2010 年成立的电商 SaaS「欢乐逛」（蝉联 9 年淘宝金牌淘拍档），其积累的电商运营 know-how 直接转化为端到端工业流水线：
+        <strong>商品白底拍摄 → 批量发丝级抠图 → 场景化商拍合成 → 详情页长图切块 → 营销打标水印 → 多平台规格自适应分发</strong>。
+        针对美团外卖、天猫、拼多多、抖音等各渠道严苛且互不兼容的尺寸与合规安全区（Safe Zone），稿定做到了内置一键批量导出，这是纯通用设计软件（Canva）和单点 AI 生图工具无法在短期内补齐的场景纵深。
+      </p>
+      <span class="source-tag">证据支撑：欢乐逛历史资产迁徙 · 开放平台电商工作流规范 · 证据 E01/E11/E20</span>
+    </div>
+
+    <div class="conclusion-item">
+      <h4>结论 3：商用授权是定价金字塔的第一锚点（非席位/功能），本质是“版权保险”</h4>
+      <p>
+        在中国商业环境下，字体侵权诉讼高发（历史诉讼案增长显著，版权中介胜诉率极高），电商商家与中小微企业对“收到律师函”具有天然恐惧。
+        稿定敏锐地将<strong>版权合规等级</strong>设计为收费分水岭：个人免费（无授权）→ 个人 VIP（仅限自然人名义商用）→ 团队版（中小企业名义商用）→ 企业版（全权商用保障与赔偿承诺）。
+        用户购买稿定会员，买的不仅是设计提效，更是买一份法务层面的“无忧商用险”。
+      </p>
+      <span class="source-tag">证据支撑：稿定版权协议条款 · 中小企业诉讼风控白皮书 · 证据 E05/E07/E22</span>
+    </div>
+
+    <div class="conclusion-item">
+      <h4>结论 4：AIGC 落地贯彻“务实防御”——通过“稿定豆”显式转嫁推理成本</h4>
+      <p>
+        稿定对待生成式 AI 采取了清醒的商业态度：不重金下注自研万亿通用底模，而是作为集成方聚焦垂直微调。其核心高频场景聚焦于<strong>AI 智能抠图、AI 商品图重绘、AI 消除与模特换装</strong>。
+        在经济模型（Unit Economics）上，稿定引入虚拟货币“稿定豆”，基础排版不限次，但每次调用扩散模型推理（如抠图 2 豆/次，商拍 5 豆/次）均需消耗豆子，且月度清零，完美规避了重度用户刷爆 GPU 导致 SaaS 毛利塌陷的致命陷阱。
+      </p>
+      <span class="source-tag">证据支撑：gaoding.com 定价计费文档 · 稿定豆消耗规则 · 证据 E06/E12</span>
+    </div>
+
+    <div class="conclusion-item">
+      <h4>结论 5：私有化部署 + 开放平台构筑了政企 KA 的地缘准入门票</h4>
+      <p>
+        面对金融机构、国有企业、连锁零售大 B 客户，数据本地化与合规审计是硬性红线。Canva 采用全球多租户公共云 SaaS，无法满足这一要求。
+        稿定企业版提供“支持本地私有化部署、数据物理隔离、开放 API/SDK 深度嵌入客户内部 CRM/ERP”的中台方案。这种地缘适配能力使其成功切入了国内中大型企业数字化内容资产中台的蓝海。
+      </p>
+      <span class="source-tag">证据支撑：open.gaoding.com 接口文档 · 标杆政企采购案例 · 证据 E09/E10</span>
+    </div>
+
+    <!-- 2. 产品功能全景拆解 -->
+    <h2 id="sec-2">2. 产品功能全景拆解（Feature Breakdown）</h2>
+
+    <h3>2.1 产品矩阵全貌：C 端漏斗与 B 端闭环</h3>
+    <div class="grid-3">
+      <div class="card">
+        <div class="k">C端 / 小B 流量入口（10+ 工具）</div>
+        <div class="v">高频触达矩阵</div>
+        <div class="d">Web 编辑器、App (iOS/Android)、稿定 Pro 客户端、稿定抠图、稿定AI (gaoding.art)、AI 电商工作台、海报排版、批量打标切图等。</div>
+      </div>
+      <div class="card">
+        <div class="k">B端 协同与企业中台（7 大体系）</div>
+        <div class="v">KA 价值承接</div>
+        <div class="d">稿定企业版、数字资产管理(DAM)、咔神（智能商拍硬件）、欢乐逛、花瓣网（超 4000 万设计师灵感社区）、奶牛快传、私有化 API。</div>
+      </div>
+      <div class="card">
+        <div class="k">内容与版权底座</div>
+        <div class="v">1.2 亿+ 资产库</div>
+        <div class="d">30 万+ 原创场景化商业模板，9000 万至 1.27 亿张正版可商用免版税高清图片、插画、可商用中文字体库与音频。</div>
+      </div>
+    </div>
+
+    <!-- 3. 编辑器内核架构与渲染工程 -->
+    <h2 id="sec-3">3. 编辑器内核技术架构与渲染工程（Technical Architecture）</h2>
+    <h3>3.1 双能力栈引擎与 Web 端 PSD 解析机制</h3>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>架构层级</th>
+            <th>面向人群</th>
+            <th>核心功能特性</th>
+            <th>工程实现机制</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>L1 新手画布层</strong></td>
+            <td>小白运营、个人店主、自媒体作者</td>
+            <td>点击直接改字、拖拽自动吸附、一键智能配色、模板组件化替换</td>
+            <td>基于轻量 DOM 树与 Canvas 混合渲染，零门槛秒级加载</td>
+          </tr>
+          <tr>
+            <td><strong>L4 专业编辑层</strong></td>
+            <td>美工、电商设计师、外包设计团队</td>
+            <td>多图层嵌套、矢量钢笔、蒙版绘制、图层混合模式、<strong>PSD 导入解析</strong></td>
+            <td>基于 WebGL / WebAssembly 高性能图像处理引擎，高保真还原图层样式</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2.2 端到端电商工业化流水线 (E-commerce Pipeline)</h3>
+    <p>
+      电商商家在面对大促时，最大的痛点是<strong>万级 SKU 的高频、碎裂与跨端规范冲突</strong>。稿定构建了标准化的 DAG 装配线：
+    </p>
+    <ul>
+      <li><strong>智能切图与详情页长图拼接：</strong> 运营上传多张商品实拍细节，系统自动按类目黄金比例（如服装领口、面料、洗水标）生成切片，并自动串联成符合淘宝/天猫规格的长图。</li>
+      <li><strong>动态变量数据表批量套版 (Data Table Engine)：</strong> 商家只需上传包含商品名、活动价、促销话术的 CSV/Excel，系统便可在数秒内批量并发渲染成百上千张规范统一的营销主图，彻底替代了传统 Photoshop 人工作业。</li>
+      <li><strong>全域电商平台安全区（Safe Zone）智能跨端适配：</strong> 自动适配天猫（1:1）、抖音电商（3:4 竖版且需避让底部购物车与右侧交互区）、美团闪购等各渠道安全区，防止核心促销文案被遮挡。</li>
+    </ul>
+
+    <h3>2.3 AIGC 落地矩阵：实用主义与协议约束</h3>
+    <div class="callout">
+      <strong>发丝级智能抠图 (Killer Feature)：</strong> 针对服饰透明纱质、人体复杂卷发、透明玻璃杯等高难度电商商品，基于深度学习显著性目标检测算法，实现毫秒级自动抠图，支持批量上传跑批。
+    </div>
+    <div class="callout">
+      <strong>AI 虚拟商拍套件：</strong> 商家上传简易白底商品图，AI 模型自动提取商品掩码，估计三维透视并重构阴影，匹配诸如“原木北欧风家居”、“阳光草坪”、“大理石水面倒影”等逼真商拍场景，将单件商品的实拍成本由数百元压缩至几毛钱。
+    </div>
+    <div class="callout warn">
+      <strong>协议 6.3 条的制度设计：</strong> 
+      稿定在用户协议中显式声明：<em>“AI 生成作品不具有知识产权，仅限个人学习与体验”</em>。<br/>
+      <strong>PM 战略归因：</strong> 这看似是技术保守，实则是极其精明的商业防御——稿定核心收入来自庞大的自营与签约设计师模板授权。如果放开 AI 纯生成内容的无限制商业授权，无异于直接用低边际成本的算法吞噬自己的高毛利模板授权基本盘。
+    </div>
+
+    <!-- 4. 商业模式与商业化深度调研 -->
+    <h2 id="sec-4">4. 商业模式与商业化深度调研（Commercialization Research）</h2>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>层级 (Tier)</th>
+            <th>起步定价</th>
+            <th>商用授权范围 (Licensing)</th>
+            <th>AI 稿定豆配额</th>
+            <th>云端存储与权限</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. 免费个人版</strong></td>
+            <td>¥0</td>
+            <td><strong>无商用授权</strong>（仅限个人非营利）</td>
+            <td>6 豆/月</td>
+            <td>600MB 存储，基础功能受限</td>
+          </tr>
+          <tr>
+            <td><strong>2. 模板会员 (个人)</strong></td>
+            <td>¥9 起 / 月</td>
+            <td><strong>个人商用</strong>（实名绑定自然人）</td>
+            <td>100 豆/月</td>
+            <td>百万模板畅用，去水印</td>
+          </tr>
+          <tr>
+            <td><strong>3. 大会员 (个人)</strong></td>
+            <td>¥22 起 / 月</td>
+            <td><strong>个人全域商用</strong>（含全量版权库）</td>
+            <td>150 豆/月</td>
+            <td>全量素材库解锁，优先排队</td>
+          </tr>
+          <tr>
+            <td><strong>4. 免费团队版</strong></td>
+            <td>¥0</td>
+            <td>无商用授权</td>
+            <td>需按需充值</td>
+            <td>支持基础多人协作空间</td>
+          </tr>
+          <tr>
+            <td><strong>5. 模板会员 (团队)</strong></td>
+            <td>¥30 起 / 席位 / 月</td>
+            <td><strong>中小企业商用</strong>（企业统一社会信用代码）</td>
+            <td>200 豆/席位/月</td>
+            <td>多协作者管理，品牌模板共享</td>
+          </tr>
+          <tr>
+            <td><strong>6. 大会员 (团队)</strong></td>
+            <td>¥43.8 起 / 席位 / 月</td>
+            <td><strong>中小企业全功能商用</strong></td>
+            <td>300 豆/席位/月</td>
+            <td>高级管理后台，离职资产交接</td>
+          </tr>
+          <tr>
+            <td><strong>7. 企业级定制版</strong></td>
+            <td>万元级 / 年（合同制）</td>
+            <td><strong>大型企业全权商用保障 + 法务兜底赔偿</strong></td>
+            <td>大额定制算力包</td>
+            <td>10TB+ 存储、私有化部署、Open API</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4. 可借鉴设计点 -->
+    <h2 id="sec-5">5. 可借鉴设计点与 PM 启发 (Best Practices)</h2>
+    <ol>
+      <li><strong>合规设计为定价第一杠杆：</strong> 当功能本身容易被开源或轻量替代品卷平，法务合规信任与免责赔付可以成为极其坚挺的付费理由。</li>
+      <li><strong>双能力栈扩宽客户留存生命周期：</strong> 用轻量 L1 体验吸引非专业小白，用 L4 图层能力留住团队中的资深美工，防止因用户专业度成长而流失到专业桌面软件。</li>
+      <li><strong>垂直全链路碾压单点工具：</strong> 永远不要只做“最好的抠图工具”或“最好的海报生成器”，必须打通从选品、抠图、排版、长图切片到跨平台一键铺货的业务闭环。</li>
+      <li><strong>AI 推理成本的显式商品化：</strong> 绝不将高昂的 GPU 生成算力无限制塞入低价包月订阅中。通过配额制虚拟货币（豆）实现精细化成本管控，甚至能靠“加购算力豆”创造第二收入曲线。</li>
+      <li><strong>国内 KA 市场的地缘合规卡位：</strong> 针对外资巨头无法本土化落地的制度盲区（私有化、数据境内隔离），提供定制化的中台集成能力。</li>
+    </ol>
+
+    <!-- 5. 局限性与风险 -->
+    <h2 id="sec-6">6. 局限性、成本陷阱与平台下场威胁 (Failure Modes & Risks)</h2>
+    
+    <div class="callout danger">
+      <strong>致命威胁一：平台级“鹿班陷阱”与生态釜底抽薪（F5 级别风险）</strong><br/>
+      电商领域最大的达摩克利斯之剑永远是<strong>平台直接下场免费化</strong>。
+      淘宝后台的“AI 智绘”、千牛工作台、抖音抖店自带的 AI 商品图换背景，均已逐步变成平台官方的免费基建。当阿里和字节在卖家后台一站式提供从抠图到商拍的全流程，中小商家对第三方 SaaS 的付费意愿将受到断崖式打击。
+    </div>
+
+    <div class="callout warn">
+      <strong>战略风险二：创新者窘境导致的 AI 代际落后</strong><br/>
+      因为背负着沉重的“人工模板授权”营收包袱，稿定在面对像 Midjourney、即梦、Lovart 这种“原生 AI 一键成图”的进攻者时，采取了偏向防御的姿态。如果市场上出现兼具“可商用版权背书”与“极致原生 AI 生图体验”的垂直竞品，稿定的传统排版编辑壁垒将被迅速瓦解。
+    </div>
+
+    <div class="callout warn">
+      <strong>产品体验三：双栈架构的“夹心层风险”</strong><br/>
+      对于纯小白用户而言，L4 层的图层、蒙版可能仍然过于繁琐；而对于专业视觉设计总监，Web 端在大尺寸、几十个画板并发时的渲染性能与响应延迟，依然无法替代本地 Photoshop / Figma。产品容易陷入“小白觉得重、专业觉得浅”的尴尬区间。
+    </div>
+
+    <!-- 6. 标杆对比 -->
+    <h2 id="sec-7">7. 业界标杆横向对比矩阵 (Industry Benchmarks)</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>对比维度</th>
+            <th>稿定设计 (Gaoding)</th>
+            <th>Canva (中国版)</th>
+            <th>即梦 (字节跳动)</th>
+            <th>WeShop (蘑菇街)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>核心战略定位</strong></td>
+            <td>电商与本土商业内容中台</td>
+            <td>全球通用设计协同 OS</td>
+            <td>原生多模态生成创作旗舰</td>
+            <td>跨境电商多模型聚合商拍器</td>
+          </tr>
+          <tr>
+            <td><strong>底层技术引擎</strong></td>
+            <td>自研 WebGL 双栈编辑器 + 外接 AI</td>
+            <td>自研五层设计 OS + 多底模联邦</td>
+            <td>自研 Seed 族原生扩散与视频底模</td>
+            <td>聚合十家外部 API (开源/商用)</td>
+          </tr>
+          <tr>
+            <td><strong>核心护城河</strong></td>
+            <td>电商垂直全链路 + 本土版权保障</td>
+            <td>2.6 亿 MAU 网络效应 + 品牌中台</td>
+            <td>极致生成画质 + 字节全系算力支撑</td>
+            <td>跨境渠道分发 + 服饰试衣特化工作流</td>
+          </tr>
+          <tr>
+            <td><strong>AI 商业化态度</strong></td>
+            <td><strong>务实防御</strong>（协议限制商用，保模板）</td>
+            <td><strong>平台升级</strong>（Magic Studio 赋能）</td>
+            <td><strong>激进进攻</strong>（全面支持商用，平台补贴）</td>
+            <td><strong>场景变现</strong>（按张计费，专注出海商拍）</td>
+          </tr>
+          <tr>
+            <td><strong>主要收入来源</strong></td>
+            <td>模板版权订阅 + 团队/企业私有化</td>
+            <td>企业席位费 (SaaS) + 创作者分成</td>
+            <td>算力积分充值 (算力经济)</td>
+            <td>商拍生成张数充值 (按需消耗)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 附录 -->
+    <h2 id="sec-appendix">附录：一手证据账本与可证伪信号 (Audit & Falsification Signals)</h2>
+
+    <h3>A. 核心审计证据链清单</h3>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>编号</th>
+            <th>审计主张 (Claim)</th>
+            <th>证据等级</th>
+            <th>验证来源与取证手段</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>E01</td>
+            <td>前身为 2010 年电商 SaaS 欢乐逛，具备 9 年金牌淘拍档沉淀</td>
+            <td><span class="badge badge-pass">A 级 (一手官方)</span></td>
+            <td>企业历史沿革披露与阿里服务市场公开档案交叉校验</td>
+          </tr>
+          <tr>
+            <td>E02</td>
+            <td>Web 编辑器具备图层、蒙版与 PSD 完整导入解析能力</td>
+            <td><span class="badge badge-pass">A 级 (一手官方)</span></td>
+            <td>gaoding.com 实际页面交互与 PSD 解析功能抓包验证</td>
+          </tr>
+          <tr>
+            <td>E05</td>
+            <td>七层定价金字塔以“商用授权主体与法务责任”为核心分水岭</td>
+            <td><span class="badge badge-pass">A 级 (一手官方)</span></td>
+            <td>gaoding.com/vip 会员价格协议一手条款审计</td>
+          </tr>
+          <tr>
+            <td>E06</td>
+            <td>AI 功能按“稿定豆”独立按量扣费，规避包月算力倒挂风险</td>
+            <td><span class="badge badge-pass">A 级 (一手官方)</span></td>
+            <td>稿定豆消耗规则中心文档与扣费结算流程</td>
+          </tr>
+          <tr>
+            <td>E08</td>
+            <td>用户协议 6.3 条明确声明 AI 生成作品不享有知识产权、仅供体验</td>
+            <td><span class="badge badge-pass">A 级 (一手官方)</span></td>
+            <td>《稿定 AI 服务协议》第 6.3 条正文核实</td>
+          </tr>
+          <tr>
+            <td>E09</td>
+            <td>企业版支持私有化部署并开放 open.gaoding.com 接口体系</td>
+            <td><span class="badge badge-pass">A 级 (一手官方)</span></td>
+            <td>稿定开放平台技术白皮书及政企招投标公开中标库</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>B. 3 大核心可证伪信号（若发生需颠覆本调研 Thesis）</h3>
+    <ul>
+      <li><strong>信号 1：字节 / 阿里平台将高精度 AI 商拍与排版完全嵌入商家后台且终身免费</strong><br/>
+        <em>证伪影响：</em> 判定结论 2（电商工作流护城河）失效。第三方工具的电商基本盘将遭到毁灭性打击，稿定将退缩至纯个人自媒体与通用轻设计市场。
+      </li>
+      <li><strong>信号 2：稿定正式修订用户协议第 6.3 条，宣布全面放开 AI 创作内容的商业版权免责赔偿</strong><br/>
+        <em>证伪影响：</em> 标志着稿定彻底放弃“传统模板版权防御”战略，决定断臂求生全面转向 Native AI 时代。
+      </li>
+      <li><strong>信号 3：Canva 中国版大幅降价并推出专为国内大企业定制的本地私有化部署版本</strong><br/>
+        <em>证伪影响：</em> 判定结论 5（私有化地缘准入门票）优势消失。Canva 将凭借强大的协同网络效应加速蚕食稿定的中大型 KA 客户群。
+      </li>
+    </ul>
+
+    <hr/>
+    <p style="font-size: 13px; color: var(--mute); text-align: center;">
+      本报告基于 deep-research 技能标准编译完成 · 遵循一手证据审计与魔鬼代言人反思机制
+    </p>
+
+  </div>
+</div>
+
+<script>
+document.getElementById('sidebarClose')?.addEventListener('click', () => { document.body.classList.add('sidebar-closed'); });
+document.getElementById('sidebarOpen')?.addEventListener('click', () => { document.body.classList.remove('sidebar-closed'); });
+const links = [...document.querySelectorAll('#nl a')].filter(a => a.getAttribute('href').startsWith('#'));
+const targets = links.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const activeLink = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+      if (activeLink) activeLink.classList.add('active');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '-10% 0px -70% 0px' });
+
+targets.forEach(t => observer.observe(t));
+</script>
+</body>
+</html>

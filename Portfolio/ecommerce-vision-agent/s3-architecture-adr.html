@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S3 架构 ADR</title>
+<style>
+:root{
+--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#0f52ba;--accent-light:#eef4fc;--ok:#2f6b45;--bad:#a12a2a;--warn:#a8761f;--code:#f2f2ef;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#4d8bf0;--accent-light:#192538;--ok:#7ab88f;--bad:#e08585;--warn:#d6a75a;--code:#202020;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:15.5px/1.75 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:24px 24px 0}
+h1{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-.01em;font-weight:700}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 12px}
+h2{font-size:16px;margin:56px 0 16px;padding-bottom:9px;border-bottom:1px solid var(--line);
+letter-spacing:.02em;font-weight:700}
+h2 .n{background:var(--accent);color:#fff;font-size:11px;padding:2px 6px;border-radius:4px;margin-right:8px;}
+h3{font-size:15px;margin:28px 0 10px;font-weight:600}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 14px;padding-left:20px}li{margin:6px 0}
+strong{font-weight:600}
+em{font-style:normal;color:var(--accent);font-weight:600}
+.lead{font-size:17.5px;line-height:1.65;border-left:3px solid var(--accent);
+padding:4px 0 4px 18px;margin:28px 0 34px;background:var(--accent-light);border-radius:0 6px 6px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px 22px;margin:0 0 18px}
+.card h4{margin:0 0 10px;font-size:13.5px;letter-spacing:.03em;color:var(--muted);text-transform:uppercase}
+.adr{border:1px solid var(--line);border-radius:8px;margin-bottom:24px;background:var(--card);overflow:hidden}
+.adr-head{background:var(--code);padding:12px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.adr-head b{font-size:14.5px;color:var(--fg)}
+.adr-body{padding:18px}
+.status{font-size:12px;padding:2px 8px;border-radius:12px;font-weight:600;background:var(--ok);color:#fff}
+.status.rejected{background:var(--bad)}
+.code-block{background:var(--code);padding:14px;border-radius:6px;font-family:ui-monospace,monospace;font-size:13px;overflow-x:auto;margin:14px 0}
+hr{border:0;border-top:1px solid var(--line);margin:48px 0}
+.nav-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.nav-link{font-size:13px;color:var(--muted);text-decoration:none}
+.nav-link:hover{color:var(--accent)}
+</style></head><body><div class="wrap">
+
+<div class="nav-bar">
+  <a href="index.html" style="font-weight:700;font-size:14px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:6px;">← 返回目录 (Index)</a>
+  <div style="display:flex;gap:14px;font-size:13px">
+    <a href="s0-project-brief.html" class="nav-link">S0 Brief</a>
+    <a href="s1-target-hypothesis.html" class="nav-link">S1 目标假说</a>
+    <a href="s2-competitive-evidence.html" class="nav-link">S2 竞品实测</a>
+    <a href="s3-architecture-adr.html" class="nav-link" style="color:var(--accent);font-weight:600">S3 架构ADR</a>
+    <a href="s5-prd-v0.1.html" class="nav-link">S5 PRD</a>
+  </div>
+</div>
+
+<div style="background:var(--accent-light);border:1px solid rgba(15,82,186,0.25);border-radius:8px;padding:14px 18px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+  <div>
+    <span style="font-size:11.5px;color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase">系统架构决断 · S3</span>
+    <p style="margin:4px 0 0;font-size:13px;color:var(--muted)">放弃端到端大模型幻想，用 Multi-Agent 状态机堆出工业级确定性。</p>
+  </div>
+  <span class="tag a">S3 Milestone</span>
+</div>
+
+<h1>多智能体协同流水线架构 (Architecture ADR)</h1>
+<p class="sub">Architecture Decision Records: 从“生图玩具”到“企业级管线”的底层骨架</p>
+
+<div class="lead">
+  商业交付的底线是<strong>“精细控制权与确定性（Precise Control & Determinism）”</strong>。<br>
+  虽然目前最前沿的原生多模态大模型（如 o2-multimodal, Gemini 3 等）已经能较好地在图中渲染排版，几乎不犯拼写错误。但如果用它们作为企业级流水线的最终渲染层，我们依然会面临严峻的工程挑战：<strong>算力浪费、无法分层、且无法复用品牌专有矢量字体</strong>。因此，AI 出图自动化平台 的核心架构哲学是：<strong>图文严格分离、模块严格解耦、用 Agent 调度传统渲染器。</strong>
+</div>
+
+<h2><span class="n">01</span> 核心架构流向图 (The Pipeline Topology)</h2>
+
+<div class="code-block" style="line-height:1.4">
+[ERP/PIM] ➔ 1. 数据摄入 (Data Ingestion) 
+               ↓
+          2. Planner Agent (文本与企划引擎: LLM)
+               ↓ 
+          3. Staging Engine (视觉与光影引擎: ComfyUI / Flux 2.0 / SAM 3)
+               ↓ [输出: 隔离的商品层 + AI背景层 + 阴影层]
+          4. Layout Engine (无头矢量排版引擎: HTML/SVG Rendering)
+               ↓ [输出: 带价格变量的文字排版层]
+          5. Critic Agent (多模态质检拦截器: VLM + OCR)
+               ├── (Pass) ➔ 6. 组合打包 ➔ [分层 PSD 输出 / API 回传电商平台]
+               └── (Fail) ➔ 触发回滚 (重算留白区或要求 3 重绘)
+</div>
+
+<h2><span class="n">02</span> 核心架构决策记录 (ADRs)</h2>
+
+<div class="adr">
+  <div class="adr-head">
+    <b>ADR-001: 为什么不用 2026 年最强端到端 (E2E) 多模态模型直接出图？</b>
+    <span class="status">决定</span>
+  </div>
+  <div class="adr-body">
+    <p><strong>业务背景</strong>：最新的前沿模型（Frontier Models）在原生图文融合排版上已经“进化得太厉害了”，完全能听懂指令画出一张带有精准“双11立减”文字的绝美海报，为什么我们还要自己造复杂的排版引擎？</p>
+    <p><strong>决策原因 (Trade-offs)</strong>：</p>
+    <ul>
+      <li><strong>致命缺陷 1：算力浪费与单点重绘风险。</strong> 如果一个商品明天降价 10 元，端到端模型必须动用 GPU 把整张图重新跑一遍（耗时数秒，且有万分之一概率导致背景光影发生微变，引发卖家恐慌）。而图文分离架构中，SVG 文本替换耗时不到 1 毫秒，背景图 0% 变更。</li>
+      <li><strong>致命缺陷 2：无法输出企业级 PSD 矢量分层。</strong> 端到端大模型吐出的是扁平死像素 (Flat Raster)。无论文字画得再精美，美工都无法用鼠标双击文字去修改字距，或者把 Logo 向左移动 10 个像素。这直接杀死了视觉团队的二次干预权。</li>
+      <li><strong>业务风险 3：品牌专有字体 (Custom Fonts) 保护。</strong> 国际大牌（如 Nike, 完美日记）有斥资数百万设计的独家版权字体。原生多模态模型无法精确渲染未见过的私有矢量字体库（.ttf/.otf），而前端排版引擎只需加载字体文件即可准确输出。</li>
+    </ul>
+    <p><strong>最终决定</strong>：抵制“一切皆大模型”的诱惑。复杂逻辑和大模型智力用于 Planner 与 Critic，但在最后一步的文字渲染上，坚决退回高度确定性的 SVG/DOM 前端代码渲染器。</p>
+  </div>
+</div>
+
+<div class="adr">
+  <div class="adr-head">
+    <b>ADR-002: 服饰保真度灾难与 Relighting (重打光) 抉择</b>
+    <span class="status">决定</span>
+  </div>
+  <div class="adr-body">
+    <p><strong>业务背景</strong>：服饰类目“货不对板”退货率极高。普通的 Inpainting 边缘会吃掉领口或衣服纹理。</p>
+    <p><strong>决策原因 (Trade-offs)</strong>：</p>
+    <ul>
+      <li>如果直接用 ControlNet (Canny+Depth) 控制全图重绘，虽然光影融合好，但布料细节（如蕾丝）仍会 5% 变异。</li>
+      <li>如果用绝对掩码（SAM 2 抠图贴上），高度一致，但会遇到我们在 S1 提到的“光影割裂感”（白炽灯衣服贴在了夕阳背景上）。</li>
+    </ul>
+    <p><strong>最终决定</strong>：采用“主体精确保护 + 边缘/光影层单渲”方案。
+    使用 IC-Light 或类似 Relighting 算子，提取背景光照贴图（Environment Map），仅对原商品图叠加一层柔和的叠加模式（Overlay/Multiply）光影层，并在脚下通过深度图单独渲染投影（Contact Shadow）。成本上升 30%，但退货率断崖式下降。</p>
+  </div>
+</div>
+
+<div class="adr">
+  <div class="adr-head">
+    <b>ADR-003: 引入 Critic Agent 作为质量防火墙</b>
+    <span class="status">决定</span>
+  </div>
+  <div class="adr-body">
+    <p><strong>业务背景</strong>：批处理 5000 张图时，难免会出现文字排版遮挡了商品脸部，或者文字超出了天猫的安全边界。</p>
+    <p><strong>决策原因 (Trade-offs)</strong>：</p>
+    <ul>
+      <li>我们需要一个不间断工作的“虚拟主编”。</li>
+      <li>Critic 节点融合了三种检验算子：
+        <ol>
+          <li><strong>OCR 算子</strong>：检查图片中的文字是否包含了广告法极限词（“全网最强”）。</li>
+          <li><strong>视觉避让算子 (Bounding Box Collision)</strong>：计算文字层与商品主体遮罩的重合率，超过 15% 判定为遮挡。</li>
+          <li><strong>平台 UI 蒙版碰撞</strong>：加载抖音/淘宝 UI 蒙版矩阵，检查文字是否落在死区。</li>
+        </ol>
+      </li>
+    </ul>
+    <p><strong>最终决定</strong>：任何触发 Critic 拦截的图片，将带状返回错误日志给 Layout Engine 重新调整坐标，最多重试 3 次，失败则流入人工干预池 (Human-in-the-loop)。</p>
+  </div>
+</div>
+
+<div class="adr">
+  <div class="adr-head">
+    <b>ADR-004: 放弃沉重的 ERP 直连，采用“内置轻量数据表 (Built-in Data Table)”的 PLG 策略</b>
+    <span class="status">决定</span>
+  </div>
+  <div class="adr-body">
+    <p><strong>业务背景</strong>：Layout Engine 必须获取最准确的动态价格（如“预售到手价 ¥199”）。如何获取这些数据？传统的 B2B 软件思维是：我们要开发接口，去直连客户的聚水潭、旺店通或自研 PIM/ERP 系统。</p>
+    <p><strong>决策原因 (Trade-offs)</strong>：</p>
+    <ul>
+      <li><strong style="color:var(--bad)">直连中台的高风险</strong>：如果强行要求直连 PIM/ERP，就会面临 IT 部门的强烈阻力（数据安全审计、漫长排期），项目落地周期从 1 天拖延到半年。同时，ERP 数据本身往往极度肮脏（藏在备注里的隐藏红包），“垃圾进，垃圾出”会导致排版逻辑混乱。</li>
+      <li><strong>轻量级 PLG 思路</strong>：我们<strong>坚决放弃在第一版提供任何 API 强集成</strong>。相反，我们在系统内嵌一个类似 Airtable 的“轻量级活动数据维护台”。运营将大促数据的 Excel/CSV 直接拖进来，在我们的系统中台内部维护价格和卖点，即刻开启批量生图。</li>
+    </ul>
+    <p><strong>最终决定</strong>：解耦对企业内部 ERP 的强依赖。将产品打造成一个带有内部闭环数据库的 SaaS 工作台。运营人员对自己上传的数据拥有 100% 的控制权，发现价格写错，只需在我们的工作台中一键修改重排即可，实现“秒级响应，无需等 IT 脸色”。</p>
+  </div>
+</div>
+
+
+
+</div></body></html>

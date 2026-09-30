@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ComfyUI 电商视觉全流程架构、模型选型与商用合规指南</title>
+<style>
+:root{
+  --bg:#fafaf9; --ink:#1c1917; --mute:#78716c; --line:#e7e5e4; --soft:#f5f5f4;
+  --accent:#2563eb; --accent-hover:#1d4ed8; --warn:#b45309; --bad:#b91c1c; --ok:#15803d;
+  --side: 280px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f172a; --ink:#f8fafc; --mute:#94a3b8; --line:#1e293b; --soft:#1e293b;
+        --accent:#38bdf8; --accent-hover:#0ea5e9; --warn:#f59e0b; --bad:#ef4444; --ok:#10b981;}
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:24px; scroll-behavior: smooth;}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  transition:background .2s,color .2s; overflow-x: hidden;}
+
+/* 导航展开按钮 */
+.sidebar-open-btn {
+  position: fixed; top: 16px; left: 16px; z-index: 40;
+  width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--ink); cursor: pointer;
+  display: none; align-items: center; justify-content: center; font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.sidebar-open-btn:hover { color: var(--accent); border-color: var(--accent); }
+body.sidebar-closed .sidebar-open-btn { display: flex; }
+
+aside.side, #sidebar {
+  position:fixed;left:0;top:0;bottom:0;width:var(--side);
+  background:var(--soft);border-right:1px solid var(--line);
+  padding:24px 16px 20px;overflow-y:auto;display:flex;flex-direction:column;z-index:50;
+  transition: transform .25s ease-in-out;
+}
+body.sidebar-closed aside.side, body.sidebar-closed #sidebar { transform: translateX(-100%); }
+
+.sidebar-close-btn {
+  position: absolute; top: 18px; right: 14px;
+  background: transparent; border: none; font-size: 18px; color: var(--mute);
+  cursor: pointer; padding: 6px; border-radius: 6px; line-height: 1;
+}
+.sidebar-close-btn:hover { background: var(--bg); color: var(--ink); }
+
+aside.side .brand, #sidebar h3, #sidebar .brand {font-size:15px;font-weight:650;margin-bottom:18px;color:var(--ink); padding-right: 28px; line-height: 1.4;}
+.side .brand b{color:var(--accent);}
+.navlinks, #sidebar ul {display:flex;flex-direction:column;gap:3px;flex:1;}
+.navlinks a, #sidebar a {font-size:13px;color:var(--mute);text-decoration:none;padding:7px 10px;
+  border-radius:6px;line-height:1.4;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;transition: background .15s, color .15s;}
+.navlinks a:hover, #sidebar a:hover {color:var(--ink);background:var(--line);}
+.navlinks a.active, #sidebar a.active {color:var(--accent);background:var(--bg);font-weight:600;}
+
+.main, #main-content {margin-left:var(--side); padding-top: 36px; padding-bottom: 96px; transition: margin-left .25s ease-in-out;}
+body.sidebar-closed .main, body.sidebar-closed #main-content { margin-left: 0; }
+
+.container, .wrap {max-width:980px;margin:0 auto;padding:0 24px;}
+h1{font-size:30px;line-height:1.3;margin:0 0 16px;color:var(--ink);font-weight:750;}
+h2{font-size:22px;margin:44px 0 18px;padding-bottom:10px;border-bottom:1.5px solid var(--line);color:var(--ink);font-weight:700;}
+h3{font-size:17.5px;margin:28px 0 12px;color:var(--ink);font-weight:650;}
+p,li{font-size:15px;color:var(--ink);line-height:1.8;}
+ul,ol{padding-left:22px;margin:12px 0;}
+li{margin:6px 0;}
+strong{color:var(--ink);font-weight:650;}
+code{background:var(--soft);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:13.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;}
+pre{background:var(--soft);border:1px solid var(--line);padding:16px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.6;margin:18px 0;}
+pre code{background:transparent;padding:0;color:var(--ink);}
+
+.badge{display:inline-block;padding:2px 9px;border-radius:6px;font-size:12px;font-weight:600;line-height:1.5;}
+.badge-pass{background:#dcfce7;color:#166534;border:1px solid #bbf7d0;}
+.badge-pending{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+.badge-gray{background:var(--soft);color:var(--mute);border:1px solid var(--line);}
+
+.thesis-box{background:#eff6ff;border:1.5px solid #bfdbfe;border-left:5px solid var(--accent);border-radius:8px;padding:20px 22px;margin:24px 0;}
+.thesis-box strong.title{display:block;font-size:16px;color:#1e40af;margin-bottom:8px;letter-spacing:0.5px;}
+.thesis-box p{color:#1e3a8a;margin:0;font-size:15px;line-height:1.75;}
+
+.conclusion-item {
+  background: var(--soft);
+  border-left: 4px solid var(--accent);
+  padding: 16px 20px;
+  margin: 18px 0;
+  border-radius: 0 8px 8px 0;
+}
+.conclusion-item h4 { margin: 0 0 8px; color: var(--ink); font-size: 16px; font-weight: 700; }
+.conclusion-item p { margin: 0 0 6px; font-size: 14.5px; }
+.source-tag { font-size: 12.5px; color: var(--mute); display: block; margin-top: 4px; }
+
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:20px 0;}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,0.02);}
+.card .k{font-size:12.5px;color:var(--mute);font-weight:600;text-transform:uppercase;margin-bottom:6px;}
+.card .v{font-size:22px;font-weight:750;color:var(--accent);line-height:1.2;margin-bottom:6px;}
+.card .d{font-size:13px;color:var(--mute);line-height:1.5;}
+
+.tablewrap{overflow-x:auto;margin:22px 0;border:1px solid var(--line);border-radius:8px;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th,td{border-bottom:1px solid var(--line);padding:10px 14px;text-align:left;vertical-align:top;}
+th{background:var(--soft);font-weight:650;color:var(--ink);white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+tr:nth-child(even){background:rgba(0,0,0,0.015);}
+
+.callout{border-left:4px solid var(--accent);background:var(--soft);padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0;}
+.callout.warn{border-left-color:var(--warn);background:#fffbeb;}
+.callout.warn strong{color:var(--warn);}
+.callout.danger{border-left-color:var(--bad);background:#fef2f2;}
+hr{border:none;border-top:1px solid var(--line);margin:36px 0;}
+
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; margin: 20px 0; }
+.badge-ok { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; font-weight: 600; padding: 2px 8px; border-radius: 4px; font-size: 11.5px; }
+.alert-card { background: #fffbeb; border-left: 4px solid var(--warn); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 18px 0; font-size: 14.5px; color: #92400e; }
+.alert-card strong { color: var(--warn); }
+.analogy-box { background: var(--soft); border-left: 4px solid var(--accent); padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 18px 0; font-size: 14px; }
+.analogy-box strong { color: var(--accent); }
+pre { background: #0f172a !important; color: #e2e8f0 !important; border: 1px solid #1e293b !important; padding: 18px !important; border-radius: 8px !important; overflow-x: auto !important; font-size: 13px !important; line-height: 1.6 !important; }
+pre code { background: transparent !important; color: inherit !important; padding: 0 !important; }
+.card h4 { font-size: 15px; font-weight: 700; color: var(--ink); margin: 0 0 8px; }
+.card p { margin: 6px 0; font-size: 14px; color: var(--ink); }
+
+</style>
+</head>
+<body>
+<button class="sidebar-open-btn" id="sidebarOpen" title="展开导航">☰</button>
+<aside class="side" id="sidebar">
+<button class="sidebar-close-btn" id="sidebarClose" title="收起导航">✕</button>
+<div class="brand">Deep Research · <b>Report</b></div>
+<nav class="navlinks" id="nl">
+<a href="../portfolio.html" style="margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px; color: var(--accent); font-weight: bold;">🏠 返回作品集主页</a>
+<a class="active" href="#sec-thesis">核心 Thesis 判断系统</a>
+<a href="#sec-1">1. 电商视觉五大痛点与破局</a>
+<a href="#sec-2">2. 四阶节点管线流水线</a>
+<a href="#sec-3">3. 八大核心模型选型矩阵</a>
+<a href="#sec-4">4. 三大高频实战场景串联</a>
+<a href="#sec-5">5. 开源协议与商业授权合规</a>
+<a href="#sec-6">6. 落地工程化与 ROI 总结</a>
+</nav>
+</aside>
+<div class="main" id="main-content">
+<div class="container">
+<h1>ComfyUI 电商视觉全流程架构、模型选型与商用合规指南</h1>
+<p style="font-size: 16px; color: var(--mute); margin-bottom: 28px;">
+      面向商业级确定性交付的白盒工业管线 · 节点拓扑编排、底模选型权重、法务红线与 ROI 精算全景
+    </p>
+<div class="thesis-box" id="sec-thesis">
+<strong class="title">核心 Thesis 判断系统</strong>
+<p style="margin: 8px 0 0; font-size: 14.5px;">
+<strong>一句话读懂</strong>：AI 电商视觉已经从早期“Midjourney 盲抽图”彻底演进为基于 ComfyUI 的<strong>“确定性白盒工业组装管线”</strong>。其核心逻辑是用<strong>“精准遮罩分割 + 几何姿态约束 + 特征引导迁移 + 物理级二次打光 + 超分辨率重构”</strong>的工程化分工，在死守<strong>“商品本体 100% 不变形”</strong>底线的前提下，将传统实拍周期与综合成本降低 80% 以上。
+      </p>
+</div>
+
+<hr/>
+<h2 id="sec-1">1. 电商视觉五大痛点与破局</h2>
+<p>电商图像与纯概念艺术创作存在根本性差异：它直接挂钩<strong>转化率、退货率与品牌侵权风险</strong>。传统工作流或早期纯文生图大模型在商业落地时，面临以下五大核心矛盾：</p>
+<div class="grid-2">
+<div class="card">
+<h4>1. 商品结构形变（致命退货风险）</h4>
+<p><strong>痛点表现</strong>：生图模型自由发挥，鞋包五金、走线、服装领型、商品印花与品牌 Logo 发生随机畸变，导致货不对板与高退货率。</p>
+<p><strong>破局手段</strong>：Mask 保护机制 + Anyline/Canny 线稿轮廓刚性约束 + 原图高频像素后期回贴（Image Composite Masked）。</p>
+</div>
+<div class="card">
+<h4>2. 光影断层与无阴影（贴图假人感）</h4>
+<p><strong>痛点表现</strong>：传统 PS 抠图换背景边缘生硬，商品漂浮在空中，无地面接触阴影（Contact Shadow），受光色温与背景完全脱节。</p>
+<p><strong>破局手段</strong>：IC-Light 光影重绘模型，结合背景色温重新解算物体受光面、明暗交界线与环境漫反射漫溢光。</p>
+</div>
+<div class="card">
+<h4>3. 模特脸崩手崩与身材走样</h4>
+<p><strong>痛点表现</strong>：全身/中远景模特由于画面中面部像素占比过低，扩散步数不足导致五官模糊融化，跨镜头难以保持同一面孔。</p>
+<p><strong>破局手段</strong>：Impact Pack 的 Face Detailer（裁切-局部放大超分重绘-原位回贴）+ InstantID / IP-Adapter Face 保持特征统一。</p>
+</div>
+<div class="card">
+<h4>4. 真人外模与实景棚拍成本畸高</h4>
+<p><strong>痛点表现</strong>：跨境出海需匹配欧美/东南亚不同人种模特，约拍外模时薪高、周期长（2-4 周），平铺图或人台图难以直接激发购买欲。</p>
+<p><strong>破局手段</strong>：虚拟试衣管线（IDM-VTON / CatVTON），一键将人台/平铺衣物无褶皱穿戴到定制面孔与体型的虚拟模特身上。</p>
+</div>
+</div>
+<div class="alert-card">
+<strong>5. 详情页局部放大与印刷级分辨率需求</strong><br/>
+      电商详情页通常需要 2K~4K 超高清大图，且要求局部裁切特写时能看清布料纺织编织孔、皮革纹理与金属拉丝质感。传统双三次插值或普通超分算法只是边缘锐化，画面充满涂抹感；需引入扩散重构类超分（如 SUPIR）在像素级重建微观材质纹理。
+    </div>
+<hr/>
+<h2 id="sec-2">2. 四阶节点管线流水线</h2>
+<p>在 ComfyUI 中，一个健壮的商业级电商视觉管线由以下四个阶段的标准节点组合而成：</p>
+<pre><code>[原图输入/实拍人台]
+       │
+       ▼ (阶段 1：预处理与分割)
+[BiRefNet / SAM] ──&gt; 提取高精度商品 Mask 与主体边缘
+       │
+       ▼ (阶段 2：条件引导与约束)
+[Anyline / Depth-Anything] ──&gt; 锁定商品外形与立体深度
+[IP-Adapter Plus]          ──&gt; 注入参考图质感与色彩特征
+[IC-Light Conditioning]    ──&gt; 设定物理光源方向与环境色温
+       │
+       ▼ (阶段 3：核心采样与重绘)
+[KSampler (Denoise 0.3~0.8)] ──&gt; 在限定区域生成全新场景与接触阴影
+       │
+       ▼ (阶段 4：后处理与精修增强)
+[Face / Hands Detailer]    ──&gt; 面部特写与手部局部高倍重绘
+[Image Color Match]        ──&gt; 色差校正，拉回商品原始打样色
+[SUPIR / 4x-UltraSharp]    ──&gt; 2K/4K 印刷级超分与纹理再现
+       │
+       ▼
+[最终商业级主图 / 详情页成片]</code></pre>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>核心节点名称</th>
+<th>所属插件 / 模块</th>
+<th>核心输入与输出</th>
+<th>业务作用与配置技巧</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="3"><strong>1. 预处理与分割</strong></td>
+<td><code>Load Image</code> / <code>Load Image Mask</code></td>
+<td>原生 ComfyUI</td>
+<td>输入图片文件 ➔ 输出 Tensor 图像与蒙版</td>
+<td>流水线起点，需保持统一的分辨率预归一化（如等比缩放至长边 1024/1536）。</td>
+</tr>
+<tr>
+<td><code>BiRefNet</code> / <code>RMBG</code></td>
+<td>ComfyUI-BRIA-RMBG / BiRefNet</td>
+<td>图像 ➔ 输出透明主体与精细二值 Mask</td>
+<td>解决发丝、半透明香水瓶、细跟鞋跟的超精细抠图，提取保护蒙版。</td>
+</tr>
+<tr>
+<td><code>GroundingDINO + SAM</code></td>
+<td>ComfyUI-Impact-Pack</td>
+<td>图像 + 英文 Prompt ➔ 目标部位 Mask</td>
+<td>全自动化识别特定物品（如仅选中 <code>shoes</code> 或 <code>jacket</code>），无需人工涂抹。</td>
+</tr>
+<tr>
+<td rowspan="4"><strong>2. 条件引导与控制</strong></td>
+<td><code>Apply ControlNet</code><br/>(Anyline / Depth)</td>
+<td>ComfyUI-ControlNet-Aux</td>
+<td>预处理特征图 + 模型 ➔ Positive Conditioning</td>
+<td>Anyline 锁定复杂商品剪裁走线；Depth-Anything-V2 锁定商品前后景纵深，防止商品被背景穿插穿模。</td>
+</tr>
+<tr>
+<td><code>IP-Adapter Apply</code></td>
+<td>ComfyUI_IPAdapter_plus</td>
+<td>参考图 + CLIP-Vision ➔ 调整后的 Conditioning</td>
+<td>提取目标参考场景的光影调性或商品织物肌理，实现跨图质感迁移。</td>
+</tr>
+<tr>
+<td><code>IC-Light Condition</code></td>
+<td>ComfyUI-IC-Light</td>
+<td>前景图 + 背景/光照参数 ➔ 特殊 Latent 条件</td>
+<td>计算物理级环境漫反射与接触阴影，解决“假贴图感”。</td>
+</tr>
+<tr>
+<td><code>Flux Guidance</code></td>
+<td>原生 ComfyUI (Flux)</td>
+<td>Conditioning + 引导系数 ➔ 约束后 Conditioning</td>
+<td>精细调控 Prompt 服从度与图像原生自由度的权衡（通常设为 2.5~3.5）。</td>
+</tr>
+<tr>
+<td rowspan="2"><strong>3. 核心采样与生成</strong></td>
+<td><code>KSampler / Advanced</code></td>
+<td>原生 ComfyUI</td>
+<td>Latent + Condition + Denoise ➔ 降噪后 Latent</td>
+<td>背景置换设 denoise 0.7~0.9；微调重绘设 0.25~0.4。调度器常用 <code>dpmpp_2m</code> 或 <code>euler</code>。</td>
+</tr>
+<tr>
+<td><code>Set Latent Noise Mask</code> /<br/><code>Inpaint Model Conditioning</code></td>
+<td>原生 ComfyUI</td>
+<td>Latent + Mask ➔ 仅重绘区域 Latent</td>
+<td>对商品本体进行硬性保护，确保仅有背景和地面交界处被重绘。</td>
+</tr>
+<tr>
+<td rowspan="4"><strong>4. 后处理与精修增强</strong></td>
+<td><code>Face Detailer (SEGS)</code></td>
+<td>ComfyUI-Impact-Pack</td>
+<td>原图 + 脸部检测器 ➔ 高清修复原位拼合图</td>
+<td>全身模特脸部局部检测与独立超分，彻底解决远景模特“五官崩坏”。</td>
+</tr>
+<tr>
+<td><code>Image Color Match</code></td>
+<td>ComfyUI-Post-Processing-Nodes</td>
+<td>生成图 + 原始商品图 ➔ 色彩校准图</td>
+<td>消除 AI 扩散生成产生的环境色溢出，严格还原衣服真实打样原色。</td>
+</tr>
+<tr>
+<td><code>SUPIR Upscale</code></td>
+<td>ComfyUI-SUPIR</td>
+<td>低清图 + 文本提示 ➔ 4K 细节重构大图</td>
+<td>扩散级超分，自动重构毛孔、织物纤维细线与光泽，达印刷级精度。</td>
+</tr>
+<tr>
+<td><code>Image Composite Masked</code></td>
+<td>原生 ComfyUI</td>
+<td>背景图 + 原商品高频图 + Mask ➔ 融合终图</td>
+<td>将未经模型改动的 Logo、吊牌印字以 100% 原始像素完整回贴。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="analogy-box">
+<strong>🔗 后端架构类比</strong>：
+      ComfyUI 的节点管线本质上是一个<strong>“支持事务补偿与局部缓存的 DAG 工作流引擎”</strong>。预处理阶段相当于 <strong>ETL 数据清洗与特征提取</strong>；ControlNet / IP-Adapter 相当于 <strong>RPC 请求的契约校验与参数绑定</strong>；KSampler 是核心<strong>高耗能异步计算服务</strong>；而 Detailer 与 Color Match 则是<strong>熔断、降级与数据校验守门人</strong>。
+    </div>
+<hr/>
+<h2 id="sec-3">3. 八大核心模型类型与选型矩阵</h2>
+<p>构建电商生产流水线时，模型选型需要在<strong>“保真度（不形变）”</strong>、<strong>“画面审美”</strong>、<strong>“显存开销/推理吞吐”</strong>与<strong>“插件生态”</strong>四维之间做精细平衡：</p>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>模型类型</th>
+<th>代表模型 / 工具</th>
+<th>核心长处</th>
+<th>核心短板 / 局限</th>
+<th>工程选型建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="3"><strong>1. 基础底模<br/>(Base Checkpoint)</strong></td>
+<td><strong>Flux.1 [dev]</strong></td>
+<td>真实感天花板、空间 Prompt 理解极佳、支持英文字符渲染</td>
+<td>24G+ 显存要求（需量化）、生态控制插件仍在追赶、非商业授权</td>
+<td>追求极致质感的品牌 KV、含清晰字母印花的包装场景。</td>
+</tr>
+<tr>
+<td><strong>SDXL 官方/微调</strong><br/><em>(RealVisXL / Juggernaut)</em></td>
+<td>生态最完备（ControlNet/LoRA 全覆盖）、原生 1024、出图稳定</td>
+<td>文字渲染极易乱码、极端复杂构图 Prompt 理解稍逊</td>
+<td><span class="badge badge-ok">工业流水线主力</span>：平衡吞吐、生态与质感的最佳商用底模。</td>
+</tr>
+<tr>
+<td><strong>SD 1.5</strong></td>
+<td>推理极快（秒级出图）、显存开销低（4-6GB）、微调 LoRA 极多</td>
+<td>原生 512x512、空间感弱、远景人脸与手部极易崩溃</td>
+<td>高并发云服务打底、超轻量低成本批处理，或作为局部修补插件。</td>
+</tr>
+<tr>
+<td rowspan="3"><strong>2. 抠图分割<br/>(Segmentation)</strong></td>
+<td><strong>BiRefNet</strong></td>
+<td>双向细化架构，对玻璃透明材质、复杂发丝、镂空纹理极精准</td>
+<td>相比轻量模型推理耗时稍长（约 1~2s）</td>
+<td><span class="badge badge-ok">商拍静物首选</span>：对商品边缘品质有严苛要求的场景。</td>
+</tr>
+<tr>
+<td><strong>RMBG (1.4 / 2.0)</strong></td>
+<td>速度极快、显存占用极低、常规硬质商品分割平整</td>
+<td>面对微细发丝飞扬或半透明液体反光边缘可能出现虚化瑕疵</td>
+<td>标准商品（鞋服箱包）大批量自动化流水线首选。</td>
+</tr>
+<tr>
+<td><strong>SAM + GroundingDINO</strong></td>
+<td>语义定向提取：输入 "necklace" 或 "shoe" 直接提取特定部件</td>
+<td>Prompt 阈值（Threshold）需调优，偶尔有漏检或误检</td>
+<td>无人值守自动化换装、换鞋、换首饰流水线的核心。</td>
+</tr>
+<tr>
+<td rowspan="2"><strong>3. 几何与轮廓控制<br/>(ControlNet)</strong></td>
+<td><strong>Anyline vs Canny</strong></td>
+<td>Anyline 深度学习提取平滑骨架线稿，过滤材质杂噪</td>
+<td>若商品细节过多，过于密集的线条会导致画面僵硬发黑</td>
+<td><span class="badge badge-ok">服装走线/五金锁形首选 Anyline</span>；普通边缘用 Canny。</td>
+</tr>
+<tr>
+<td><strong>Depth-Anything-V2</strong></td>
+<td>物体空间分层与前后遮挡关系目前最准，立体感极强</td>
+<td>对极细微反光物体深度估计偶有失真</td>
+<td>保持商品与摆放台面透视关系、防止商品穿插背景的必选控制。</td>
+</tr>
+<tr>
+<td rowspan="3"><strong>4. 特征迁移与换脸<br/>(IP-Adapter / ID)</strong></td>
+<td><strong>IP-Adapter Plus</strong></td>
+<td>局部特征补丁交叉注意力重构强，完美迁移面料纹理质感</td>
+<td>容易轻微改变目标图片的背景色温</td>
+<td>服饰、箱包特有皮革花纹与色彩风格无损参考。</td>
+</tr>
+<tr>
+<td><strong>InstantID</strong></td>
+<td>骨骼关键点 + 人脸特征双重控制，五官骨骼与光影融合极佳</td>
+<td>显存开销较大，且依赖底层 InsightFace 库</td>
+<td><span class="badge badge-ok">高端人像出海换脸首选</span>：极具商业摄影质感。</td>
+</tr>
+<tr>
+<td><strong>Reactor (InsightFace)</strong></td>
+<td>2D 贴图式换脸，执行速度极快（毫秒级），五官相似度 95%+</td>
+<td>角度与光影偏差大时边缘有接缝感，塑料感严重</td>
+<td>追求极高相似度且原图与目标图光照角度高度一致的快捷方案。</td>
+</tr>
+<tr>
+<td rowspan="2"><strong>5. 光影重绘<br/>(Relighting)</strong></td>
+<td><strong>IC-Light (FC: 前景条件)</strong></td>
+<td>只需商品本体，算法自主推导环境打光与投射阴影</td>
+<td>背景生成具有一定随机性</td>
+<td>创意概念图、自主探索全新摄影棚/户外光影场景。</td>
+</tr>
+<tr>
+<td><strong>IC-Light (FBC: 前后双条件)</strong></td>
+<td>同时输入商品与预设背景图，强制让商品匹配背景的物理光影</td>
+<td>对背景图与商品的光源物理一致性有较高要求</td>
+<td><span class="badge badge-ok">电商标准化套版首选</span>：已指定品牌统一背景模板图。</td>
+</tr>
+<tr>
+<td rowspan="2"><strong>6. 虚拟试衣<br/>(Virtual Try-On)</strong></td>
+<td><strong>IDM-VTON</strong></td>
+<td>图案文字保留最完整，版型与垂坠褶皱感极其自然写实</td>
+<td>显存消耗大，大角度扭曲侧身姿势容易变形，非商用协议</td>
+<td>服装电商人台转真人模特、跨境多尺码试衣标杆模型。</td>
+</tr>
+<tr>
+<td><strong>CatVTON</strong></td>
+<td>轻量高效，推理速度快，资源消耗低</td>
+<td>微小文字、精细刺绣与复杂花纹还原度略逊</td>
+<td>纯色系大衣、T恤、常规运动服批量试衣流水线。</td>
+</tr>
+<tr>
+<td rowspan="2"><strong>7. 超分与纹理重构<br/>(Upscaler)</strong></td>
+<td><strong>4x-UltraSharp / RealESRGAN</strong></td>
+<td>纯数学/GAN 算法，秒级出图，绝不改变任何原有像素与文字</td>
+<td>无法“凭空补全”细节，原图模糊则放大后依然模糊涂抹</td>
+<td>日常电商主图、缩略图、批量导出。</td>
+</tr>
+<tr>
+<td><strong>SUPIR</strong></td>
+<td>扩散模型重构，能无中生有生成纤维毛孔与金属反光细节</td>
+<td>极吃显存，单张推理需 30~60 秒以上</td>
+<td>首页 Hero Banner、大促主视觉海报、面料细节特写展示。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr/>
+<h2 id="sec-4">4. 三大高频实战场景串联</h2>
+<h3>场景 1：白底静物/3C/鞋包 ➔ 摄影级商业场景图</h3>
+<ul>
+<li><strong>输入资产</strong>：商品白底棚拍照 1 张。</li>
+<li><strong>编排路径</strong>：
+        <code>BiRefNet</code> 抠出商品并羽化 1px ➔ <code>Anyline</code> 提取商品外框轮廓（权重 0.7）➔ <code>Depth-Anything-V2</code> 锁定商品摆放透视 ➔ 送入 <code>IC-Light (FBC 或 FC)</code> 注入目标光影（如“自然晨光透过木窗，木质桌面，轻微景深”）➔ <code>KSampler (Denoise 0.85)</code> 生成背景与接触阴影 ➔ <code>Color Match</code> 纠正商品本体色差 ➔ <code>Image Composite Masked</code> 贴回 100% 原始品牌 Logo。
+      </li>
+<li><strong>落地收益</strong>：告别单套场景万元布景费，单品出图时间从 2 天压缩至 30 秒。</li>
+</ul>
+<h3>场景 2：服装人台图/平铺图 ➔ 真实外模多场景街拍</h3>
+<ul>
+<li><strong>输入资产</strong>：塑料人台衣服实拍图 + 目标场景/姿态真人模特图底板。</li>
+<li><strong>编排路径</strong>：
+        使用 <code>IDM-VTON</code> 将衣服剥离并自动根据真人模特体态解算衣服褶皱悬垂 ➔ 接入 <code>Face Detailer</code> 对模特面部五官与眼神光进行 1.5 倍分辨率精修 ➔ 接入 <code>Hands Detailer</code> 修补指节与指甲边缘 ➔ 经过 <code>SUPIR</code> 局部针对衣物面料进行扩散细节重构。
+      </li>
+<li><strong>落地收益</strong>：免除约拍欧美外模的高昂差旅与通告费，同款衣服可一秒切换欧美风、日韩风模特。</li>
+</ul>
+<h3>场景 3：国内爆款主图 ➔ 跨境出海本土化（换脸+换景）</h3>
+<ul>
+<li><strong>输入资产</strong>：国内现有高点击模特主图。</li>
+<li><strong>编排路径</strong>：
+        <code>GroundingDINO</code> 自动检索 <code>face</code> 与 <code>background</code> 区域输出 Mask ➔ 面部区域通过 <code>InstantID</code> 输入目标销售国（如拉美、中东）标准面孔资产进行骨骼级重绘 ➔ 背景区域使用 <code>Flux Fill / SDXL Inpaint</code> 提示词替换为当地本土化街景建筑 ➔ <code>Impact Pack</code> 全图色调融边。
+      </li>
+<li><strong>落地收益</strong>：沉淀核心爆款资产，实现同一款产品在全球不同区域货架的针对性本地化投放。</li>
+</ul>
+<hr/>
+<h2 id="sec-5">5. 开源协议与商业授权合规避坑</h2>
+<p>很多企业在部署 ComfyUI 时存在严重误区：“只要能在 GitHub/HuggingFace 免费下载权重的，就是开源的，就能直接拿来赚钱”。这在商业产品中极易埋下<strong>重大法务追责隐患</strong>。必须严格审视许可证分类：</p>
+<div class="grid-3">
+<div class="card" style="border-top: 4px solid var(--ok);">
+<h4>🟢 绿灯区：完全商用免费</h4>
+<p><strong>许可证</strong>：Apache 2.0 / MIT / OpenRAIL 系列。</p>
+<p><strong>代表模型</strong>：</p>
+<ul style="padding-left:16px; margin:4px 0; font-size:12.5px;">
+<li><code>Flux.1 [schnell]</code> (Apache 2.0)</li>
+<li><code>SDXL / SD 1.5</code> 官方底模</li>
+<li><code>Segment Anything (SAM / SAM 2)</code></li>
+<li><code>IC-Light</code> (Apache 2.0)</li>
+<li><code>SUPIR</code> (Apache 2.0)</li>
+<li><code>RealESRGAN / ControlNet 核心</code></li>
+</ul>
+<p><strong>合规建议</strong>：企业自建 SaaS 或商业出图首选，法务无版权风险。</p>
+</div>
+<div class="card" style="border-top: 4px solid var(--warn);">
+<h4>🟡 黄灯区：版本分立/条件限制</h4>
+<p><strong>许可证</strong>：社区作者协议 / 双轨商业模型。</p>
+<p><strong>代表模型与陷阱</strong>：</p>
+<ul style="padding-left:16px; margin:4px 0; font-size:12.5px;">
+<li><code>Flux.1 [dev]</code>：<strong>非商业许可</strong>（企业需联系 BFL 购买商用授权；仅个人/学术免费）。</li>
+<li><code>Civitai 社区 LoRA</code>：大量作者勾选了“禁止商用出图”或“禁止嵌入付费服务”，需逐个审查模型详情页 Licence。</li>
+</ul>
+<p><strong>合规建议</strong>：商用环境若用 Flux 推荐用 <code>schnell</code> 或采购授权；社区 LoRA 建议由内部自训替代。</p>
+</div>
+<div class="card" style="border-top: 4px solid var(--bad);">
+<h4>🔴 红灯区：明确非商用协议</h4>
+<p><strong>许可证</strong>：CC-BY-NC 4.0 / 学术专用协议。</p>
+<p><strong>代表模型与替代方案</strong>：</p>
+<ul style="padding-left:16px; margin:4px 0; font-size:12.5px;">
+<li><code>InsightFace (Reactor / InstantID 底层)</code>：严禁未经授权用于商业盈利。</li>
+<li><code>IDM-VTON / CatVTON</code>：基于 CC-BY-NC-SA 4.0 研究协议。</li>
+<li><code>BRIA RMBG (1.4/2.0)</code>：商业使用需向 BRIA 商业公司购买许可。</li>
+</ul>
+<p><strong>合规替代方案</strong>：人脸改用自训专用 LoRA 或原生 IP-Adapter；抠图选用开源协议友好的 BiRefNet 分支或纯自研模型。</p>
+</div>
+</div>
+<div class="analogy-box">
+<strong>⚖️ 业务法务分级建议</strong>：
+      <ul>
+<li><strong>个人/小卖家自产自销（仅在自己网店上架图）</strong>：追查技术生成链路难度极高，版权方主诉动力较低，可优先以效果为导向；</li>
+<li><strong>商业公司对外提供收费 SaaS / 商业化设计外包</strong>：坚决禁止将红灯区模型（如 InsightFace、BRIA RMBG）封装在云端 API 供外部付费调用，极易遭到合规取证与律师函维权。</li>
+</ul>
+</div>
+<hr/>
+<h2 id="sec-6">6. 落地工程化与 ROI 总结</h2>
+<div class="grid-2">
+<div class="card">
+<h4>生产环境五大避坑原则</h4>
+<ol style="padding-left:18px; margin:6px 0; font-size:13px;">
+<li><strong>严禁过度堆叠 ControlNet</strong>：同时叠加 Canny + Depth + Normal 会导致画面严重塑料化并剧烈降低出图速度，通常 1 个主控制即可。</li>
+<li><strong>守死 Color Match 闸门</strong>：AI 重绘必然产生微量环境光漫反射，若商品本身产生色差将引发批量售后维权，色彩校准不可省。</li>
+<li><strong>不要用文生图直接赌商品</strong>：坚持“实物实拍 ➔ 抠图提取 ➔ AI 生背景与光影 ➔ 原物 Logo 回贴”的确定性闭环。</li>
+<li><strong>Denoise 梯度分层测试</strong>：背景重绘设在 0.7~0.85，衣服质感微调设在 0.25~0.35，不可一刀切。</li>
+<li><strong>高频模型走 API/本地缓存池化</strong>：避免每次请求重新 Load Model 导致巨大的 GPU 显存 IO 开销。</li>
+</ol>
+</div>
+<div class="card">
+<h4>人效与经济学收益测算</h4>
+<p>以中型服装/出海电商品牌（月需 1000 款新 SKU 主图与详情页）测算：</p>
+<ul style="padding-left:18px; margin:6px 0; font-size:13px;">
+<li><strong>传统实拍外模成本</strong>：摄影棚 3000元/天 + 外模 8000元/天 + 后期精修 30元/张，单款综合成本约 <strong>150~300 元</strong>，交付周期 <strong>10~20 天</strong>。</li>
+<li><strong>ComfyUI 自动化管线成本</strong>：自备 1 台双卡 RTX 4090 或按需云算力，单张图算力成本约 <strong>0.05~0.15 元</strong>，单款综合制作成本 <strong>&lt; 5 元</strong>，交付周期 <strong>小时级</strong>。</li>
+<li><strong>综合 ROI</strong>：综合制图成本下降 <strong>90%+</strong>，SKU 上新测款节奏提升 <strong>10 倍</strong>。</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<script>
+document.getElementById('sidebarClose')?.addEventListener('click', () => { document.body.classList.add('sidebar-closed'); });
+document.getElementById('sidebarOpen')?.addEventListener('click', () => { document.body.classList.remove('sidebar-closed'); });
+const links = [...document.querySelectorAll('#nl a')].filter(a => a.getAttribute('href').startsWith('#'));
+const targets = links.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const activeLink = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+      if (activeLink) activeLink.classList.add('active');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '-10% 0px -70% 0px' });
+
+targets.forEach(t => observer.observe(t));
+</script>
+</body>
+</html>

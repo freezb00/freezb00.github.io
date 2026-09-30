@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>电商视觉AI生成效果评测体系、量化标准与自动化SOP深度调研报告</title>
+<style>
+:root{
+  --bg:#fafaf9; --ink:#1c1917; --mute:#78716c; --line:#e7e5e4; --soft:#f5f5f4;
+  --accent:#2563eb; --accent-hover:#1d4ed8; --warn:#b45309; --bad:#b91c1c; --ok:#15803d;
+  --side: 280px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f172a; --ink:#f8fafc; --mute:#94a3b8; --line:#1e293b; --soft:#1e293b;
+        --accent:#38bdf8; --accent-hover:#0ea5e9; --warn:#f59e0b; --bad:#ef4444; --ok:#10b981;}
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:24px;}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  transition:background .2s,color .2s; overflow-x: hidden;}
+
+/* 导航展开按钮（侧边栏收起时显示） */
+.sidebar-open-btn {
+  position: fixed; top: 16px; left: 16px; z-index: 40;
+  width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--ink); cursor: pointer;
+  display: none; align-items: center; justify-content: center; font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all .2s;
+}
+.sidebar-open-btn:hover { color: var(--accent); border-color: var(--accent); transform: scale(1.05); }
+body.sidebar-closed .sidebar-open-btn { display: flex; }
+
+aside.side, #sidebar {
+  position:fixed;left:0;top:0;bottom:0;width:var(--side);
+  background:var(--soft);border-right:1px solid var(--line);
+  padding:24px 16px 20px;overflow-y:auto;display:flex;flex-direction:column;z-index:50;
+  transition: transform .25s ease-in-out;
+}
+body.sidebar-closed aside.side, body.sidebar-closed #sidebar { transform: translateX(-100%); }
+
+/* 导航收起按钮 */
+.sidebar-close-btn {
+  position: absolute; top: 18px; right: 14px;
+  background: transparent; border: none; font-size: 18px; color: var(--mute);
+  cursor: pointer; padding: 6px; border-radius: 6px; line-height: 1; transition: all .15s;
+}
+.sidebar-close-btn:hover { background: var(--bg); color: var(--ink); }
+
+aside.side .brand, #sidebar h3, #sidebar .brand {font-size:15px;font-weight:650;margin-bottom:18px;color:var(--ink); padding-right: 28px; line-height: 1.4;}
+.side .brand b{color:var(--accent);}
+.navlinks, #sidebar ul {display:flex;flex-direction:column;gap:3px;flex:1;}
+.navlinks a, #sidebar a {font-size:13px;color:var(--mute);text-decoration:none;padding:7px 10px;
+  border-radius:6px;line-height:1.4;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;transition: background .15s, color .15s;}
+.navlinks a:hover, #sidebar a:hover {color:var(--ink);background:var(--line);}
+.navlinks a.active, #sidebar a.active {color:var(--accent);background:var(--bg);font-weight:600;}
+.side .foot{font-size:11.5px;color:var(--mute);padding:12px 6px 0;border-top:1px solid var(--line);margin-top:12px;line-height:1.5;}
+
+.main, #main-content {margin-left:var(--side); padding-top: 36px; padding-bottom: 96px; transition: margin-left .25s ease-in-out;}
+body.sidebar-closed .main, body.sidebar-closed #main-content { margin-left: 0; }
+
+.container, .wrap {max-width:980px;margin:0 auto;padding:0 24px;}
+h1{font-size:30px;line-height:1.3;margin:0 0 16px;color:var(--ink);font-weight:750;}
+h2{font-size:22px;margin:44px 0 18px;padding-bottom:10px;border-bottom:1.5px solid var(--line);color:var(--ink);font-weight:700;}
+h3{font-size:17.5px;margin:28px 0 12px;color:var(--ink);font-weight:650;}
+p,li{font-size:15px;color:var(--ink);line-height:1.8;}
+ul,ol{padding-left:22px;margin:12px 0;}
+li{margin:6px 0;}
+strong{color:var(--ink);font-weight:650;}
+code{background:var(--soft);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:13.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;}
+pre{background:var(--soft);border:1px solid var(--line);padding:16px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.6;margin:18px 0;}
+pre code{background:transparent;padding:0;color:var(--ink);}
+
+.meta-header{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:16px 20px;margin-bottom:28px;}
+.meta-header summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--mute);list-style:none;}
+.meta-header summary::-webkit-details-marker{display:none;}
+.meta-header summary::before{content:"▸ ";color:var(--accent);font-weight:bold;}
+.meta-header[open] summary::before{content:"▾ ";}
+.meta-header dl{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin:14px 0 0;font-size:13.5px;}
+.meta-header dt{color:var(--mute);font-weight:600;}
+.meta-header dd{margin:0;color:var(--ink);}
+
+.badge{display:inline-block;padding:2px 9px;border-radius:6px;font-size:12px;font-weight:600;line-height:1.5;}
+.badge-pending{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+.badge-pass{background:#dcfce7;color:#166534;border:1px solid #bbf7d0;}
+.badge-gray{background:var(--soft);color:var(--mute);border:1px solid var(--line);}
+
+.thesis-box{background:#eff6ff;border:1.5px solid #bfdbfe;border-left:5px solid var(--accent);border-radius:8px;padding:20px 22px;margin:24px 0;}
+.thesis-box strong.title{display:block;font-size:16px;color:#1e40af;margin-bottom:8px;letter-spacing:0.5px;}
+.thesis-box p{color:#1e3a8a;margin:0;font-size:15px;line-height:1.75;}
+
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:20px 0;}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,0.02);}
+.card .k{font-size:12.5px;color:var(--mute);font-weight:600;text-transform:uppercase;margin-bottom:6px;}
+.card .v{font-size:24px;font-weight:750;color:var(--accent);line-height:1.2;margin-bottom:6px;}
+.card .d{font-size:13px;color:var(--mute);line-height:1.5;}
+
+table{width:100%;border-collapse:collapse;margin:22px 0;font-size:13.5px;}
+th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top;}
+th{background:var(--soft);font-weight:650;color:var(--ink);}
+tr:nth-child(even){background:rgba(0,0,0,0.015);}
+
+.callout{border-left:4px solid var(--accent);background:var(--soft);padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0;}
+.callout.warn{border-left-color:var(--warn);background:#fffbeb;}
+.callout.warn strong{color:var(--warn);}
+.callout.danger{border-left-color:var(--bad);background:#fef2f2;}
+.callout.danger strong{color:var(--bad);}
+
+.pending-tag{color:#dc2626;background:#fee2e2;padding:1px 6px;border-radius:4px;font-size:12px;font-weight:600;}
+.grade-a{color:#059669;font-weight:700;}
+
+@media (max-width:860px){
+  aside.side, #sidebar {transform:translateX(-100%);}
+  .main, #main-content {margin-left:0;}
+  body.sidebar-closed .sidebar-open-btn, body .sidebar-open-btn{display:flex;}
+}
+
+/* 兼容其他模板的特定组件 */
+.conclusion-item {
+  background: var(--soft);
+  border-left: 4px solid var(--accent);
+  padding: 16px 20px;
+  margin: 18px 0;
+  border-radius: 0 8px 8px 0;
+}
+.conclusion-item h4 { margin: 0 0 8px; color: var(--ink); font-size: 16px; font-weight: 700; }
+.conclusion-item p { margin: 0 0 6px; font-size: 14.5px; }
+.source-tag { font-size: 12.5px; color: var(--mute); display: block; margin-top: 4px; }
+.analogy-box {
+  margin: 14px 0 18px;
+  padding: 12px 16px;
+  background: var(--soft);
+  border-left: 3px solid var(--warn);
+  border-radius: 0 6px 6px 0;
+  font-size: 14px;
+}
+.math-block {
+  margin: 14px 0; padding: 12px 16px; background: var(--soft); border-radius: 8px;
+  border: 1px solid var(--line); overflow-x: auto; text-align: center; font-size: 15px;
+}
+
+/* 表格容器包裹 */
+.tablewrap { overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 8px; }
+.tablewrap table { margin: 0; border: none; }
+.tablewrap th, .tablewrap td { border: 1px solid var(--line); }
+
+/* infimind 等模板的 toggle button */
+#sidebar-toggle {
+  position: fixed; bottom: 24px; left: 24px; z-index: 1000;
+  background: var(--accent); color: #ffffff; border: none; border-radius: 50px;
+  padding: 10px 18px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); cursor: pointer;
+  display: flex; align-items: center; gap: 6px; transition: transform 0.2s, background 0.2s;
+}
+#sidebar-toggle:hover { background: var(--accent-hover); transform: scale(1.05); }
+
+/* image-gen-ai-pm.html 模板特有 */
+header.header { padding-bottom: 24px; border-bottom: 2px solid var(--line); margin-bottom: 32px; }
+header.header p.sub { font-size: 16px; color: var(--mute); margin-top: 8px; }
+
+</style>
+</head>
+<body class="sidebar-closed">
+<button class="sidebar-open-btn" id="sidebarOpen" title="展开导航">☰</button>
+<aside class="side">
+<button class="sidebar-close-btn" id="sidebarClose" title="收起导航">✕</button>
+<div class="brand">电商视觉 · <b>评测体系深度调研</b></div>
+<nav class="navlinks" id="nl"><a href="../portfolio.html" style="margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px; color: var(--accent); font-weight: bold;">🏠 返回作品集主页</a>
+<a href="#sec-0">0. 一句话读懂与调研靶心</a>
+<a href="#sec-1">1. 第一性原理：电商视觉 vs 艺术生图</a>
+<a href="#sec-2">2. 全栈量化评测指标体系</a>
+<a href="#sec-3">3. 黄金基准图集（Benchmark）构建</a>
+<a href="#sec-4">4. 自动化跑批 CI/CD 质量门禁</a>
+<a href="#sec-5">5. 人工 SBS 双盲评审设计</a>
+<a href="#sec-6">6. 线上 A/B 测试与客诉熔断闭环</a>
+<a href="#sec-7">7. 标杆厂商落地实践对照</a>
+<a href="#sec-8">附录 A：自动化评测脚本实现</a>
+<a href="#sec-9">附录 B：指标阈值与一票否决字典</a>
+</nav>
+</aside>
+<div class="main">
+<div class="wrap">
+<h1>电商视觉 AI 生成效果评测体系、量化标准与自动化 SOP 深度调研报告</h1>
+<div class="thesis-box" id="sec-thesis">
+<strong class="title">核心 Thesis 判断系统</strong>
+<p style="margin: 8px 0 0; font-size: 14.5px;">
+<strong>一句话读懂</strong>：电商视觉效果评测的本质不是“美学打分”，而是<strong>“交易保真防线的质量工程（Quality Assurance）”</strong>。成熟的工业实践采用<strong>“物理指标一票否决（色差 ΔE &lt; 2.0 / 轮廓 IoU &gt; 95% / OCR 100%）+ VLM 裁判细粒度语义打分 + 人工 SBS 双盲回归 + 线上 A/B 客诉熔断”</strong>的四级渐进式漏斗，通过 150 张标准黄金基准集的夜间 CI 跑批，将良品率控制在 85% 以上，杜绝货不对板退货风险。
+                </p>
+</div>
+<hr/>
+<h2 id="sec-1">1. 第一性原理：电商视觉 vs 艺术生图的本质分野</h2>
+<p>很多 AI 团队在切入电商场景时最大的误区，就是套用开源社区衡量文生图（T2I）的传统指标（如 FID、CLIP Score、美学分 Aesthetic Score）。这种做法上线后必然导致严重的业务翻车：</p>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>艺术/娱乐级文生图（Midjourney/社区玩图）</th>
+<th>商业级电商视觉（ComfyUI 工业管线）</th>
+<th>指标冲突与后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心优化目标</strong></td>
+<td>“震撼感”、“惊艳度”、“自由发散创意”</td>
+<td><strong>“商品一致性”、“信息真实性”、“促成下单转化”</strong></td>
+<td>模型“脑补”的华丽褶皱或金属反光，往往直接篡改了衣服真实版型。</td>
+</tr>
+<tr>
+<td><strong>容错空间</strong></td>
+<td>极高（容许幻觉，只要整体看起来美即可）</td>
+<td><strong>极低（物理属性一票否决）</strong></td>
+<td>一件粉色真丝衬衫因背景暖光漫反射被染成橙色，在艺术上很和谐，在电商中是 100% 退货客诉。</td>
+</tr>
+<tr>
+<td><strong>主观 vs 客观</strong></td>
+<td>纯主观体验，不同人审美偏差极大</td>
+<td><strong>客观事实先验</strong>（实物长宽、色卡Hex、面料配比、Logo字符）</td>
+<td>艺术评测可以只做人工评审；电商评测必须以计算机视觉与客观色彩测量为前置过滤。</td>
+</tr>
+<tr>
+<td><strong>失效代价</strong></td>
+<td>重新抽一张卡，消耗 0.02 元算力</td>
+<td><strong>买家退货运费险赔付、品牌假货降权、高额退货率拉垮店铺权重</strong></td>
+<td>电商退货率每增加 1%，净利润通常折损 5%~10%。评测体系是商家的“利润护城河”。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="analogy-box">
+<strong>🔗 云后端工程类比</strong>：
+      艺术文生图相当于<strong>“弱类型、最终一致性的日志搜索展示”</strong>（漏查一条影响不大）；而电商视觉生成则相当于<strong>“分布式金融交易系统里的两阶段提交（2PC）与账本对账”</strong>：商品轮廓、Logo 与色温就是强类型 Schema 与防篡改哈希，任何一个字段发生漂移，整个请求事务必须立即 Rollback 阻断，绝不允许将脏数据写入生产。
+    </div>
+<hr/>
+<h2 id="sec-2">2. 全栈量化评测指标体系</h2>
+<p>工业实践将评测划分为四大严密层级：<strong>物理刚性层（一票否决）➔ 细粒度语义层 ➔ 环境融合层 ➔ 商业转化层</strong>。</p>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>指标名称</th>
+<th>计算方法与工具</th>
+<th>工业级达标门禁</th>
+<th>失效判定与业务含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="4"><strong>Level 1<br/>物理刚性防线<br/><span class="badge badge-bad">一票否决</span></strong></td>
+<td><strong>CIELAB 色差值<br/>(ΔE₀₀)</strong></td>
+<td>采用 CIEDE2000 色差公式，在 L*a*b* 色彩空间提取商品核心区域平均色，与物理标准打样色比对。</td>
+<td><strong>ΔE₀₀ ≤ 2.0</strong>（对标 SHEIN/ZARA 供应链标准）</td>
+<td>ΔE &gt; 3.0 人眼肉眼可见偏色，极易引发“货不对板”退货，直接终止流水线。</td>
+</tr>
+<tr>
+<td><strong>结构边缘交并比<br/>(Mask IoU / BF1)</strong></td>
+<td>提取生成图主体轮廓 Mask，与原始商品 Mask 计算交并比 IoU = |A ∩ B| / |A ∪ B|，及边缘轮廓 F₁ 分数。</td>
+<td><strong>IoU ≥ 0.95<br/>BF₁ ≥ 0.90</strong></td>
+<td>IoU &lt; 0.92 说明商品外轮廓拉伸、版型变异或边缘被背景蚕食。</td>
+</tr>
+<tr>
+<td><strong>Logo与字符准确率<br/>(OCR Accuracy / CER)</strong></td>
+<td>通过 PaddleOCR / EasyOCR 提取商品区域文本，与 Ground Truth 文本计算字符错误率（CER）。</td>
+<td><strong>CER = 0%<br/>匹配度 100%</strong></td>
+<td>Logo 变形或标牌英文少一个字母，直接判定为假冒伪劣感，立刻判负。</td>
+</tr>
+<tr>
+<td><strong>人脸特征余弦相似度<br/>(ArcFace Cosine)</strong></td>
+<td>使用 ArcFace 512 维 Embedding 计算生成模特脸与目标模特基准脸的余弦相似度。</td>
+<td><strong>Cosine Sim ≥ 0.65</strong></td>
+<td>低于 0.60 发生“换脸漂移”，店铺跨 SKU 主图无法维持统一品牌御用模特形象。</td>
+</tr>
+<tr>
+<td rowspan="3"><strong>Level 2<br/>细粒度语义对齐<br/>(阿里 DAT 框架)</strong></td>
+<td><strong>领口与袖型对齐度<br/>(Neckline &amp; Sleeve)</strong></td>
+<td>VLM 裁判或多标签分类器，判定立领/V领/圆领、长袖/九分袖是否变异。</td>
+<td><strong>类别一致性 100%</strong></td>
+<td>V领变成了圆领，或者泡泡袖被拉平成直筒袖。</td>
+</tr>
+<tr>
+<td><strong>装饰与关键五金完好<br/>(Major Decoration)</strong></td>
+<td>纽扣数量、拉链五金、口袋位置与抽绳的保留完好率。</td>
+<td><strong>检出保留率 ≥ 90%</strong></td>
+<td>排扣被 AI 当成噪点抹平，双口袋变成单口袋。</td>
+</tr>
+<tr>
+<td><strong>面料纹理能量度<br/>(Laplacian Texture)</strong></td>
+<td>拉普拉斯方差计算局部高频分量，衡量牛仔、毛呢、亚麻的纹理粗糙度保留率。</td>
+<td><strong>纹理保留率 ≥ 80%</strong></td>
+<td>纹理过低表现为 AI 磨皮塑料感，过高表现为噪点爆炸。</td>
+</tr>
+<tr>
+<td rowspan="2"><strong>Level 3<br/>物理与环境融合</strong></td>
+<td><strong>接触阴影检出率<br/>(Contact Shadow)</strong></td>
+<td>检测物体底面与支撑面交界处 15px 内是否存在梯度递减的环境光遮蔽（AO）阴影。</td>
+<td><strong>必须检出，连续性 ≥ 85%</strong></td>
+<td>无接触阴影导致商品“浮空漂浮”，呈现低劣抠图贴片感。</td>
+</tr>
+<tr>
+<td><strong>色温与光向和谐度<br/>(Light Harmony)</strong></td>
+<td>估算背景主光源向量与商品高光/阴影侧的法线夹角一致性。</td>
+<td><strong>光向误差 ≤ 45°</strong></td>
+<td>背景夕阳从左侧照入，商品受光高光却在右侧，造成视觉不适。</td>
+</tr>
+<tr>
+<td rowspan="2"><strong>Level 4<br/>商业与业务转化</strong></td>
+<td><strong>主图点击率 (CTR)<br/>与转化率 (CVR)</strong></td>
+<td>线上 10% 流量池 A/B 测试 72 小时，监控点击转化表现。</td>
+<td><strong>CTR 优于实拍 ≥ 5%<br/>退货率持平或下降</strong></td>
+<td>最终商业落地价值闭环检验。</td>
+</tr>
+<tr>
+<td><strong>视觉第一落点<br/>(Visual Saliency)</strong></td>
+<td>显著性热力图（Saliency Map）检测前 500ms 视觉中心是否落在商品本体。</td>
+<td><strong>商品主体热力占比 ≥ 60%</strong></td>
+<td>背景道具（如鲜花、配饰）过于抢眼，喧宾夺主。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr/>
+<h2 id="sec-3">3. 黄金基准图集（Benchmark Suite）构建工程指南</h2>
+<p>建立基准集的核心原则是：<strong>“不要用抽样代表全貌，必须用压力测试覆盖长尾黑天鹅”</strong>。</p>
+<h3>3.1 150 张标准黄金集配比架构</h3>
+<p>推荐采用 <strong>4:3.5:2.5</strong> 的难度金字塔配比：</p>
+<div class="grid-3">
+<div class="card" style="border-top: 4px solid var(--ok);">
+<h4>L1 基础日常款 (40% · 60张)</h4>
+<p><strong>特征</strong>：纯白底/标准摄影棚底，纯色硬质商品、标准站姿正面服饰、直立无遮挡。</p>
+<p><strong>作用</strong>：每日快速冒烟测试，保障底模与工作流没有基础性语法/逻辑崩溃，通过率需达 98%。</p>
+</div>
+<div class="card" style="border-top: 4px solid var(--warn);">
+<h4>L2 业务高频款 (35% · 52张)</h4>
+<p><strong>特征</strong>：常见印花 T 恤、微褶皱风衣、带轻微环境反光的数码家电、带清晰 Logo 包装盒。</p>
+<p><strong>作用</strong>：覆盖 80% 真实订单形态，检验综合美学、背景光影融合与排版稳定性，通过率要求 ≥ 85%。</p>
+</div>
+<div class="card" style="border-top: 4px solid var(--bad);">
+<h4>L3 极限黑天鹅 (25% · 38张)</h4>
+<p><strong>特征</strong>：透明玻璃香水瓶、电镀金属反光、蕾丝薄纱、细密条纹（防摩尔纹）、模特双手抱胸大角度侧身。</p>
+<p><strong>作用</strong>：专门用于“击穿”算法流程，摸清当前技术边界，建立人工介入拦截线。</p>
+</div>
+</div>
+<h3>3.2 单 Case 标准资产包 Schema 规范</h3>
+<p>每个测试用例必须包含完整的输入、标签与验证元数据，严禁仅放单张孤立图片：</p>
+<pre><code>benchmark_case_042/
+├── input_garment.jpg           # 原始未修商品/平铺图（保持单反原生 RAW 转 2K 分辨率）
+├── input_model_target.jpg      # 目标模特底板（若为虚拟试衣场景）
+├── ground_truth_mask.png       # 人工精修 100% 准确的 Alpha 二值蒙版（像素级真实值）
+├── ground_truth_color.json     # 商品实物 CIELAB 色彩标准值（三组不同受光测色点）
+│   └── {"point_1": [68.2, 14.3, 18.5], "point_2": [72.1, 13.9, 17.8]}
+├── ground_truth_text.json      # 必须完整保留的文字清单与字体特征
+│   └── {"words": ["BALENCIAGA", "PARIS"], "case_sensitive": true}
+└── metadata.json               # 结构化属性元数据（供自动化脚本按维度切片报表）
+    └── {
+          "case_id": "case_042",
+          "category": "apparel_women_dress",
+          "difficulty": "L3",
+          "tags": ["fine_stripe", "v_neckline", "lace_hem", "occlusion_arms"],
+          "model_tolerance": {"delta_e_max": 2.0, "iou_min": 0.94}
+        }</code></pre>
+<h3>3.3 测试集“三级隔离”与生命周期治理</h3>
+<ul>
+<li><strong>冒烟集 (Smoke Suite · 15张)</strong>：开发者单机日常调试（5 分钟内执行完毕），提供即时修改反馈。</li>
+<li><strong>回归集 (Regression Suite · 150张)</strong>：每周全量跑批，接入 CI/CD 定时任务，作为版本升级发版门禁。</li>
+<li><strong>盲测集 (Blind Suite · 30张)</strong>：<strong>绝对物理隔离</strong>，仅评测负责人有权限访问。严禁调参人员查看，杜绝“针对性过拟合 Prompt”。</li>
+<li><strong>动态活水淘汰机制</strong>：线上只要发生一次“用户客诉/商家打回”的翻车案例，24 小时内提炼脱敏，<strong>强制注入 L3 黑天鹅集</strong>，永不再踩同一坑。</li>
+</ul>
+<hr/>
+<h2 id="sec-4">4. 自动化跑批 CI/CD 质量门禁</h2>
+<p>实现电商视觉工业化，关键是将评测代码化（Evaluation as Code），嵌入持续交付流水线：</p>
+<pre><code>[Git Push / 模型版本升级]
+       │
+       ▼ (1. 触发构建)
+[ComfyUI Headless Serverless 节点集群] ──&gt; 异步并行拉取 150 张基准图批处理
+       │
+       ▼ (2. Level 1 物理指标门禁 · 自动化)
+├── 计算 ΔE00 色差 (阈值 ≤ 2.0)
+├── 计算 Mask IoU (阈值 ≥ 0.95)
+└── PaddleOCR 字符匹配 (匹配度 100%)
+       │
+       ├── [任意项未通过] ──&gt; ❌ 立即熔断 (Exit Code 1) ➔ 产出缺陷坐标热力图
+       ▼ [全数通过]
+       │
+       ▼ (3. Level 2 VLM 裁判深度语义审计)
+[Qwen2-VL / Claude 3.5 Sonnet 作为裁判] ──&gt; 结构领口/纹理/接触阴影 7 维度打分 (阈值 ≥ 85分)
+       │
+       ▼ (4. 生成自动化测试大盘报表)
+[Allure / HTML Dashboard] ──&gt; 输出品类通过率切片、算力耗时、与基线版本 Diff 对比</code></pre>
+<div class="analogy-box">
+<strong>🔗 后端架构类比</strong>：
+      这套 CI 门禁就像 Maven/Gradle 自动化构建：
+      Level 1 是 <strong>Checkstyle + SpotBugs + 单元测试代码覆盖率（一票否决）</strong>；
+      Level 2 的 VLM 裁判是 <strong>静态代码架构合规扫描（如 ArchUnit）</strong>；
+      只有构建全绿的代码包，才能打上 Release Tag 进入灰度环境。
+    </div>
+<hr/>
+<h2 id="sec-5">5. 人工 SBS (Side-by-Side) 双盲评审设计</h2>
+<p>尽管自动化指标能够拦截 90% 的硬性缺陷，但“整体构图审美、高级感、模特微表情是否生硬”仍需专业人眼进行终审。为消除主观偏差，必须执行严格的 <strong>SBS 双盲测试</strong>：</p>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>机制环节</th>
+<th>工程实现与控制手段</th>
+<th>消除的偏见类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>双盲与打乱 (Double-Blind)</strong></td>
+<td>评审 Web 界面随机将【基线版本 A】和【候选新版本 B】呈现在左/右侧，<strong>隐去所有模型名称、Prompt 或参数标签</strong>。</td>
+<td>消除评审员对特定模型或大厂光环的“技术偏见”。</td>
+</tr>
+<tr>
+<td><strong>强制 100% 局部放大对比</strong></td>
+<td>鼠标滚轮联动缩放，当光标移至左图袖口时，右图对应袖口同步以 200% 像素级放大显示。</td>
+<td>消除评审员仅凭“缩略图好看”而忽略商品走线瑕疵的“全局疲劳偏差”。</td>
+</tr>
+<tr>
+<td><strong>5 分制分级量表 (Rubric)</strong></td>
+<td>
+<strong>1分</strong>：商品严重变形/肢体畸变（不可用）；<br/>
+<strong>2分</strong>：明显假贴图感/边缘发虚（需重修）；<br/>
+<strong>3分</strong>：商品完好，光影平平（及格可用）；<br/>
+<strong>4分</strong>：商品精准，光影自然，模特生动（良好）；<br/>
+<strong>5分</strong>：媲美万元棚拍商业级大片（卓越）。
+            </td>
+<td>消除不同评审员之间“宽松度不一”的标尺漂移。</td>
+</tr>
+<tr>
+<td><strong>统计显著性判定 (Win Rate)</strong></td>
+<td>单次评测收集 N ≥ 100 组有效对比，计算胜率（Win Rate），并计算 Wilson Score 95% 置信区间。</td>
+<td>必须满足：Win Rate &gt; 60% 且置信区间下界 &gt; 50%，新版本才允许合入主干。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr/>
+<h2 id="sec-6">6. 线上 A/B 测试与客诉熔断闭环</h2>
+<p>实验室评测全通并不等于商业成功。最终检验标准必须回归<strong>店铺转化率与售后退款指标</strong>：</p>
+<div class="grid-2">
+<div class="card">
+<h4>灰度放量分流策略</h4>
+<p>1. <strong>小流量探针（5%~10%）</strong>：在非大促平销期，将商品主图随机分流，对照组为原始专业实拍图，实验组为 AI 自动化生成图。</p>
+<p>2. <strong>72 小时数据冰冻期</strong>：必须跑满完整 3 天周期（消除周末/工作日流量周期性波动），累积至少 5,000 次曝光点击事件。</p>
+<p>3. <strong>核心正向指标</strong>：主图点击率 (CTR) 需 ≥ 实拍基准；详情页跳出率 (Bounce Rate) 需平稳或降低。</p>
+</div>
+<div class="card">
+<h4>逆向客诉熔断与回流机制</h4>
+<p>1. <strong>核心反向风控指标</strong>：重点监控两项售后数据——<strong>“商品与图片不符退款率”</strong>和<strong>“质量/色差差评率”</strong>。</p>
+<p>2. <strong>自动化熔断阈值</strong>：若实验组在 7 天内因“色差/材质不符”退款率超过对照组 15%，触发实时告警，系统自动将主图回滚至原始实拍图。</p>
+<p>3. <strong>缺陷回流工单</strong>：将导致退款的订单图片自动标记为“线上逃逸缺陷样本（Escaped Bug）”，直接生成 JIRA 工单进入下周 L3 极限基准集。</p>
+</div>
+</div>
+<hr/>
+<h2 id="sec-7">7. 标杆厂商落地实践对照</h2>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>厂商 / 体系</th>
+<th>核心应用场景</th>
+<th>评测体系杀手锏</th>
+<th>对中小团队的借鉴价值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>阿里巴巴<br/>(阿里妈妈 / 淘天)</strong></td>
+<td>万相台商家智能作图、淘宝星辰虚拟试衣</td>
+<td>提出 <strong>DAT 评估框架</strong>，将试衣拆解为轮廓、领口袖型、面料等 7 大离散特征预测；引入 VLM 裁判进行全模态对齐。</td>
+<td><strong>将“美学主观感受”解构成“确定性离散属性检测”</strong>，便于代码自动化核验。</td>
+</tr>
+<tr>
+<td><strong>SHEIN<br/>(跨境快时尚供应链)</strong></td>
+<td>小单快返样衣拍摄、上架主图大批量生成</td>
+<td>将数码测色仪的 <strong>ΔE₀₀ ≤ 2.0 容差体系</strong>作为 AI 流程强制前置卡点，杜绝批量换背景导致的偏色退货。</td>
+<td><strong>守死色差底线</strong>，直接与供应链工厂打样色对齐。</td>
+</tr>
+<tr>
+<td><strong>Amazon<br/>(Project P.I.)</strong></td>
+<td>物流出库扫描与平台主图质量风控</td>
+<td>出库成像通道结合多模态大模型，实时检测商品物理外观与展示图是否一致，拦截破损与尺寸欺诈。</td>
+<td>建立<strong>端到端实物与渲染图比对</strong>的质检闭环。</td>
+</tr>
+<tr>
+<td><strong>WeShop / 唯图<br/>(垂直电商 AI SaaS)</strong></td>
+<td>跨境中小卖家爆款主图、人台转真人街拍</td>
+<td>通过“一票否决漏斗”将一次生成良品率从开源社区的 15% 提升至商业级的 85%+；按用户收藏/下载行为反哺优化提示词与节点。</td>
+<td>在 ComfyUI 外层封装极简 Web UI，将复杂的质检逻辑做成后台自动化异步哨兵。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr/>
+<h2 id="sec-8">附录 A：自动化评测脚本实现（核心指标计算）</h2>
+<p>以下为工业实践中可直接集成的 Python 自动化评测核心逻辑（基于 OpenCV、Scikit-Image、Colormath 与 PaddleOCR）：</p>
+<pre><code>import cv2
+import numpy as np
+from skimage.color import rgb2lab, deltaE_ciede2000
+from paddleocr import PaddleOCR
+
+def evaluate_ecommerce_sample(gen_img_path, raw_img_path, mask_path, expected_texts):
+    """
+    电商视觉 Level 1 物理指标自动化质检门禁
+    返回: (passed: bool, report: dict)
+    """
+    gen_img = cv2.imread(gen_img_path)
+    raw_img = cv2.imread(raw_img_path)
+    mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+    
+    # 1. 计算商品核心主体区域色差 (Delta E 2000)
+    gen_rgb = cv2.cvtColor(gen_img, cv2.COLOR_BGR2RGB) / 255.0
+    raw_rgb = cv2.cvtColor(raw_img, cv2.COLOR_BGR2RGB) / 255.0
+    gen_lab = rgb2lab(gen_rgb)
+    raw_lab = rgb2lab(raw_rgb)
+    
+    # 仅在商品 Mask 内部计算核心均值色差
+    delta_e_map = deltaE_ciede2000(raw_lab, gen_lab)
+    mean_delta_e = float(np.mean(delta_e_map[mask &gt; 128]))
+    
+    # 2. 计算边缘交并比 (IoU)
+    _, gen_bin_mask = cv2.threshold(cv2.cvtColor(gen_img, cv2.COLOR_BGR2GRAY), 10, 255, cv2.THRESH_BINARY)
+    intersection = np.logical_and(mask &gt; 128, gen_bin_mask &gt; 128).sum()
+    union = np.logical_or(mask &gt; 128, gen_bin_mask &gt; 128).sum()
+    iou = float(intersection / union) if union &gt; 0 else 0.0
+    
+    # 3. OCR 关键字符完好率检测
+    ocr = PaddleOCR(use_angle_cls=False, lang="en", show_log=False)
+    ocr_result = ocr.ocr(gen_img_path, cls=False)
+    detected_texts = [line[1][0] for line in ocr_result[0]] if ocr_result[0] else []
+    
+    missing_texts = [w for w in expected_texts if not any(w.lower() in t.lower() for t in detected_texts)]
+    ocr_pass = len(missing_texts) == 0
+    
+    # 4. 门禁一票否决判定
+    passed = (mean_delta_e &lt;= 2.0) and (iou &gt;= 0.94) and ocr_pass
+    
+    return passed, {
+        "mean_delta_e_00": round(mean_delta_e, 3),
+        "delta_e_pass": mean_delta_e &lt;= 2.0,
+        "mask_iou": round(iou, 3),
+        "iou_pass": iou &gt;= 0.94,
+        "ocr_pass": ocr_pass,
+        "missing_keywords": missing_texts
+    }</code></pre>
+<hr/>
+<h2 id="sec-9">附录 B：评测指标速查字典与容限门禁表</h2>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>评测维度</th>
+<th>指标代号</th>
+<th>计算工具</th>
+<th>优秀阈值 (Green)</th>
+<th>警戒阈值 (Yellow)</th>
+<th>一票否决阈值 (Red)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>色彩保真度</td>
+<td>ΔE₀₀</td>
+<td>CIEDE2000 (Lab)</td>
+<td>≤ 1.5 (人眼难辨)</td>
+<td>1.5 ~ 2.5 (微弱色差)</td>
+<td><strong>&gt; 3.0 (严重色差退货)</strong></td>
+</tr>
+<tr>
+<td>轮廓形变</td>
+<td>Mask IoU</td>
+<td>OpenCV / Shapely</td>
+<td>≥ 0.96</td>
+<td>0.92 ~ 0.95</td>
+<td><strong>&lt; 0.90 (结构严重变异)</strong></td>
+</tr>
+<tr>
+<td>边缘粗糙度</td>
+<td>Boundary F1</td>
+<td>Contour F-measure</td>
+<td>≥ 0.92</td>
+<td>0.85 ~ 0.91</td>
+<td><strong>&lt; 0.82 (边缘毛刺发虚)</strong></td>
+</tr>
+<tr>
+<td>文本完好率</td>
+<td>CER (Char Error)</td>
+<td>PaddleOCR / Levenshtein</td>
+<td>0.0% (字符全中)</td>
+<td>0.0%</td>
+<td><strong>&gt; 0.0% (存在乱码/错字)</strong></td>
+</tr>
+<tr>
+<td>模特人脸 ID</td>
+<td>ArcFace Cosine</td>
+<td>InsightFace / CosFace</td>
+<td>≥ 0.72 (高度一致)</td>
+<td>0.65 ~ 0.71 (神似)</td>
+<td><strong>&lt; 0.60 (不同人脸)</strong></td>
+</tr>
+<tr>
+<td>微观纹理保留</td>
+<td>Laplacian Var</td>
+<td>高频梯度方差比</td>
+<td>≥ 85%</td>
+<td>70% ~ 84%</td>
+<td><strong>&lt; 60% (严重涂抹塑料感)</strong></td>
+</tr>
+<tr>
+<td>接触阴影完整性</td>
+<td>Contact AO</td>
+<td>底面梯度检出</td>
+<td>连续覆盖 ≥ 90%</td>
+<td>75% ~ 89%</td>
+<td><strong>&lt; 70% (悬浮无阴影)</strong></td>
+</tr>
+<tr>
+<td>双盲胜率</td>
+<td>Win Rate</td>
+<td>SBS 1v1 盲测</td>
+<td>≥ 65%</td>
+<td>52% ~ 64%</td>
+<td><strong>&lt; 50% (新版本弱于旧版)</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<script>
+const links=[...document.querySelectorAll('#nl a')];
+const secs=links.map(a=>document.getElementById(a.getAttribute('href').slice(1)));
+const sio=new IntersectionObserver((es)=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){
+      links.forEach(l=>l.classList.remove('active'));
+      const i=secs.indexOf(e.target);
+      if(i>=0)links[i].classList.add('active');
+    }
+  })
+},{threshold:0,rootMargin:'-10% 0px -70% 0px'});
+secs.forEach(s=>{if(s)sio.observe(s);});
+
+document.getElementById('sidebarClose')?.addEventListener('click', () => {
+  document.body.classList.add('sidebar-closed');
+});
+document.getElementById('sidebarOpen')?.addEventListener('click', () => {
+  document.body.classList.remove('sidebar-closed');
+});
+</script>
+</body>
+</html>

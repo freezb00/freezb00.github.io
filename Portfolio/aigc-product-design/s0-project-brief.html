@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Handoff · AI生图分层与商用交稿插件立项草案 S0</title>
+<style>
+:root{
+--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#b4531f;--ok:#2f6b45;--bad:#a12a2a;--warn:#a8761f;--code:#f2f2ef;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#e08a52;--ok:#7ab88f;--bad:#e08585;--warn:#d6a75a;--code:#202020;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:16px/1.72 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:768px;margin:0 auto;padding:20px 24px 120px}
+h1{font-size:26px;line-height:1.35;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 8px}
+h2{font-size:15px;margin:64px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--line);
+letter-spacing:.02em}
+h2 .n{color:var(--muted);font-weight:400;margin-right:10px;font-variant-numeric:tabular-nums}
+h3{font-size:14.5px;margin:30px 0 8px}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 14px;padding-left:20px}li{margin:5px 0}
+strong{font-weight:600}
+em{font-style:normal;color:var(--accent);font-weight:600}
+.lead{font-size:17.5px;line-height:1.62;border-left:2px solid var(--accent);
+padding:2px 0 2px 18px;margin:28px 0 34px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin:0 0 16px}
+.card h4{margin:0 0 8px;font-size:13.5px;letter-spacing:.03em;color:var(--muted);text-transform:uppercase}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:0 0 16px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:12.5px;color:var(--muted);letter-spacing:.03em}
+td.c,th.c{text-align:center;font-variant-numeric:tabular-nums}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.wn{color:var(--warn);font-weight:600}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13px;
+font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border:1px solid var(--line);
+border-radius:20px;color:var(--muted);margin-right:6px}
+.tag.a{border-color:var(--accent);color:var(--accent)}
+.chain{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px}
+.chain div{flex:1 1 92px;border:1px solid var(--line);border-radius:6px;padding:9px 8px;
+font-size:12.5px;text-align:center;background:var(--card)}
+.chain div.hot{border-color:var(--accent);color:var(--accent);font-weight:600}
+.chain div small{display:block;color:var(--muted);font-size:11px;margin-top:3px;font-weight:400}
+.q{border:1px solid var(--accent);border-radius:8px;padding:16px 20px;margin:0 0 14px;background:var(--card)}
+.q b{display:block;margin-bottom:5px;font-size:14.5px}
+.q span{color:var(--muted);font-size:13.5px}
+hr{border:0;border-top:1px solid var(--line);margin:56px 0}
+.foot{color:var(--muted);font-size:12.5px;line-height:1.7}
+.no{color:var(--bad);font-weight:600;margin-right:4px}
+</style></head><body><div class="wrap">
+
+<nav style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:14px;border-bottom:1px solid var(--line)">
+<a href="index.html" style="font-size:13px;color:var(--muted);text-decoration:none;font-weight:600;letter-spacing:.04em">&#8592; &#26041;&#26696;&#24635;&#35272;</a>
+<div style="display:flex;gap:16px;font-size:13px">
+<a href="s0-project-brief.html" style="color:var(--muted);text-decoration:none">Brief</a>
+<a href="s2-competitive-evidence.html" style="color:var(--muted);text-decoration:none">&#31454;&#21697;</a>
+<a href="s4-feature-derivation.html" style="color:var(--muted);text-decoration:none">&#21151;&#33021;&#25512;&#23548;</a>
+</div>
+</nav>
+<div style="background:rgba(180,83,31,0.06);border:1px solid rgba(180,83,31,0.25);border-radius:8px;padding:14px 18px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+<div>
+<span style="font-size:11.5px;color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase">产品立项 Brief · 设计决策支撑</span>
+<p style="margin:4px 0 0;font-size:13px;color:var(--muted)">锁定“生成之后到可交付之间”的价值层，建立六大扩散模型物理硬约束表与产品边界。</p>
+</div>
+<a href="index.html" style="font-size:13px;color:var(--accent);text-decoration:none;white-space:nowrap;font-weight:600">&#8592; &#36820;&#22238;&#26041;&#26696;&#24635;&#35272;</a>
+</div>
+
+
+<h1>Handoff · AI生图分层与商用交稿插件立项 Brief</h1>
+<p class="sub">产品立项与价值假设定义 · 建立物理约束体系与产品边界</p>
+
+
+<p class="lead"><strong>Handoff 不负责生成好看的插画。</strong>它接住任意来源的扁平位图（Midjourney、Flux、SD 或手绘扫描），将其转化为<strong>工业级分层可编辑物料包 + 权属合规存证包</strong>，让甲方改文案不必重跑生图，让乙方在合同约定的验收窗口内顺利结清尾款。</p>
+
+<h2><span class="n">01</span>立项背景与真实断点</h2>
+
+<p>生图模型在 C 端和娱乐场景已经进入“效果过剩”，但商业设计师的工作流在定稿后全线崩溃：</p>
+
+<div class="chain">
+<div>需求沟通<small>企划与参考</small></div>
+<div>出草稿<small>多方案探索</small></div>
+<div>画面定稿<small>甲方确认视觉</small></div>
+<div class="hot">❌ 交付断层<small>纯手工脏活与纠纷</small></div>
+<div>甲方验收<small>格式/字效/色偏</small></div>
+<div>收齐尾款<small>价值结算终点</small></div>
+</div>
+
+<p><strong>断点的本质：好看的烘焙位图 ≠ 工业可用的交付物料。</strong></p>
+<ul>
+<li><strong>文字改动即毁画</strong>：甲方定稿后要改一个错别字或广告语，因底图文字已被烘焙在像素内，乙方必须重新抽卡或在 PS 里抠图涂抹，导致原画构图破坏。</li>
+<li><strong>规格离散与返工</strong>：屏幕（sRGB/72DPI）、印刷（CMYK/300DPI/3mm 出血）、素材库（站酷海洛 EPS 转曲/≥800万像素）各有一套工业标尺，当前模型产物无一兼容。</li>
+<li><strong>版权与确权纠纷</strong>：甲方担忧 AI 侵权拒收，国内司法判例明确“创作链路记录越清晰具体，越能享有著作权保护”，但目前没有结构化的创作者存证工具。</li>
+</ul>
+
+<h2><span class="n">02</span>第一性物理约束（做不到的事列在最前面）</h2>
+
+<table>
+<tr><th style="width:18%">约束编号</th><th style="width:28%">底层架构原因</th><th>对产品能力的绝对限定</th></tr>
+<tr>
+<td><strong>C1 潜空间无图层</strong></td>
+<td>扩散模型输出的是单张烘焙好的位图张量</td>
+<td><strong>绝不承诺“让模型直接生成图层”</strong>。图层化只能通过事后分离与外部图层容器化解决。</td>
+</tr>
+<tr>
+<td><strong>C2 身份表征不持久</strong></td>
+<td>采样从随机噪声起步，权重内无持久对象</td>
+<td><strong>不承诺全局完美跨图一致</strong>。仅承诺一致性辅助检测与色偏告警。</td>
+</tr>
+<tr>
+<td><strong>C3 VAE 8× 下采样</strong></td>
+<td>潜空间分辨率仅为像素空间 1/8</td>
+<td>Mask 边缘必然存在模糊；汉字笔画被下采样吞噬。<strong>中文与文字排版必须彻底移出扩散模型计算管线</strong>。</td>
+</tr>
+<tr>
+<td><strong>C4 复现与多样性互斥</strong></td>
+<td>随机噪声注入与浮点敏感性</td>
+<td>严禁在交付后期重新跑生图；所有后序精修与排版必须是确定性、可逆的工程操作。</td>
+</tr>
+<tr>
+<td><strong>C5 分辨率成本平方项</strong></td>
+<td>Attention 复杂度随像素成平方增长</td>
+<td>模型阶段只做中低清生成；超分与印刷级 300DPI 放大全部交由专用超分与矢量化算子完成。</td>
+</tr>
+<tr>
+<td><strong>C6 审核误杀不可消除</strong></td>
+<td>安全分类器概率边界缺陷</td>
+<td>交付前必须有内建合规质检器与申诉存证日志，防止物料交付后遭遇平台误杀。</td>
+</tr>
+</table>
+
+<h2><span class="n">03</span>核心 Thesis 与产品边界</h2>
+
+<div class="card">
+<h4>核心 Thesis（信心度 85%）</h4>
+<p>商业插画的核心商业价值不在于<strong>「出图速度」</strong>，而在于<strong>「交付确定性与尾款结算周期」</strong>。将扁平图转换为分层矢量/文字可编辑交付包，能将乙方的交付返工工时从 4-8 小时压缩至 10 分钟，并提供司法级创作存证链路，使得尾款拖欠率降低 70% 以上。</p>
+</div>
+
+<h3>明确的不做清单（Negative Scope）</h3>
+<ul>
+<li><span class="no">✕</span> <strong>不做生图基础模型训练</strong>：不养 GPU 跑基座模型，生图直接接入外部成熟 API 或用户本地 WebUI。</li>
+<li><span class="no">✕</span> <strong>不做泛设计模板社区（不做 Canva/稿定）</strong>：不靠买模板做低端套图，聚焦专业商业插画与视觉交付标准。</li>
+<li><span class="no">✕</span> <strong>不做自由接单平台</strong>：不撮合交易，不当中介平台，只做垂直工作流交付件。</li>
+<li><span class="no">✕</span> <strong>不做全自动黑盒一键出图</strong>：必须保证每一个交付参数（出血位、DPI、转曲状态、色彩空间）对专业设计师完全透明可控。</li>
+</ul>
+
+<h2><span class="n">04</span>买单人与结算指标</h2>
+
+<table>
+<tr><th>角色维度</th><th>定位定义</th></tr>
+<tr><td><strong>第一买单人</strong></td><td>商业插画师、自由设计师、中小型设计工作室（年交付量 ≥30 套视觉作品）。</td></tr>
+<tr><td><strong>被谁考核</strong></td><td>甲方的品牌市场部、包装印厂质检员、商用素材库审核员。</td></tr>
+<tr><td><strong>替代成本</strong></td><td>目前每个单子平均耗费 1~2 天手动切图、PS 仿制图章补底纹、AI 矢量描摹、CMYK 校色。</td></tr>
+<tr><td><strong>结算终点</strong></td><td><strong>甲方在验收窗口内无合规/文字异议签字确认，结清最后一笔 30%~50% 尾款。</strong></td></tr>
+</table>
+
+<h2><span class="n">05</span>概率式验收标准</h2>
+
+<ol>
+<li><strong>文字二次编辑免重跑率 ≥ 95%</strong>：当甲方要求修改排版文案时，无需重新生成底图，100% 保持画面其余像素不变。</li>
+<li><strong>印刷色彩与出血返工率 ≤ 2%</strong>：基于 ICC 规范导出的 CMYK PDF/X-4 或 AI 转曲包，达到印厂无套印异常的工程验收标准。</li>
+<li><strong>交付准备耗时压缩比 ≥ 80%</strong>：单套插画的交付包打包（RGB+CMYK+转曲EPS+版权日志）从平均 180 分钟压缩至 20 分钟以内。</li>
+</ol>
+
+</div></body></html>

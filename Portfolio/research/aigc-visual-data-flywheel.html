@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AIGC 视觉数据飞轮深度调研报告：能力飞轮的终结与锁定飞轮的兴起</title>
+<style>
+:root{
+  --bg:#fafaf9; --ink:#1c1917; --mute:#78716c; --line:#e7e5e4; --soft:#f5f5f4;
+  --accent:#2563eb; --accent-hover:#1d4ed8; --warn:#b45309; --bad:#b91c1c; --ok:#15803d;
+  --side: 280px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f172a; --ink:#f8fafc; --mute:#94a3b8; --line:#1e293b; --soft:#1e293b;
+        --accent:#38bdf8; --accent-hover:#0ea5e9; --warn:#f59e0b; --bad:#ef4444; --ok:#10b981;}
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:24px; scroll-behavior: smooth;}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  transition:background .2s,color .2s; overflow-x: hidden;}
+
+/* 导航展开按钮（侧边栏收起时显示） */
+.sidebar-open-btn {
+  position: fixed; top: 16px; left: 16px; z-index: 40;
+  width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--ink); cursor: pointer;
+  display: none; align-items: center; justify-content: center; font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.sidebar-open-btn:hover { color: var(--accent); border-color: var(--accent); }
+body.sidebar-closed .sidebar-open-btn { display: flex; }
+
+aside.side, #sidebar {
+  position:fixed;left:0;top:0;bottom:0;width:var(--side);
+  background:var(--soft);border-right:1px solid var(--line);
+  padding:24px 16px 20px;overflow-y:auto;display:flex;flex-direction:column;z-index:50;
+  transition: transform .25s ease-in-out;
+}
+body.sidebar-closed aside.side, body.sidebar-closed #sidebar { transform: translateX(-100%); }
+
+/* 导航收起按钮 */
+.sidebar-close-btn {
+  position: absolute; top: 18px; right: 14px;
+  background: transparent; border: none; font-size: 18px; color: var(--mute);
+  cursor: pointer; padding: 6px; border-radius: 6px; line-height: 1;
+}
+.sidebar-close-btn:hover { background: var(--bg); color: var(--ink); }
+
+aside.side .brand, #sidebar h3, #sidebar .brand {font-size:15px;font-weight:650;margin-bottom:18px;color:var(--ink); padding-right: 28px; line-height: 1.4;}
+.side .brand b{color:var(--accent);}
+.navlinks, #sidebar ul {display:flex;flex-direction:column;gap:3px;flex:1;}
+.navlinks a, #sidebar a {font-size:13px;color:var(--mute);text-decoration:none;padding:7px 10px;
+  border-radius:6px;line-height:1.4;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;transition: background .15s, color .15s;}
+.navlinks a:hover, #sidebar a:hover {color:var(--ink);background:var(--line);}
+.navlinks a.active, #sidebar a.active {color:var(--accent);background:var(--bg);font-weight:600;}
+
+.main, #main-content {margin-left:var(--side); padding-top: 36px; padding-bottom: 96px; transition: margin-left .25s ease-in-out;}
+body.sidebar-closed .main, body.sidebar-closed #main-content { margin-left: 0; }
+
+.container, .wrap {max-width:980px;margin:0 auto;padding:0 24px;}
+h1{font-size:30px;line-height:1.3;margin:0 0 16px;color:var(--ink);font-weight:750;}
+h2{font-size:22px;margin:44px 0 18px;padding-bottom:10px;border-bottom:1.5px solid var(--line);color:var(--ink);font-weight:700;}
+h3{font-size:17.5px;margin:28px 0 12px;color:var(--ink);font-weight:650;}
+p,li{font-size:15px;color:var(--ink);line-height:1.8;}
+ul,ol{padding-left:22px;margin:12px 0;}
+li{margin:6px 0;}
+strong{color:var(--ink);font-weight:650;}
+code{background:var(--soft);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:13.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;}
+pre{background:#0f172a;color:#e2e8f0;border:1px solid #1e293b;padding:18px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.6;margin:18px 0;}
+pre code{background:transparent;padding:0;color:inherit;}
+
+.badge{display:inline-block;padding:2px 9px;border-radius:6px;font-size:12px;font-weight:600;line-height:1.5;}
+.badge-pass{background:#dcfce7;color:#166534;border:1px solid #bbf7d0;}
+.badge-pending{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+.badge-gray{background:var(--soft);color:var(--mute);border:1px solid var(--line);}
+
+.thesis-box{background:#eff6ff;border:1.5px solid #bfdbfe;border-left:5px solid var(--accent);border-radius:8px;padding:20px 22px;margin:24px 0;}
+.thesis-box strong.title{display:block;font-size:16px;color:#1e40af;margin-bottom:8px;letter-spacing:0.5px;}
+.thesis-box p{color:#1e3a8a;margin:0;font-size:15px;line-height:1.75;}
+
+.conclusion-item {
+  background: var(--soft);
+  border-left: 4px solid var(--accent);
+  padding: 16px 20px;
+  margin: 18px 0;
+  border-radius: 0 8px 8px 0;
+}
+.conclusion-item h4 { margin: 0 0 8px; color: var(--ink); font-size: 16px; font-weight: 700; }
+.conclusion-item p { margin: 0 0 6px; font-size: 14.5px; }
+.source-tag { font-size: 12.5px; color: var(--mute); display: block; margin-top: 4px; }
+
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:20px 0;}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px;margin:20px 0;}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,0.02);}
+.card .k{font-size:12.5px;color:var(--mute);font-weight:600;text-transform:uppercase;margin-bottom:6px;}
+.card .v{font-size:22px;font-weight:750;color:var(--accent);line-height:1.2;margin-bottom:6px;}
+.card .d{font-size:13px;color:var(--mute);line-height:1.5;}
+.card h4 { font-size: 15px; font-weight: 700; color: var(--ink); margin: 0 0 8px; }
+.card p { margin: 6px 0; font-size: 14px; color: var(--ink); }
+
+.tablewrap{overflow-x:auto;margin:22px 0;border:1px solid var(--line);border-radius:8px;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th,td{border-bottom:1px solid var(--line);padding:10px 14px;text-align:left;vertical-align:top;}
+th{background:var(--soft);font-weight:650;color:var(--ink);white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+tr:nth-child(even){background:rgba(0,0,0,0.015);}
+
+.callout{border-left:4px solid var(--accent);background:var(--soft);padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0;}
+.callout.warn{border-left-color:var(--warn);background:#fffbeb;}
+.callout.warn strong{color:var(--warn);}
+.callout.danger{border-left-color:var(--bad);background:#fef2f2;}
+hr{border:none;border-top:1px solid var(--line);margin:36px 0;}
+</style>
+</head>
+<body>
+
+<button class="sidebar-open-btn" id="sidebarOpen" title="展开导航">☰</button>
+
+<aside class="side" id="sidebar">
+  <button class="sidebar-close-btn" id="sidebarClose" title="收起导航">✕</button>
+  <div class="brand">Deep Research · <b>Report</b></div>
+  <nav class="navlinks" id="nl">
+    <a href="../portfolio.html" style="margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px; color: var(--accent); font-weight: bold;">🏠 返回作品集主页</a>
+    <a class="active" href="#sec-thesis">核心 Thesis 判断系统</a>
+    <a href="#sec-1">1. 核心战略研判 (5条颠覆性结论)</a>
+    <a href="#sec-2">2. 机制拆解：从用户规模到模型强化的四道闸</a>
+    <a href="#sec-3">3. 飞轮强度量化评估框架 (7维评分卡)</a>
+    <a href="#sec-4">4. 局限性、反模式与风险审计</a>
+    <a href="#sec-5">5. 战略推演：旧共识、新变量与证伪信号</a>
+    <a href="#sec-6">6. PM 落地动作与关键判断</a>
+    <a href="#sec-appendix">附录：参考文献与数据来源</a>
+  </nav>
+</aside>
+
+<div class="main" id="main-content">
+  <div class="container">
+    
+    <h1>AIGC 视觉数据飞轮深度调研报告：能力飞轮的终结与锁定飞轮的兴起</h1>
+    <p style="font-size: 16px; color: var(--mute); margin-bottom: 28px;">
+      击穿“用户越多模型越强”的虚妄叙事 · 审美对齐阈值坍缩、企业客户“付费即断飞轮”悖论与资产锁定护城河全景解构
+    </p>
+
+    <!-- Thesis 核心判断 -->
+    <div class="thesis-box" id="sec-thesis">
+      <strong class="title">核心 Thesis 判断系统</strong>
+      <p>
+        <strong>旧共识将“数据飞轮”奉为 AIGC 视觉产品的终极护城河（用户越多 ➔ 点击评分越多 ➔ 模型审美越好 ➔ 用户更多，数据量本身被当作核心资产与估值支撑）；真实变量是：AIGC 视觉产品中几乎不存在“能力型数据飞轮”，能被现实商业验证的只有“锁定型飞轮”（用户信号 ➔ 沉淀为个人资产与工作流 ➔ 迁移成本上升）。</strong><br/>
+        传统能力飞轮被三年内的两大突变击穿：
+        ① <strong>审美对齐的数据阈值坍缩了约 3 个数量级</strong>（从 2023 年 Diffusion-DPO 的 85 万对，坍缩至如今仅需 3–30 张图即可完成风格微调，海量众包数据不再构成壁垒）；
+        ② <strong>客单价越高，飞轮越断</strong>（隐私是企业级客户采购的第一前提，付钱最多的大客户强制要求 Opt-out 不参与训练，飞轮强度与客户商业价值成负相关）。
+        在审美维度上，大规模聚合众包信号反而导致画面向均值回归并产生严重的“AI 味”。真正的护城河正在由底层模型能力向<strong>“个人资产托管”</strong>、<strong>“社区资产市场”</strong>与<strong>“评测基准定义权”</strong>迁移。
+      </p>
+    </div>
+
+    <!-- 1. 核心结论 -->
+    <h2 id="sec-1">1. 核心战略研判（5 条颠覆性结论）</h2>
+
+    <div class="conclusion-item">
+      <h4>结论 1：审美对齐的数据阈值三年坍缩 3 个数量级，海量偏好数据不再构成资产壁垒</h4>
+      <p>2023 年 Diffusion-DPO 尚需 851,293 组偏好对；2024 年 SPO 将训练效率提升 20 倍；2025 年 Krea 官方后训练指出“&lt; 1M 数据足矣，质量胜过数量”；而如今 Adobe Firefly Custom Models、Krea 及 Midjourney 训练个人风格模型仅需 <strong>3–30 张图</strong>。与此同时，Pick-a-Pic (95万对)、HPD v2 (79万次) 等人类偏好集全面公共品化，Shutterstock 每年以超 1 亿美元向科技巨头倾销授权图库。所谓“千万用户审美数据”已沦为公开可购买的廉价商品。</p>
+      <span class="source-tag">来源：Krea 工程博客 · CVPR 2025 SPO 论文 · Shutterstock 财报</span>
+    </div>
+
+    <div class="conclusion-item">
+      <h4>结论 2：在审美维度上，“聚合更多用户偏好”反而带来负向收益——方向感胜过规模</h4>
+      <p>Krea 训练 FLUX.1 Krea 时实证发现：在海量通用众包偏好数据上训练会导致非预期行为——画面自动“偏向对称、简单构图，并退化为千篇一律的 AI 味”。人类审美高度个性化，不可被压缩为单一标量。SPO 学术研究同样证实，大众标签中构图偏好与色彩审美存在内在冲突。盲目追求标注规模只会导致“向平庸的均值回归”（人人都觉得挑不出毛病，但没有任何人愿意为其付费）。</p>
+      <span class="source-tag">来源：Krea 官方技术报告 · CVPR 2025 Aesthetic Post-Training 论文</span>
+    </div>
+
+    <div class="conclusion-item">
+      <h4>结论 3：飞轮的开关是商业模式选择，而非技术能力——客单价越高，飞轮越断</h4>
+      <p>四家头部产品的条款呈现极度清晰的商业规律：Canva 仅免费版开启训练，Enterprise 强制永不训练；OpenAI 的 API 与企业版默认不训练；Adobe Firefly 全线承诺从不用客户素材训练；Midjourney 仅在高阶 Pro/Mega 档提供 Stealth 隐私保护模式。<strong>愿意付最高客单价的企业与专业客户，恰恰强制要求切断数据回流；而留存贡献低、审美诉求杂乱的免费用户，才是唯一能被采样的群体。</strong></p>
+      <span class="source-tag">来源：Midjourney / Canva / Adobe / OpenAI 官方服务条款与隐私政策</span>
+    </div>
+
+    <div class="conclusion-item">
+      <h4>结论 4：AIGC 视觉的交互反馈信号，信噪比结构性低于代码与搜索</h4>
+      <p>GitHub Copilot 的每一次 Accept/Reject 具有 27%–30% 的客观对错二元属性，写代码本身就是高质量标注。而图像侧的交互（四选一、下载、换 Prompt）不存在对错，仅代表当下场景的一时口味，且混杂了情绪与构图。Midjourney 甚至不得不每日用免费 Fast GPU 算力补贴来吸引前 2000 名用户进行图片二选一排序——这直接反向证明：图像审美标签并非主流程自然副产品，其清洗与采样成本极高。</p>
+      <span class="source-tag">来源：GitHub Copilot 官方遥测报告 · Midjourney 社区排图激励机制</span>
+    </div>
+
+    <div class="conclusion-item">
+      <h4>结论 5：真正在发生复利的三个飞轮，介质都不是“底层模型能力”</h4>
+      <p>① <strong>个人化资产飞轮</strong>：用户偏好沉淀为专有 Profile Code、Style Code 或定制 LoRA（如 Midjourney <code>--p</code> 与 Adobe Custom Models），随着资产沉淀，切换工具的迁移成本指数级上升；<br/>
+      ② <strong>社区资产市场飞轮</strong>：创作者上传成品 LoRA/工作流参与分成（如 LiblibAI 聚合超 10 万资产），以创作者生态而非模型参数构筑网络效应；<br/>
+      ③ <strong>评测与基准定义权</strong>：掌握 Eval 评测集与审美 Gold Standard 的厂商，无论底模如何迭代更替，始终牢牢占据技术路线决策权。</p>
+      <span class="source-tag">来源：Artificial Analysis 盲评榜 · LiblibAI 创作者生态 · Midjourney Personalization 架构</span>
+    </div>
+
+    <!-- 2. 机制拆解 -->
+    <h2 id="sec-2">2. 机制拆解：从「用户很多」到「模型更强」中间的四道闸门</h2>
+
+    <p>传统 AIGC 产品叙事常将“拥有用户”直接等同于“模型变强”。但在工程与业务实现中，原始流量必须依次穿过四道具备严格折损率的物理闸门：</p>
+
+    <pre><code>用户规模 ──①信号覆盖率──▶ 原始交互信号 ──②可用标签率──▶ 训练/评测语料
+   ▲                                                          │
+   └──────④增长归因────── 可感知质量提升 ◀──③有效增量───────┘</code></pre>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>转化闸门</th>
+            <th>核心评估指标</th>
+            <th>AIGC 视觉场景的致命瓶颈</th>
+            <th>工业界典型观测证据</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>① 信号覆盖率</strong></td>
+            <td>生成行为中携带有效偏好动作（下载/变体/打分）的比例</td>
+            <td>高价值商业用户通过隐私协议全面切断回流；普通用户需算力补贴才愿标注</td>
+            <td>Canva Teams+ 永不训练；Midjourney 需补贴 Fast 算力购买人工选图</td>
+          </tr>
+          <tr>
+            <td><strong>② 可用标签率</strong></td>
+            <td>清洗去噪后可作为偏好对（Preference Pair）的比例</td>
+            <td>单次点击混杂构图、色彩与临时情绪；无法判断用户下游真实使用场景</td>
+            <td>SPO 论文实证：大众标签中构图偏好与审美意图存在严重自相冲突</td>
+          </tr>
+          <tr>
+            <td><strong>③ 有效增量</strong></td>
+            <td>每增加 10 倍训练语料带来的 Elo / HPS 评分净增量</td>
+            <td>审美后训练边际收益急剧衰减，过量通用数据反而诱发严重分布退化</td>
+            <td>Krea 实证 1M 以内样本即可完成对齐，更大数据量导致严重的“AI味”</td>
+          </tr>
+          <tr>
+            <td><strong>④ 增长归因</strong></td>
+            <td>模型微小质量提升对用户付费留存与生命周期（LTV）的拉动弹性</td>
+            <td>用户更换工具的阻力来自于“个人资产与工作流迁移”，而非画质微弱差异</td>
+            <td>Midjourney Style Code 与企业品牌设计系统形成了极强的锁死壁垒</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout danger">
+      <strong>⚠️ 闸门乘数效应的数学现实</strong>：<br/>
+      四道闸门的综合系统效率是相乘关系。当信号覆盖率被商业隐私限制、标签可用率被信噪比稀释、增量收益在 1M 级别见顶时，全链路乘积趋近于零。<strong>继续死磕“在前端堆砌埋点收集用户点击”，不如将工程精力投入到第四道闸门——“构建可留存的用户资产与业务工作流锁死”。</strong>
+    </div>
+
+    <!-- 3. 飞轮强度量化评估框架 -->
+    <h2 id="sec-3">3. 飞轮强度量化评估框架（7 维评分卡实测）</h2>
+
+    <p>为了摆脱空洞的概念争论，本调研建立了包含 7 个维度的 AIGC 数据飞轮量化打分体系（满分 14 分，≥10 分方可认定为存在真实飞轮效应）：</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>评估维度</th>
+            <th>0 分标准</th>
+            <th>1 分标准</th>
+            <th>2 分标准</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>D1. 信号自动性</strong></td>
+            <td>需要额外弹出打分窗口或问卷</td>
+            <td>主界面有打分按钮，但需用户主动点击</td>
+            <td>主流程副产品（生成即交互，选择即标注）</td>
+          </tr>
+          <tr>
+            <td><strong>D2. 信号信噪比</strong></td>
+            <td>纯主观单张口味，无业务上下文</td>
+            <td>弱上下文成对比较（二选一）</td>
+            <td>具备强业务客观判定标准（如代码采纳/电商转化）</td>
+          </tr>
+          <tr>
+            <td><strong>D3. 合规归属权</strong></td>
+            <td>用户协议明确全量禁止用于模型训练</td>
+            <td>协议进行分层，高价值付费客户强制 opt-out</td>
+            <td>全量协议授权，且用户退出门槛极高</td>
+          </tr>
+          <tr>
+            <td><strong>D4. 数据阈值落差</strong></td>
+            <td>目标能力只需 10^1 ~ 10^2 张样本即可攻克</td>
+            <td>需 10^3 ~ 10^5 张特定领域样本</td>
+            <td>需 10^6+ 规模样本，且公开市场无替代方案</td>
+          </tr>
+          <tr>
+            <td><strong>D5. 数据腐烂速度</strong></td>
+            <td>长期保值（存量与公开图库即够用，无需持续更新）</td>
+            <td>年级衰减（每年需少量更新风格）</td>
+            <td>天/小时级剧烈腐烂（必须依赖每日新鲜信号更新）</td>
+          </tr>
+          <tr>
+            <td><strong>D6. 模型自主权</strong></td>
+            <td>纯调用外部第三方闭源 API（无模型自决权）</td>
+            <td>开源模型微调或混合编排架构</td>
+            <td>具备全栈自研基座模型，可随时执行 Post-training</td>
+          </tr>
+          <tr>
+            <td><strong>D7. 资产锁定转化</strong></td>
+            <td>用户交互信号完全不沉淀，离开零成本</td>
+            <td>信号沉淀在云端，但无法由用户灵活命名/复用</td>
+            <td>沉淀为可命名、可跨项目复用与分享的个人/企业资产</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>主流厂商飞轮强度实测对照</h3>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>评估对象</th>
+            <th>D1</th>
+            <th>D2</th>
+            <th>D3</th>
+            <th>D4</th>
+            <th>D5</th>
+            <th>D6</th>
+            <th>D7</th>
+            <th>总分</th>
+            <th>核心战略判定</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>LiblibAI / 星流</strong></td>
+            <td>2</td>
+            <td>2</td>
+            <td>2</td>
+            <td>2</td>
+            <td>1</td>
+            <td>1</td>
+            <td>2</td>
+            <td><strong>12</strong></td>
+            <td><span class="badge badge-pass">真飞轮</span> 介质是创作者、LoRA 权重与分成网络，而非纯算法</td>
+          </tr>
+          <tr>
+            <td><strong>Midjourney</strong></td>
+            <td>2</td>
+            <td>1</td>
+            <td>2</td>
+            <td>0</td>
+            <td>1</td>
+            <td>2</td>
+            <td>2</td>
+            <td><strong>10</strong></td>
+            <td><span class="badge badge-pass">锁定型成立</span> 依靠 Style Code 与社区审美沉淀，能力型飞轮存疑</td>
+          </tr>
+          <tr>
+            <td><strong>即梦 AI (字节)</strong></td>
+            <td>2</td>
+            <td>1</td>
+            <td>2</td>
+            <td>0</td>
+            <td>1</td>
+            <td>2</td>
+            <td>1</td>
+            <td><strong>9</strong></td>
+            <td>协议授权最宽且自研底模，但用户侧资产锁定与可迁移性尚在早期</td>
+          </tr>
+          <tr>
+            <td><strong>Krea</strong></td>
+            <td>1</td>
+            <td>2</td>
+            <td>1</td>
+            <td>0</td>
+            <td>1</td>
+            <td>2</td>
+            <td>2</td>
+            <td><strong>9</strong></td>
+            <td>放弃大规模众包，靠“内部审美方向感 + 专家定向标注”突围</td>
+          </tr>
+          <tr>
+            <td><strong>ChatGPT 图像</strong></td>
+            <td>2</td>
+            <td>1</td>
+            <td>1</td>
+            <td>0</td>
+            <td>1</td>
+            <td>2</td>
+            <td>1</td>
+            <td><strong>8</strong></td>
+            <td>依靠 1.3 亿月活分发量形成绝对规模，但企业端无法回流数据</td>
+          </tr>
+          <tr>
+            <td><strong>Canva (可画)</strong></td>
+            <td>1</td>
+            <td>1</td>
+            <td>1</td>
+            <td>0</td>
+            <td>1</td>
+            <td>1</td>
+            <td>2</td>
+            <td><strong>7</strong></td>
+            <td>护城河在协同与品牌资产库（Brand Kit），不在图像生成算法本身</td>
+          </tr>
+          <tr>
+            <td><strong>Adobe Firefly</strong></td>
+            <td>1</td>
+            <td>1</td>
+            <td>0</td>
+            <td>0</td>
+            <td>1</td>
+            <td>2</td>
+            <td>2</td>
+            <td><strong>7</strong></td>
+            <td>主动切断数据飞轮，以“企业合规商业安全”作为溢价护城河</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4. 局限性与反模式 -->
+    <h2 id="sec-4">4. 局限性、反模式与风险审计（Devil's Advocate）</h2>
+
+    <div class="callout danger">
+      <strong>🚨 陷阱 1：模型自噬（Model Collapse）与长尾特征湮灭</strong><br/>
+      Nature 2024 顶刊研究证实：不加节制地将模型生成的内容递归用于后续训练，会导致不可逆的分布退化。原始数据分布的长尾特征将逐渐消失，模型生成画面呈现高度同质化与僵死。AIGC 视觉产品的内容库天然被 AI 生成图充斥，“用户上传”与“模型自产”界限模糊，盲目回流极易诱发模型自噬。
+    </div>
+
+    <div class="callout warn">
+      <strong>⚠️ 陷阱 2：用核心商业溢价点去交换虚假飞轮</strong><br/>
+      部分厂商试图通过“默认开启数据收集”来维系飞轮叙事，但这直接摧毁了大客户采购的信任底线。Canva 近期便因默认训练条款变更遭遇法律审查。在 B 端市场，“你的数据从不被训练”是价值数千万美元的商业溢价，强行开飞轮是在以高毛利商业换取廉价数据。
+    </div>
+
+    <div class="callout warn">
+      <strong>⚠️ 陷阱 3：将数据规模误判为独立估值壁垒</strong><br/>
+      典型案例是 <strong>Leonardo.ai</strong>：平台曾积累超 1900 万注册用户并生成超 10 亿张图像，但最终未能撑起独立大公司的估值溢价，于 2024 年以较低估值被 Canva 收购。事实证明：缺乏工作流锁定的海量图像交互记录，无法在二级市场上兑现为长期定价权。
+    </div>
+
+    <!-- 5. 战略推演 -->
+    <h2 id="sec-5">5. 战略推演：旧共识、新变量与可证伪信号</h2>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>情景预测</th>
+            <th>发生概率</th>
+            <th>核心战略推演</th>
+            <th>底层关键假设</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>悲观情景 (Bear)</strong></td>
+            <td>30%</td>
+            <td>应用层交互数据彻底丧失价值，开源底模 + 公共偏好池主导一切，工具层沦为纯粹的薄壳分发</td>
+            <td>开源底模技术持续无门槛平移，公开偏好数据集保持高频免费迭代</td>
+          </tr>
+          <tr>
+            <td><strong>基准情景 (Base)</strong></td>
+            <td><strong>55%</strong></td>
+            <td><strong>“能力型飞轮破产，锁定型飞轮长存”</strong>。行业胜负手由底层画质彻底转向工作流嵌入、专有资产托管与定向审美主张</td>
+            <td>审美对齐阈值保持低位，企业级客户持续为隐私与合规买单</td>
+          </tr>
+          <tr>
+            <td><strong>乐观情景 (Bull)</strong></td>
+            <td>15%</td>
+            <td>在长时序物理视频与多镜头 3D 领域，数据对齐门槛重新拔高，私有交互数据重获算法壁垒</td>
+            <td>时序连贯性与复杂多物理量交互强依赖海量真实用户交互清洗</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>可证伪信号（触发即推翻核心结论）</h3>
+    <ul>
+      <li>任一 AIGC 视觉厂商公开披露：<strong>仅凭自有用户线上交互信号做后训练，在权威盲评榜（Arena）上超越外部基座 ≥ 30 Elo</strong>；</li>
+      <li>个性化风格微调所需的数据量从目前的 10–30 张反弹至 10^3 级别以上；</li>
+      <li>Canva / Adobe 撤销企业级客户的“永不训练”条款，大客户依然愿意无保留采购；</li>
+      <li>全球商业偏好数据市场出现单价大幅暴涨（当前属于白菜价外购）。</li>
+    </ul>
+
+    <!-- 6. PM 落地动作 -->
+    <h2 id="sec-6">6. 核心落地建议：PM 的四个关键动作 (Actionable Best Practices)</h2>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>1. 优先建立 Eval 评测集，而非训练集</h4>
+        <p><strong>动作</strong>：评测基准不受客户“禁止训练”条款的限制，且能够跨模型、跨代际永久复用。底模可以随时推倒重来，但定义“什么是好图像”的基准标准是团队长久沉淀的核心资产。</p>
+      </div>
+      <div class="card">
+        <h4>2. 交互信号埋点必须结构化为“偏好对”</h4>
+        <p><strong>动作</strong>：摒弃无意义的单张点击计数，记录包含 <code>Prompt + 候选网格 + 用户最终选中 + 停留时长 + 局部重绘修改区域</code> 的多维上下文。其中“用户圈选重绘的区域”是揭示模型弱点的最高信噪比信号。</p>
+      </div>
+      <div class="card">
+        <h4>3. 将产品设计重心转向“资产锁定”</h4>
+        <p><strong>动作</strong>：设计能够被用户命名、沉淀、跨项目复用并导出的个人资产（如 Style Code、专属品牌套件、自训工作流）。让用户的习惯与数字资产死死绑定在平台内，构筑真正的迁移壁垒。</p>
+      </div>
+      <div class="card">
+        <h4>4. 将隐私不训练打造为商业定价的矛</h4>
+        <p><strong>动作</strong>：将“企业数据永不回流训练”堂堂正正写进商业版销售手册的第一屏，而非藏在长篇法务政策里。在商业级市场，客户信任度带来的定价溢价，远胜于强行抓取数据带来的边际算法收益。</p>
+      </div>
+    </div>
+
+    <!-- 附录：参考文献 -->
+    <h2 id="sec-appendix">附录：参考文献与数据来源</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>文献来源</th>
+            <th>信源等级</th>
+            <th>核心佐证数据 / 关键引文</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Krea 官方工程博客《Releasing Open Weights for FLUX.1 Krea》</td>
+            <td>A 级 (一手技术)</td>
+            <td>实证指出无需海量数据（&lt; 1M 即可完成优质后训练），通用众包偏好数据反而诱发画面对称呆板与严重的“AI味”</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>a16z 经典分析《The Empty Promise of Data Moats》</td>
+            <td>A 级 (行业研报)</td>
+            <td>论证数据网络效应的局限：增量独特数据的边际价值急剧递减，而获取成本陡峭上升</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>CVPR 2025 论文《Aesthetic Post-Training Diffusion Models from Generic Preferences (SPO)》</td>
+            <td>A 级 (顶会论文)</td>
+            <td>揭示大众偏好数据集中构图与审美维度的内在冲突，提出训练效率提升 20 倍的高效对齐机制</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Shutterstock 官方财报与投资者报告</td>
+            <td>A 级 (上市公司财报)</td>
+            <td>AI 图像授权收入 2023 年达 1.04 亿美元，证实高质量人类审美偏好已成为可直接现金采购的公器</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>Nature 2024 顶刊论文《AI models collapse when trained on recursively generated data》</td>
+            <td>A 级 (学术顶刊)</td>
+            <td>数学证明模型递归自噬缺陷，揭示无节制回流合成内容导致数据尾部特征永久湮灭的机制</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Midjourney / Canva / Adobe / OpenAI 官方服务条款与隐私政策</td>
+            <td>A 级 (法律政策一手)</td>
+            <td>证实企业级高客单价客户强制实行“禁止训练”的行业铁律，确立飞轮强度与客户价值反比的商业现实</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// 侧边栏折叠/展开逻辑
+document.getElementById('sidebarClose')?.addEventListener('click', () => {
+  document.body.classList.add('sidebar-closed');
+});
+document.getElementById('sidebarOpen')?.addEventListener('click', () => {
+  document.body.classList.remove('sidebar-closed');
+});
+
+// 滚动监听 active 状态
+const links = [...document.querySelectorAll('#nl a')].filter(a => a.getAttribute('href').startsWith('#'));
+const targets = links.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const activeLink = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+      if (activeLink) activeLink.classList.add('active');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '-10% 0px -70% 0px' });
+
+targets.forEach(t => observer.observe(t));
+</script>
+
+</body>
+</html>

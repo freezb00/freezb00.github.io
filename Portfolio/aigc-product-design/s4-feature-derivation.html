@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S4 功能推导 · 约束的余数</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#b4531f;--ok:#2f6b45;--bad:#a12a2a;--code:#f2f2ef}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#e08a52;--ok:#7ab88f;--bad:#e08585;--code:#202020}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:16px/1.72 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:800px;margin:0 auto;padding:20px 24px 120px}
+h1{font-size:25px;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 8px}
+h2{font-size:15px;margin:58px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--line);letter-spacing:.02em}
+h2 .n{color:var(--muted);font-weight:400;margin-right:10px;font-variant-numeric:tabular-nums}
+h3{font-size:14.5px;margin:26px 0 8px}
+p{margin:0 0 14px}ul,ol{margin:0 0 14px;padding-left:20px}li{margin:6px 0}
+em{font-style:normal;color:var(--accent);font-weight:600}
+.lead{font-size:17px;line-height:1.62;border-left:2px solid var(--accent);padding:2px 0 2px 18px;margin:26px 0 34px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 16px}
+th,td{text-align:left;padding:9px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:12px;color:var(--muted);letter-spacing:.03em}
+td.c,th.c{text-align:center}
+.win{color:var(--ok);font-weight:600}.lose{color:var(--bad);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin:0 0 16px}
+.card h4{margin:0 0 8px;font-size:13px;letter-spacing:.03em;color:var(--muted);text-transform:uppercase}
+.card.hot{border-color:var(--accent);border-width:1.5px}
+.chain{border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin:0 0 10px;background:var(--card);font-size:14px}
+.chain .a1{color:var(--muted);font-size:12px;letter-spacing:.05em}
+.chain b{color:var(--accent)}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border:1px solid var(--line);border-radius:20px;color:var(--muted);margin-right:6px}
+.tag.a{border-color:var(--accent);color:var(--accent)}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+hr{border:0;border-top:1px solid var(--line);margin:52px 0}
+.foot{color:var(--muted);font-size:12.5px;line-height:1.7}
+.no{color:var(--bad);font-weight:600;margin-right:4px}
+</style></head><body><div class="wrap">
+
+<nav style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:14px;border-bottom:1px solid var(--line)">
+<a href="index.html" style="font-size:13px;color:var(--muted);text-decoration:none;font-weight:600;letter-spacing:.04em">&#8592; &#26041;&#26696;&#24635;&#35272;</a>
+<div style="display:flex;gap:16px;font-size:13px">
+<a href="s0-project-brief.html" style="color:var(--muted);text-decoration:none">Brief</a>
+<a href="s2-competitive-evidence.html" style="color:var(--muted);text-decoration:none">&#31454;&#21697;</a>
+<a href="s4-feature-derivation.html" style="color:var(--muted);text-decoration:none">&#21151;&#33021;&#25512;&#23548;</a>
+</div>
+</nav>
+<div style="background:rgba(180,83,31,0.06);border:1px solid rgba(180,83,31,0.25);border-radius:8px;padding:14px 18px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+<div>
+<span style="font-size:11.5px;color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase">功能推导 · 约束的余数</span>
+<p style="margin:4px 0 0;font-size:13px;color:var(--muted)">功能不是拍脑袋的“创意”，是物理约束与工业规范反向挤压后的确定性余数。本文展示了从 C1–C6 推导 7 项功能的完整链路。</p>
+</div>
+<a href="index.html" style="font-size:13px;color:var(--accent);text-decoration:none;white-space:nowrap;font-weight:600">&#8592; &#36820;&#22238;&#26041;&#26696;&#24635;&#35272;</a>
+</div>
+
+
+<h1>约束驱动功能推导 · 约束的余数</h1>
+<p class="sub">方法论：功能不是凭空想出来的，是物理与工作流约束反向挤压出的唯一解</p>
+
+
+<p class="lead"><strong>本项目的产品推导公式：</strong><br>
+<code>功能集合 = (物理硬约束 + 工业规范 + 工作流习惯) 排除不可能方案后的确定余数</code>。<br>
+本方案的 7 项核心功能，每一项都能严格溯源到一条特定的不可违抗约束，没有一处是拍脑袋的“创意”。</p>
+
+<h2><span class="n">01</span>约束映射与功能推导总表</h2>
+
+<table>
+<tr><th style="width:20%">约束来源与代号</th><th>约束内核</th><th class="win" style="width:38%">推导出的确定功能</th><th class="lose" style="width:24%">坚决枪毙的功能</th></tr>
+<tr>
+<td><b>物理约束 C1</b><br><span style="color:var(--muted);font-size:12px">潜空间无图层</span></td>
+<td>扩散模型输出的是单张烘焙位图，内部不存在对象与矢量路径。</td>
+<td><b>F1 · 智能解耦与图层容器化</b><br>在 PS 内通过轻量分割算子将位图智能分流为主体层、背景层，生成规范命名的 PSD 图层结构。</td>
+<td>宣传“AI 原生生成多图层 PSD”</td>
+</tr>
+<tr>
+<td><b>物理约束 C3 + C4</b><br><span style="color:var(--muted);font-size:12px">下采样吞噬汉字 + 随机种子不可复现</span></td>
+<td>模型内部无法准确渲染中文汉字；重新生图必然导致全图光影与画风崩塌。</td>
+<td><b>F2 · 文字安全区保护与无损改字引擎</b><br>生图时剥离文字引导留白；在宿主内将文本作为独立 TrueType/OpenType 矢量文本层渲染；改字时利用局部 Inpainting 无损补平背景，底图 100% 像素不动。</td>
+<td>改文案时重新调用生图模型全图重抽</td>
+</tr>
+<tr>
+<td><b>工作流约束</b><br><span style="color:var(--muted);font-size:12px">公理四：寄生原则</span></td>
+<td>商业画师生存在 PS/AI 内，绝不接受把 500MB+ PSD 上传到 Web 页面处理再下载。</td>
+<td><b>F3 · Photoshop / Illustrator 原生 UXP 面板</b><br>作为宿主软件侧边栏插件常驻，直接读写当前 Active Document，零格式转换中断。</td>
+<td>独立 Web SaaS 在线画布</td>
+</tr>
+<tr>
+<td><b>色彩物理约束</b><br><span style="color:var(--muted);font-size:12px">RGB 屏幕 vs CMYK 印刷</span></td>
+<td>屏幕高饱和荧光色在 CMYK 四色油墨色域外，简单转换必然造成灾难性发灰发脏。</td>
+<td><b>F4 · 实时 CMYK 溢出热力图与软打样</b><br>在 PS 视口中实时用色块标出溢出区域，提供一键保感知对比度的智能色域映射压缩算法。</td>
+<td>无色彩管理的单纯“另存为 CMYK”</td>
+</tr>
+<tr>
+<td><b>印刷工业约束</b><br><span style="color:var(--muted);font-size:12px">3mm 出血与刀模规范</span></td>
+<td>印刷厂裁切机械误差必须有 3mm 画面延伸，扁平生图直接裁切会导致边缘露白。</td>
+<td><b>F5 · 智能 3mm 边缘延伸出血算法</b><br>基于边缘纹理智能向外扩展 3mm 出血位，自动标出裁切线与安全线。</td>
+<td>让画师手动在画布外圈用画笔生硬涂抹</td>
+</tr>
+<tr>
+<td><b>平台分发约束</b><br><span style="color:var(--muted);font-size:12px">站酷海洛 / 印厂 / Web 差异</span></td>
+<td>各渠道对转曲、单画板、DPI、文件体积有一票否决的死规定。</td>
+<td><b>F6 · 一键多场景 Handoff 打包器</b><br>勾选用途（印刷、Web、素材库），后台全自动生成转曲 EPS、PDF/X-4、超分 Retina PNG，打包为规范 ZIP。</td>
+<td>通用的“导出高清大图”按钮</td>
+</tr>
+<tr>
+<td><b>信任与法务约束</b><br><span style="color:var(--muted);font-size:12px">C6 误杀 + 司法判例 + 尾款</span></td>
+<td>甲方以版权不清拒付尾款；司法判例要求必须自证创作链路与个性化介入过程。</td>
+<td><b>F7 · 原创商用权属存证黑匣子</b><br>记录 Prompt 演进、草图时间戳、手工图层修饰历史与差分比对，一键生成带防伪哈希的《版权履约存证证书》。</td>
+<td>抹去所有生成记录的黑盒导出</td>
+</tr>
+</table>
+
+<h2><span class="n">02</span>单项推导剖析：F2（无损改字引擎）的推导链条</h2>
+
+<div class="card hot">
+<div class="chain"><span class="a1">01 痛点证据</span><br>甲方定稿后要改标语，画师花 2 小时套索抠字 + 仿制图章，结果底纹质感严重破坏。</div>
+<div class="chain"><span class="a1">02 模型硬约束</span><br>C3（VAE 下采样）决定了模型画不出合格汉字；C4（不可复现）决定了重跑整图画风必变。</div>
+<div class="chain"><span class="a1">03 架构推论</span><br><b>汉字绝对不能在生图模型内部渲染</b>，文字必须是宿主软件内拥有字形渲染引擎的独立文字对象。</div>
+<div class="chain"><span class="a1">04 工程兜底设计</span><br>文字下方必须有完整的底纹。当文字移动或换词时，被遮挡区域必须瞬间由轻量 Inpainting 补齐；且模型对“预留安全区”的遵循是软约束，系统必须有硬算法检测文字区域底色纯净度。</div>
+<div class="chain"><span class="a1">05 落地功能形态</span><br><b>F2 无损改字引擎</b>：在 PS 画板中双击文字直接编辑，底层纹理自动动态补齐，全图其余区域像素 100% 冻结不变。</div>
+</div>
+
+<h2><span class="n">03</span>功能优先级划分（MVP 裁剪刀）</h2>
+
+<table>
+<tr><th>发布周期</th><th>包含功能</th><th>验收门槛</th></tr>
+<tr>
+<td><b>P0（MVP 核心）</b></td>
+<td>F2 无损改字 + F3 PS 原生 UXP 面板 + F4 CMYK 色差预检 + F6 一键 Handoff 打包</td>
+<td>画师能在 15 分钟内完成以往耗时 2 小时的改字与打包，印厂直出合格率 100%。</td>
+</tr>
+<tr>
+<td><b>P1（体验增强）</b></td>
+<td>F1 智能解耦分层 + F5 智能 3mm 边缘延伸出血</td>
+<td>对复杂主体与背景的分离准确率达到 85% 以上，减少手动抠图工时。</td>
+</tr>
+<tr>
+<td><b>P2（商业闭环）</b></td>
+<td>F7 原创商用权属存证黑匣子 + 站酷海洛供稿格式一键合规</td>
+<td>存证报告通过品牌法务审核，尾款拖欠周期缩短 70%。</td>
+</tr>
+</table>
+
+</div></body></html>

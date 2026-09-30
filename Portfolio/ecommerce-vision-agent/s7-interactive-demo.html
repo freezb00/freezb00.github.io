@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>闭环体验沙盘</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #f4f4f5; --panel: #ffffff; --border: #e4e4e7;
+  --fg: #09090b; --muted: #71717a; --accent: #0f172a; --accent-hover: #27272a;
+  --ok: #10b981; --bad: #ef4444; --warn: #f59e0b;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  --radius: 12px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Inter", -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
+
+/* Sidebar */
+.sidebar { width: 280px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; z-index: 10; }
+.logo { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 48px; padding: 0 12px; letter-spacing: -0.03em; }
+.logo span { color: var(--muted); font-weight: 400; }
+.nav-item { padding: 12px 16px; border-radius: 8px; color: var(--muted); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-weight: 500; transition: all 0.2s ease; position: relative; }
+.nav-item:hover { background: #f4f4f5; color: var(--fg); }
+.nav-item.active { background: #f4f4f5; color: var(--fg); font-weight: 600; }
+.nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 3px; background: var(--fg); border-radius: 0 4px 4px 0; }
+.nav-item .badge { position: absolute; right: 12px; background: var(--bad); color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; display: none; box-shadow: var(--shadow-sm); }
+
+/* Main Content Area */
+.main-view { flex: 1; display: flex; flex-direction: column; position: relative; background: var(--bg); }
+.top-bar { height: 80px; display: flex; align-items: center; padding: 0 48px; background: transparent; justify-content: space-between; }
+.top-bar h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+.view-content { flex: 1; padding: 0 48px 48px 48px; overflow-y: auto; opacity: 0; transform: translateY(10px); pointer-events: none; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: absolute; inset: 80px 0 0 0; }
+.view-content.active { opacity: 1; transform: translateY(0); pointer-events: auto; position: relative; inset: auto; }
+
+/* Buttons */
+.btn { background: #ffffff; border: 1px solid var(--border); color: var(--fg); padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; box-shadow: var(--shadow-sm); display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn:hover { background: #fafafa; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn:active { transform: translateY(0); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #ffffff; }
+.btn-primary:hover { background: var(--accent-hover); color: #ffffff; }
+
+/* --- Screen 1: Asset Grid --- */
+.upload-zone { border: 2px dashed #d4d4d8; border-radius: 16px; padding: 64px 48px; text-align: center; background: transparent; cursor: pointer; transition: all 0.3s ease; max-width: 680px; margin: 64px auto; }
+.upload-zone:hover { border-color: var(--fg); background: rgba(0,0,0,0.02); transform: scale(1.01); }
+.asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
+.asset-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); transition: transform 0.2s; }
+.asset-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.asset-img { height: 260px; background: #f4f4f5; display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid var(--border); overflow: hidden;}
+.asset-img svg { width: 80px; height: 80px; fill: #d4d4d8; }
+.asset-info { padding: 16px; font-size: 13px; }
+.asset-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.asset-row span:first-child { color: var(--muted); }
+.asset-row span:last-child { font-weight: 600; }
+
+/* Dashboard Cards */
+.dash-card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 32px; box-shadow: var(--shadow-sm); }
+.stat-box { background: #f8fafc; padding: 20px; border-radius: 12px; transition: all 0.3s; }
+.stat-box.err { background: #fef2f2; border: 1px solid #fee2e2; }
+
+/* Canvas & Deliverables */
+.canvas-preview { background: #000; border-radius: 16px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: var(--shadow-lg); transition: all 0.5s ease; }
+.delivery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;}
+.compare-card { background: transparent; }
+.img-placeholder { width: 100%; height: 500px; background: var(--panel); border-radius: 16px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-md); }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">AI视觉<span>编排中台</span></div>
+  <div class="nav-item active" id="nav-0" onclick="switchView(0)">0. 编排：AI 管线蓝图</div>
+  <div class="nav-item" id="nav-1" onclick="switchView(1)">1. 资产与数据挂载</div>
+  <div class="nav-item" id="nav-2" onclick="switchView(2)">2. 批处理大盘</div>
+  <div class="nav-item" id="nav-3" onclick="switchView(3)">3. 异常拦截兜底 <span class="badge" id="b-err">1</span></div>
+  <div class="nav-item" id="nav-4" onclick="switchView(4)">4. 终局交付 <span class="badge" style="background:var(--fg)" id="b-ok">✓</span></div>
+  
+  <div style="margin-top:auto; padding-top:24px; border-top:1px solid var(--border)">
+    <a href="index.html" class="btn" style="width:100%; justify-content:center; background:transparent; box-shadow:none;">← 返回作品集</a>
+  </div>
+</div>
+
+<div class="main-view">
+  <div class="top-bar">
+    <h2 id="top-title">第零步：设计主管定义大促生图标准 (Workflow Blueprint)</h2>
+  </div>
+
+  <!-- View 0: Workflow Orchestration -->
+  <div id="v-0" class="view-content active">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px;">
+      <div>
+        <h3 style="margin:0 0 8px;font-size:18px">意图驱动的管线编排 (Agent)</h3>
+        <p style="margin:0;font-size:13px;color:var(--muted)">通过自然语言定义业务需求，AI 将自动组装底层算子、质检规则与合规策略，并支持全可视化微调。</p>
+      </div>
+      <button class="btn btn-primary" onclick="switchView(1)">前往批处理大盘 ➔</button>
+    </div>
+    
+    <div style="background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:32px; box-shadow:var(--shadow-md); display:flex; flex-direction:column; gap:24px;">
+      
+      <!-- Scenario Switcher -->
+      <div style="display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--line); padding-bottom:16px;">
+        <span style="font-size:12px; color:var(--muted); font-weight:600;">✨ 快速意图模版：</span>
+        <button onclick="simulateScenario('apparel')" class="btn" id="btn-apparel" style="border-color:var(--line); color:var(--muted); background:transparent;">🛍️ 双11服饰大促 (防碰撞)</button>
+        <button onclick="simulateScenario('amazon')" class="btn" id="btn-amazon" style="border-color:var(--line); color:var(--muted); background:transparent;">📦 亚马逊跨境出海 (白底合规)</button>
+      </div>
+
+      <div id="agent-dynamic-content" style="min-height: 400px; display: flex; flex-direction: column; justify-content: flex-end;">
+        
+        <!-- Default Empty State -->
+        <div id="empty-state" style="text-align:center; padding:64px 0; color:var(--muted); animation: fadeIn 0.5s;">
+            <div style="font-size:48px; margin-bottom:16px; opacity:0.2;">💬</div>
+            <div style="font-size:15px; font-weight:500; margin-bottom:8px;">在下方输入业务需求，或点击上方模版</div>
+            <div style="font-size:13px;">AI 将为您自动编排全套生图与质检管线</div>
+        </div>
+
+      </div>
+
+      <!-- Chat Input Area -->
+      <div style="position:relative; margin-top:16px;">
+        <textarea id="chat-input" placeholder="例如：帮我建一个针对这次双11风衣大促的批量生图管线，背景要极简高级灰，千万别跟抖音左上角UI撞在一起..." style="width:100%; height:100px; padding:16px; border:2px solid var(--border); border-radius:12px; font-size:14px; font-family:inherit; resize:none; background:#fff; transition:border-color 0.2s;"></textarea>
+        <button onclick="simulateScenario('custom')" style="position:absolute; bottom:16px; right:16px; background:var(--accent); color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px; box-shadow:0 4px 12px rgba(15,82,186,0.2);">发送 ➔</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" style="position:fixed; top:24px; left:50%; transform:translate(-50%, -20px); background:#10b981; color:#fff; padding:12px 24px; border-radius:8px; font-weight:600; font-size:14px; box-shadow:0 10px 25px rgba(16,185,129,0.3); opacity:0; pointer-events:none; transition:all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index:1000;">
+    🎉 自定义管线模版已成功存入企业库！
+  </div>
+
+  <script>
+    const scenarios = {
+      apparel: {
+        prompt: "帮我建一个针对这次双11风衣大促的批量生图管线。<br>要求：背景要极简高级灰、带落地窗光影；必须严格保持商品原样，如果有那种没熨平的烂图直接报错给我，别瞎修；最后千万别跟抖音左上角的UI撞在一起。",
+        blocks: `
+          <div style="flex:1; border:1px solid #cbd5e1; background:#f8fafc; border-radius:8px; display:flex; flex-direction:column; overflow:hidden;">
+            <div style="background:#e2e8f0; padding:8px 12px; font-size:12px; font-weight:700; color:#334155;">1. 摄性质检 (AGENT.QC)</div>
+            <div style="padding:12px; display:flex; flex-direction:column; gap:8px;">
+              <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--fg);"><input type="checkbox" checked> 严重褶皱/变形拦截</label>
+              <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--fg);"><input type="checkbox" checked> 光照异常拦截</label>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; color:#94a3b8; font-size:20px;">➔</div>
+          <div style="flex:1; border:2px solid var(--accent); background:#eff6ff; border-radius:8px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 4px 12px rgba(15,82,186,0.1);">
+            <div style="background:var(--accent); color:#fff; padding:8px 12px; font-size:12px; font-weight:700;">2. 视觉渲染 (MODEL.VISION)</div>
+            <div style="padding:12px; display:flex; flex-direction:column; gap:12px;">
+              <div>
+                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">主体保护模式</div>
+                <select style="width:100%; padding:4px 8px; border:1px solid #bfdbfe; border-radius:4px; font-size:12px; background:#fff;"><option>100% 像素锁死 (SAM)</option></select>
+              </div>
+              <div>
+                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">场景模版</div>
+                <select style="width:100%; padding:4px 8px; border:1px solid #bfdbfe; border-radius:4px; font-size:12px; background:#fff;"><option>极简高级灰 + 落地窗</option><option>自然光影</option></select>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; color:#94a3b8; font-size:20px;">➔</div>
+          <div style="flex:1; border:1px solid #cbd5e1; background:#f8fafc; border-radius:8px; display:flex; flex-direction:column; overflow:hidden;">
+            <div style="background:#e2e8f0; padding:8px 12px; font-size:12px; font-weight:700; color:#334155;">3. 合规风控 (AGENT.CRITIC)</div>
+            <div style="padding:12px; display:flex; flex-direction:column; gap:12px;">
+              <div>
+                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">避让平台 UI 死区</div>
+                <select style="width:100%; padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; background:#fff;"><option>抖音商城 (左侧边栏)</option><option>淘宝天猫</option></select>
+              </div>
+            </div>
+          </div>
+        `,
+        sampleImg1: "raw_trench_coat.jpg",
+        sampleImg2: "final_trench_coat.jpg"
+      },
+      amazon: {
+        prompt: "我要做一批出海跨境的商品资产。亚马逊对主图要求很死，必须是纯白底，不能有任何复杂背景和投影，不然会被下架。另外帮我在所有图右下角强制打上我们品牌自己的半透明防伪水印。",
+        blocks: `
+          <div style="flex:1; border:1px solid #cbd5e1; background:#f8fafc; border-radius:8px; display:flex; flex-direction:column; overflow:hidden;">
+            <div style="background:#e2e8f0; padding:8px 12px; font-size:12px; font-weight:700; color:#334155;">1. 摄性质检 (AGENT.QC)</div>
+            <div style="padding:12px; display:flex; flex-direction:column; gap:8px;">
+              <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--fg);"><input type="checkbox" checked> 非纯白/杂乱背景预警</label>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; color:#94a3b8; font-size:20px;">➔</div>
+          <div style="flex:1; border:2px solid var(--ok); background:#ecfdf5; border-radius:8px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 4px 12px rgba(16,185,129,0.1);">
+            <div style="background:var(--ok); color:#fff; padding:8px 12px; font-size:12px; font-weight:700;">2. 基础视觉处理 (MODEL.VISION)</div>
+            <div style="padding:12px; display:flex; flex-direction:column; gap:12px;">
+              <div>
+                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">抠图模型</div>
+                <select style="width:100%; padding:4px 8px; border:1px solid #a7f3d0; border-radius:4px; font-size:12px; background:#fff;"><option>RMBG 2.0 (极速版)</option></select>
+              </div>
+              <div>
+                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">背景策略 (亚马逊规范)</div>
+                <select style="width:100%; padding:4px 8px; border:1px solid #a7f3d0; border-radius:4px; font-size:12px; background:#fff;"><option>强制填充纯白 #FFFFFF</option></select>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; color:#94a3b8; font-size:20px;">➔</div>
+          <div style="flex:1; border:1px solid #cbd5e1; background:#f8fafc; border-radius:8px; display:flex; flex-direction:column; overflow:hidden;">
+            <div style="background:#e2e8f0; padding:8px 12px; font-size:12px; font-weight:700; color:#334155;">3. 品牌后处理 (AGENT.CRITIC)</div>
+            <div style="padding:12px; display:flex; flex-direction:column; gap:12px;">
+              <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--fg);"><input type="checkbox" checked> 强制嵌入防盗图盲水印</label>
+              <div>
+                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">可视水印位置</div>
+                <select style="width:100%; padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; background:#fff;"><option>右下角边缘 (20%透明度)</option></select>
+              </div>
+            </div>
+          </div>
+        `,
+        sampleImg1: "raw_trench_coat.jpg",
+        sampleImg2: "raw_trench_coat.jpg"
+      }
+    };
+
+    function simulateScenario(type) {
+      // 1. Update Buttons
+      document.getElementById('btn-apparel').style.cssText = type === 'apparel' ? 'border-color:var(--accent); color:var(--accent); background:var(--accent-light);' : 'border-color:var(--line); color:var(--muted); background:transparent;';
+      document.getElementById('btn-amazon').style.cssText = type === 'amazon' ? 'border-color:var(--accent); color:var(--accent); background:var(--accent-light);' : 'border-color:var(--line); color:var(--muted); background:transparent;';
+      
+      const sc = type === 'custom' ? scenarios['apparel'] : scenarios[type];
+      const rawInput = document.getElementById('chat-input').value;
+      const promptText = type === 'custom' && rawInput.trim() !== '' ? rawInput : sc.prompt;
+      
+      // Clear input
+      document.getElementById('chat-input').value = '';
+
+      const container = document.getElementById('agent-dynamic-content');
+      
+      // 2. Show User Message and Loading
+      container.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:24px; animation: fadeIn 0.4s;">
+          <!-- User Bubble -->
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div style="width:40px; height:40px; border-radius:50%; background:#f1f5f9; display:flex; align-items:center; justify-content:center; font-size:18px;">👤</div>
+            <div style="flex:1; background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:16px;">
+              <div style="font-size:14px; color:var(--fg); line-height:1.6; font-weight:500;">${promptText}</div>
+            </div>
+          </div>
+          
+          <!-- Loading Bubble -->
+          <div id="loading-bubble" style="display:flex; gap:16px; align-items:flex-start; animation: fadeIn 0.4s;">
+            <div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 12px rgba(15,82,186,0.3);">✨</div>
+            <div style="flex:1; display:flex; align-items:center; height:40px; color:var(--accent); font-weight:600; font-size:14px;">
+              <span class="spinner" style="margin-right:8px; display:inline-block; animation: spin 1s linear infinite;">⚙️</span> AI 智能体正在解析业务意图，编排管线算子...
+            </div>
+          </div>
+        </div>
+      `;
+
+      // 3. Simulate delay then show result
+      setTimeout(() => {
+        const loadingBubble = document.getElementById('loading-bubble');
+        if(loadingBubble) loadingBubble.remove();
+        
+        container.innerHTML += `
+          <div style="display:flex; gap:16px; align-items:flex-start; animation: fadeIn 0.5s;">
+            <div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 12px rgba(15,82,186,0.3);">✨</div>
+            <div style="flex:1;">
+              <div style="font-size:14px; color:var(--fg); line-height:1.6; font-weight:600; margin-bottom:16px;">
+                管线编排完毕。您可以直接点击下方「发布模版」，或展开微调具体参数：
+              </div>
+              
+              <div style="display:flex; align-items:stretch; gap:12px;">
+                ${sc.blocks}
+              </div>
+
+              <!-- Debugging / Proofing Section -->
+              <div style="margin-top:24px; border:1px dashed var(--border); border-radius:12px; padding:16px; background:#fff;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                  <div style="font-size:13px; font-weight:600; color:var(--muted); display:flex; align-items:center; gap:6px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>首图打样调试 (Dry Run)
+                  </div>
+                  <button class="btn" style="padding:6px 12px; font-size:12px;">↻ 更换测试图</button>
+                </div>
+                
+                <div style="display:flex; gap:16px;">
+                  <div style="flex:1; background:#f4f4f5; border-radius:8px; height:120px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                    <img src="${sc.sampleImg1}" style="height:100%; object-fit:cover;">
+                  </div>
+                  <div style="display:flex; align-items:center; color:var(--muted);">➔</div>
+                  <div style="flex:1; background:${type === 'amazon' ? '#fff' : '#f4f4f5'}; border:${type === 'amazon' ? '1px solid #e2e8f0' : 'none'}; border-radius:8px; height:120px; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;">
+                    <img src="${sc.sampleImg2}" style="height:100%; object-fit:cover; ${type === 'amazon' ? 'mix-blend-mode:multiply;' : ''}">
+                    ${type === 'amazon' ? '<div style="position:absolute; bottom:10px; right:10px; opacity:0.3; font-weight:900; font-size:24px;">BRAND LOGO</div>' : ''}
+                    <div style="position:absolute; inset:0; border:2px solid var(--ok); border-radius:8px;"></div>
+                    <div style="position:absolute; bottom:8px; right:8px; background:var(--ok); color:#fff; font-size:10px; padding:2px 6px; border-radius:4px; font-weight:700;">打样符合规范</div>
+                  </div>
+                  
+                  <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:8px;">
+                    ${type === 'amazon' ? '<input type="text" placeholder="💬 微调指令：把右下角水印透明度调低一点..." style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:inherit;">' : '<input type="text" placeholder="💬 微调指令：把背景落地窗光影再调暖一点..." style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:inherit;">'}
+                    <button class="btn btn-primary" onclick="saveTemplate()" style="width:100%; padding:10px; font-size:13px; background:#10b981; border-color:#10b981;">✅ 调试完成，存为企业模版</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        // Scroll to bottom
+        const viewContent = document.querySelector('#v-0');
+        viewContent.scrollTo({ top: viewContent.scrollHeight, behavior: 'smooth' });
+      }, 1500);
+    }
+
+    function saveTemplate() {
+      const toast = document.getElementById('toast');
+      toast.style.opacity = '1';
+      toast.style.transform = 'translate(-50%, 0)';
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translate(-50%, -20px)';
+        switchView(1); // Go to next step
+      }, 2000);
+    }
+  </script>
+  <style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    #chat-input:focus { outline:none; border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-light); }
+  </style>
+
+  <!-- View 1: Asset Ingestion --><!-- View 1: Asset Ingestion -->
+  <div id="v-1" class="view-content">
+    <div class="upload-zone" id="uz" onclick="loadAssets()">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="#94a3b8" style="margin-bottom:16px"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      <h3 style="margin:0 0 8px;color:#1e293b;font-size:18px">拖拽上传「商品白底图」与「双11价格表.csv」</h3>
+      <p style="margin:0;color:var(--muted)">系统将自动完成 SKU 匹配与视觉资产映射，极速开展排版</p>
+    </div>
+    
+    <div id="asset-stage" style="display:none">
+      <div style="display:flex;justify-content:space-between;margin-bottom:24px;align-items:flex-end">
+        <div>
+          <h3 style="margin:0 0 8px;font-size:18px">视觉资产解析完毕 (共 2 个 SKU)</h3>
+          <p style="margin:0;font-size:13px;color:var(--muted)">CSV 价格与 Hook 已挂载，随时可启动大批量渲染管线。</p>
+        </div>
+        <button class="btn btn-primary" onclick="switchView(2)">➔ 确认无误，进入执行管线</button>
+      </div>
+      
+      <div class="asset-grid">
+        <div class="asset-card">
+          <div class="asset-img"><img src="raw_trench_coat.jpg" style="width:100%;height:100%;object-fit:cover;"></div>
+          <div class="asset-info">
+            <div class="asset-row"><span>SKU_ID</span><span>FW-TR-01</span></div>
+            <div class="asset-row"><span>大促价</span><span style="color:var(--bad)">¥ 199.00</span></div>
+            <div class="asset-row"><span>上游质检</span><span style="color:var(--ok); font-size:11px; font-weight:700; background:#ecfdf5; padding:2px 6px; border-radius:4px;">VLM 摄性质检通过</span></div>
+            <div class="asset-row"><span>状态</span><span style="color:var(--warn)">待渲染</span></div>
+          </div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-img"><svg viewBox="0 0 24 24"><path d="M12 3L4 9v12h16V9l-8-6zm0 2.5l6 4.5v9H6v-9l6-4.5z"/></svg></div>
+          <div class="asset-info">
+            <div class="asset-row"><span>SKU_ID</span><span>FW-KN-02</span></div>
+            <div class="asset-row"><span>大促价</span><span style="color:var(--bad)">¥ 259.00</span></div>
+            <div class="asset-row"><span>上游质检</span><span style="color:var(--bad); font-size:11px; font-weight:700; background:#fef2f2; padding:2px 6px; border-radius:4px;">驳回：褶皱严重，建议重拍</span></div>
+            <div class="asset-row"><span>状态</span><span style="color:var(--muted)">已挂起</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View 2: Execution Pipeline (Business Dashboard) -->
+  <div id="v-2" class="view-content">
+    <div style="display:flex;justify-content:space-between; align-items:flex-end; margin-bottom:24px">
+      <div>
+        <p style="margin:0 0 12px;color:var(--muted)">即将执行 5,000 个 SKU 的大盘批量渲染任务</p>
+        <div style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--accent-light); border-radius:8px; border:1px solid #bfdbfe;">
+          <span style="font-size:13px; font-weight:600; color:var(--accent);">已选定执行管线：</span>
+          <select style="padding:6px 12px; border:1px solid #93c5fd; border-radius:6px; font-size:13px; font-weight:600; background:#fff; color:var(--fg); outline:none; min-width:260px; box-shadow:var(--shadow-sm);">
+            <option>🛍️ 双11大促版 (防碰撞) - 最近编辑</option>
+            <option>📦 亚马逊纯白底合规版</option>
+            <option>✨ 小红书种草网感版</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btn-start" onclick="startPipeline()" style="padding:12px 24px; font-size:15px; box-shadow:0 8px 16px rgba(15,82,186,0.2);">▶ 启动批量生图管线</button>
+    </div>
+    
+    <div class="run-layout" style="display:grid; grid-template-columns: 320px 1fr; gap: 24px; height: 500px;">
+      <!-- Business Stats Panel -->
+      <div style="background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:32px 24px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:var(--shadow-sm);">
+        <div>
+          <h3 style="margin:0 0 12px; font-size:14px; color:var(--muted)">任务总进度</h3>
+          <div style="font-size:42px; font-weight:800; color:var(--fg); line-height:1; letter-spacing:-0.03em;" id="p-percent">0%</div>
+          <div style="width:100%; height:8px; background:var(--border); border-radius:4px; margin-top:16px; overflow:hidden;">
+            <div id="p-bar" style="width:0%; height:100%; background:var(--fg); transition: width 0.1s linear;"></div>
+          </div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <div style="background:#f8fafc; padding:16px; border-radius:12px; border:1px solid var(--border);">
+            <div style="font-size:12px; color:var(--muted); margin-bottom:4px">成功出图</div>
+            <div style="font-size:24px; font-weight:700; color:var(--ok)" id="s-ok">0</div>
+          </div>
+          <div style="background:#fef2f2; padding:16px; border-radius:12px; border: 1px solid #fee2e2;">
+            <div style="font-size:12px; color:#ef4444; margin-bottom:4px">异常挂起</div>
+            <div style="font-size:24px; font-weight:700; color:var(--bad)" id="s-err">0</div>
+          </div>
+        </div>
+
+        <div style="font-size:13px; color:var(--muted); background:#f4f4f5; padding:16px; border-radius:12px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>预计剩余时间</span><span id="p-time" style="font-weight:600; color:var(--fg)">--:--</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>当前并发节点</span><span style="font-weight:600; color:var(--fg)">64 GPU</span></div>
+        </div>
+      </div>
+      
+      <!-- Live Preview Canvas -->
+      <div style="display:flex; flex-direction:column; gap:12px; height:100%;">
+        <div style="font-size:14px; font-weight:600; color:var(--muted)">实时抽样画面 (Live Preview)</div>
+        <div class="canvas-preview" id="cp-run" style="background:#000; background-size:cover; background-position:center; width:100%; height:100%; border-radius:16px; position:relative; overflow:hidden;">
+          <div class="c-text" id="ct" style="position:absolute; top:32px; left:32px; font-size:32px; line-height:1.2; letter-spacing:-0.02em; z-index:20;">初秋法式<br>质感风衣</div>
+          <div class="c-price" id="cp" style="position:absolute; bottom:32px; right:32px; font-size:36px; z-index:20;">¥ 199</div>
+          <div class="c-mask" id="cm" style="width:160px;height:100px;top:24px;left:24px; display:none; position:absolute; border:3px solid var(--bad); background:rgba(239,68,68,0.25); z-index:15;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View 3: Human-in-the-loop -->
+  <div id="v-3" class="view-content">
+    <div style="background:var(--bad);color:#fff;padding:16px 24px;border-radius:12px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 10px 20px rgba(220,38,38,0.2)">
+      <div>
+        <h3 style="margin:0 0 4px;font-size:16px">🚨 发现 1 项任务无法自动排版 (FW-TR-01)</h3>
+        <span style="font-size:13px;opacity:0.9">拦截原因：标题文字与【抖音商城左上角购物车 UI】产生空间死区碰撞。机器重排 3 次失败。</span>
+      </div>
+      <button class="btn" style="color:var(--fg)" onclick="fixIssue()">完成修正，进入最终交付</button>
+    </div>
+    
+    <div style="display:flex;justify-content:center">
+      <div class="canvas-preview" style="width:340px;height:450px;border:3px solid var(--bad);box-shadow:0 0 30px rgba(220,38,38,0.1); background-image:url('final_trench_coat.jpg'); background-size:cover; background-position:center;" id="c-box-edit">
+        <div class="c-text" id="ct-edit" style="opacity:1;border:2px dashed #3b82f6;padding:8px;background:rgba(255,255,255,0.9);box-shadow:0 10px 20px rgba(0,0,0,0.1);color:#1e293b;top:24px;left:32px;z-index:20;">初秋法式<br>质感风衣<br><span style="font-size:12px;color:var(--accent);display:flex;align-items:center;gap:4px;margin-top:4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L8 6h3v5H6V8L2 12l4 4v-3h5v5H8l4 4 4-4h-3v-5h5v3l4-4-4-4v3h-5V6h3l-4-4z"/></svg> 用鼠标按住向下拖离红区</span></div>
+        <div class="c-price" style="opacity:1;color:#ef4444;right:32px;bottom:32px;text-shadow:0 2px 10px rgba(255,255,255,0.8)">¥ 199</div>
+        <div class="c-mask" style="display:block;width:140px;height:90px;top:20px;left:20px;z-index:10;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View 4: Delivery -->
+  <div id="v-4" class="view-content">
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;padding:24px;border-radius:12px;margin-bottom:32px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <h3 style="margin:0 0 8px;color:#1e3a8a;font-size:18px">🎉 批处理任务已闭环完成</h3>
+        <p style="margin:0;font-size:14px;color:#3b82f6">成功渲染 5,000 个 SKU，耗时 2 小时 14 分钟。零平台违规，零标价错误。</p>
+      </div>
+      <button class="btn btn-primary" style="padding:12px 24px;font-size:14px" onclick="alert('已导出压缩包：5000_SKUs_Douyin_3x4.zip (包含合图 JPG 与分层可编辑 PSD)')">📦 一键导出 5,000 份分层 PSD 资产包</button>
+    </div>
+    
+    <div class="delivery-grid">
+      <div class="compare-card">
+        <h4 style="margin:0 0 16px;color:var(--muted);font-size:15px;font-weight:600;">Input: 原始白底/实拍原片</h4>
+        <div class="img-placeholder" style="background:#fff">
+          <img src="raw_trench_coat.jpg" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+      </div>
+      <div class="compare-card">
+        <h4 style="margin:0 0 16px;color:var(--fg);font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;">
+          Output: 场景生成 + <span style="color:var(--ok);background:#ecfdf5;padding:2px 8px;border-radius:12px;font-size:12px;border:1px solid #a7f3d0;">🔒 像素锁死 & AI 智能熨烫</span>
+        </h4>
+        <div class="img-placeholder" style="background:#fff; position:relative;">
+          <!-- 模拟保护罩 UI -->
+          <div style="position:absolute; inset:20px; border:2px dashed var(--ok); border-radius:8px; pointer-events:none; z-index:5; display:flex; justify-content:center; align-items:center;">
+             <div style="background:var(--ok);color:#fff;font-size:10px;padding:4px 8px;border-radius:4px;position:absolute;top:-12px;font-weight:700;">SAM 3 精确遮罩 + 织物平整模型</div>
+          </div>
+          <img src="final_trench_coat.jpg" style="width:100%;height:100%;object-fit:cover;">
+          <div style="position:absolute;color:#1e293b;font-weight:800;font-size:28px;left:32px;top:120px;text-align:left;text-shadow:0 2px 10px rgba(255,255,255,0.8);z-index:20;">初秋法式<br>质感风衣</div>
+          <div style="position:absolute;color:#ef4444;font-weight:900;font-size:32px;right:32px;bottom:32px;text-shadow:0 2px 10px rgba(255,255,255,0.8);z-index:20;">¥ 199</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const titles = {
+  0: '第零步：设计主管定义大促生图标准 (Workflow Blueprint)',
+  1: '第一步：摆脱外部依赖，在系统内部挂载原片与数据',
+  2: '第二步：执行全自动 AI 管线 (Agentic Execution)',
+  3: '第三步：人工兜底，所见即所得的错误修复 (Human-in-the-loop)',
+  4: '最终步：商业价值落地 (Aha! Moment)'
+};
+
+function switchView(vid) {
+  document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+  document.getElementById(`v-${vid}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`nav-${vid}`).classList.add('active');
+  document.getElementById('top-title').innerText = titles[vid];
+}
+
+function loadAssets() {
+  document.getElementById('uz').style.display = 'none';
+  document.getElementById('asset-stage').style.display = 'block';
+}
+
+function log(msg, type='info') {
+  const t = document.getElementById('term');
+  const time = new Date().toLocaleTimeString().slice(0,8);
+  t.innerHTML += `<div><span class="log-time">[${time}]</span><span class="log-${type}">${msg}</span></div>`;
+  t.scrollTop = t.scrollHeight;
+}
+async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function startPipeline() {
+  document.getElementById('btn-start').disabled = true;
+  document.getElementById('ct').style.opacity = 0; document.getElementById('cp').style.opacity = 0;
+  document.getElementById('cp-run').style.backgroundImage = 'none';
+  document.getElementById('cm').style.display = 'none';
+  
+  // Animation: rapidly increment progress bar to simulate batch processing
+  const pb = document.getElementById('p-bar');
+  const pp = document.getElementById('p-percent');
+  const sok = document.getElementById('s-ok');
+  const serr = document.getElementById('s-err');
+  const ptime = document.getElementById('p-time');
+  
+  ptime.innerText = '02:14:00';
+  
+  // Simulate processing a bunch of images successfully...
+  let count = 0;
+  for(let i=1; i<=85; i+=4) {
+    count += 34;
+    pb.style.width = i + '%';
+    pp.innerText = i + '%';
+    sok.innerText = count;
+    
+    // Briefly flash the image on the canvas
+    if(i === 21) document.getElementById('cp-run').style.backgroundImage = 'url("raw_trench_coat.jpg")';
+    if(i === 45) {
+      document.getElementById('cp-run').style.backgroundImage = 'url("final_trench_coat.jpg")';
+      document.getElementById('ct').style.opacity = 1;
+      document.getElementById('ct').style.color = '#1e293b';
+      document.getElementById('ct').style.textShadow = '0 2px 10px rgba(255,255,255,0.8)';
+      document.getElementById('cp').style.opacity = 1;
+      document.getElementById('cp').style.textShadow = '0 2px 10px rgba(255,255,255,0.8)';
+    }
+    
+    await sleep(80);
+  }
+  
+  // Oh no, an error! (Simulate Critic catching a collision)
+  await sleep(400);
+  serr.innerText = '1';
+  document.getElementById('cm').style.display = 'block'; // Show red collision box
+  document.getElementById('p-time').innerText = '任务已挂起等待干预';
+  document.getElementById('p-time').style.color = 'var(--bad)';
+  document.getElementById('b-err').style.display = 'block';
+  
+  await sleep(1200);
+  switchView(3); // Route to manual intervention
+}
+
+// Drag logic
+let isDragging = false, startY, origY;
+const editBox = document.getElementById('ct-edit');
+editBox.addEventListener('mousedown', e => { isDragging = true; startY = e.clientY; origY = editBox.offsetTop; });
+document.addEventListener('mousemove', e => {
+  if(!isDragging) return;
+  const dy = e.clientY - startY;
+  editBox.style.top = (origY + dy) + 'px';
+});
+document.addEventListener('mouseup', () => isDragging = false);
+
+function fixIssue() {
+  document.getElementById('c-box-edit').style.borderColor = 'var(--ok)';
+  document.getElementById('b-err').style.display = 'none';
+  document.getElementById('b-ok').style.display = 'block';
+  
+  setTimeout(() => {
+    switchView(4);
+  }, 600);
+}
+</script>
+</body>
+</html>

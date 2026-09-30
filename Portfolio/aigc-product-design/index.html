@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Handoff · AI生图分层与商用交稿插件 · 核心立项文档库</title>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+</script>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#b4531f;--ok:#2f6b45;--bad:#a12a2a;--warn:#a8761f;--code:#f2f2ef}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#e08a52;--ok:#7ab88f;--bad:#e08585;--warn:#d6a75a;--code:#202020}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:15.5px/1.7 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:20px 24px 120px}
+h1{font-size:28px;margin:0 0 8px;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:14px;margin:0 0 24px}
+.role-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(180,83,31,0.08);
+color:var(--accent);border:1px solid rgba(180,83,31,0.25);padding:4px 12px;border-radius:20px;
+font-size:12px;font-weight:600;margin-bottom:18px}
+h2{font-size:16px;margin:54px 0 16px;padding-bottom:9px;border-bottom:1px solid var(--line);letter-spacing:.02em;display:flex;align-items:baseline}
+h2 .n{color:var(--accent);font-weight:700;margin-right:10px;font-variant-numeric:tabular-nums}
+p{margin:0 0 14px}ul{margin:0 0 14px;padding-left:20px}li{margin:5px 0}
+em{font-style:normal;color:var(--accent);font-weight:600}
+a{color:inherit;text-decoration:none}
+
+nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:48px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+nav span{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.04em}
+
+.lead-box{background:var(--card);border:1.5px solid var(--accent);border-radius:10px;padding:22px 24px;margin-bottom:32px}
+.lead-box h3{margin:0 0 10px;font-size:13.5px;letter-spacing:.04em;color:var(--accent);text-transform:uppercase}
+.lead-box p{margin:0 0 12px;font-size:15px;line-height:1.6}
+
+.matrix-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:20px 0 32px}
+.matrix-card{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:18px 20px;
+display:block;transition:all .15s ease}
+.matrix-card:hover{border-color:var(--accent);}
+.matrix-card .tag{font-size:11px;color:var(--accent);text-transform:uppercase;font-weight:700;letter-spacing:.05em;margin-bottom:6px}
+.matrix-card .title{font-size:16px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.matrix-card .desc{font-size:13px;color:var(--muted);line-height:1.55}
+
+.axiom-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0 32px}
+@media(max-width:640px){.axiom-grid{grid-template-columns:1fr}}
+.axiom{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.axiom .lbl{font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.axiom b{display:block;font-size:14px;margin-bottom:4px}
+.axiom span{font-size:12.5px;color:var(--muted);line-height:1.5}
+
+.doc-list{margin:18px 0}
+.doc-row{display:block;border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin-bottom:8px;background:var(--card);transition:border-color .15s}
+.doc-row:hover{border-color:var(--accent)}
+.doc-row .hd{display:flex;align-items:baseline;gap:8px;margin-bottom:3px}
+.doc-row .id{font-size:11px;color:var(--muted);letter-spacing:.06em}
+.doc-row .ti{font-size:14px;font-weight:600}
+.doc-row .d{font-size:12.5px;color:var(--muted)}
+code{background:var(--code);padding:1px 4px;border-radius:3px;font-size:12px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+hr{border:0;border-top:1px solid var(--line);margin:50px 0}
+.foot{color:var(--muted);font-size:12.5px;line-height:1.7}
+</style></head><body><div class="wrap"><a href="../portfolio.html" style="display:inline-block; margin-bottom: 24px; color: var(--accent); font-weight: 600; text-decoration: none; border: 1px solid var(--accent); padding: 4px 12px; border-radius: 6px; font-size: 13px;">🏠 返回作品集主页</a>
+<h1>Handoff · AI生图分层与商用交稿插件 · 核心立项文档库</h1>
+<p class="sub">基于 SAM 2 与 Inpainting 的画师交稿合规增强补丁 · Internal Product Wiki</p>
+<!-- 项目核心概述与 PPT 入口 -->
+<div class="lead-box" style="background:var(--card);border:1.5px solid var(--accent);border-radius:10px;padding:22px 24px;margin-bottom:32px">
+<h3 style="margin:0 0 10px;font-size:13.5px;letter-spacing:.04em;color:var(--accent);text-transform:uppercase">方案核心概述 (Project Overview)</h3>
+<p style="margin:0 0 12px;font-size:15px;line-height:1.6">
+生图模型在 C 端已进入"效果过剩"，但商业设计师在<strong>定稿→交付→结清尾款</strong>的最后一公里全线崩溃——文字改动即毁画、RGB 直转 CMYK 灾难性发灰、版权合规无存证。
+</p>
+<p style="margin:0 0 12px;font-size:15px;line-height:1.6">
+本项目从<strong>六大扩散模型物理硬约束</strong>（潜空间无图层、VAE 下采样等）出发，<strong>以约束推导功能</strong>，锁定 <em>Photoshop / Illustrator 原生 UXP 插件</em>，构建从"扁平位图"到"工业级分层可编辑物料包"的交付管线。
+</p>
+<div style="margin-top:20px; padding-top:16px; border-top:1px dashed var(--accent);">
+<a href="deck.html" style="display:inline-block;background:var(--accent);color:#fff;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600;text-decoration:none;box-shadow:0 4px 12px rgba(180,83,31,0.3);">👉 观看 7 页极速汇报 PPT (Deck)</a>
+</div>
+</div>
+<h2><span class="n">01</span>底层公理体系 (Core Axioms)</h2>
+<p style="color:var(--muted);font-size:13.5px;margin-bottom:18px">所有推导与裁剪均锚定以下基准，绝不拍脑袋创意：</p>
+<div class="axiom-grid">
+<div class="axiom">
+<div class="lbl">公理一</div>
+<b>不在"生成"维度竞争</b>
+<span>审美、生图速度与边际成本已卷平，统计上不可区分的维度不是价值捕获点。</span>
+</div>
+<div class="axiom">
+<div class="lbl">公理二</div>
+<b>价值在"生成之后到可交付之间"</b>
+<span>物料化（分层/矢量/高精）、确权化（商用资产合规）、流程化（确定性可回退管线）。</span>
+</div>
+<div class="axiom">
+<div class="lbl">公理三</div>
+<b>诚实标注硬物理约束</b>
+<span>潜空间无图层、VAE下采样边缘模糊、复现与多样性互斥、分辨率平方成本。</span>
+</div>
+<div class="axiom">
+<div class="lbl">公理四</div>
+<b>工作流寄生原则</b>
+<span>绝不做脱离现有工作流的独立 Web 画布；必须寄生在 PS/AI 宿主插件中。</span>
+</div>
+</div>
+<h2><span class="n">02</span>文档导航库 (Document Index)</h2>
+<a class="doc-row" href="s0-project-brief.html">
+<div class="hd"><span class="id">S0</span><span class="ti">立项草案（Brief）</span></div>
+<div class="d">锁定画师的交稿与印前处理痛点（Handoff）；确立六大底层物理硬约束；明确不做清单；定义以尾款结算为终点的核心 Thesis。</div>
+</a>
+<a class="doc-row" href="s1-target-hypothesis.html">
+<div class="hd"><span class="id">S1</span><span class="ti">靶心卡（Target Hypothesis）</span></div>
+<div class="d">锁定高触达性的自由商业插画师；挖掘 4 套笨拙土办法；确立核心反常识：以 PS/AI 扩展面板寄生于宿主画布。</div>
+</a>
+<a class="doc-row" href="s2-competitive-evidence.html">
+<div class="hd"><span class="id">S2</span><span class="ti">竞品取证（Competitive Evidence）</span></div>
+<div class="d">建立 L0~L5 视觉交付成熟度模型；揭示 Adobe 复杂度壁垒与生图基座 Token 驱动的结构性断层。</div>
+</a>
+<a class="doc-row" href="s3-interview-kit.html">
+<div class="hd"><span class="id">S3</span><span class="ti">访谈工具包（Interview Kit）</span></div>
+<div class="d">制定画师合格筛选硬门槛；设计高转化约聊模板；打造 9 题标准化一手调研提纲与禁问清单。</div>
+</a>
+<a class="doc-row" href="s4-feature-derivation.html">
+<div class="hd"><span class="id">S4</span><span class="ti">功能推导 · 约束的余数</span></div>
+<div class="d">严格从物理约束与寄生工作流反向逼出 7 项确定功能，划定 P0/P1/P2 发布边界，枪毙 4 大伪需求。</div>
+</a>
+<a class="doc-row" href="s5-prd-v0.1.html">
+<div class="hd"><span class="id">S5</span><span class="ti">PRD 规格文档（PRD v0.1）</span></div>
+<div class="d">确立 3 步核心交互流；设计 4 层系统状态机与 Fallback 人工接管降级路由；完成单次成本 ¥0.14 vs 定价 ¥19 的高毛利算账。</div>
+</a>
+<a class="doc-row" href="s5b-eval-harness.html">
+<div class="hd"><span class="id">S5b</span><span class="ti">评测金标集与护栏 (Eval Harness)</span></div>
+<div class="d">建立 50+ 恶劣图层测试打靶库；定义分辨率、半透明遮挡的最低可行质量(MVQ)；弃用 Accuracy，锚定人工接管率核心指标。</div>
+</a>
+<a class="doc-row" href="s5c-architecture-adr.html">
+<div class="hd"><span class="id">S5c</span><span class="ti">架构决策记录 (ADR)</span></div>
+<div class="d">记录拒绝 100% 资产上云的技术推演；选用 SAM 2+局部 Inpainting 模型栈组合；定义超大 PSD 的 OOM 防御与切片端云协同策略。</div>
+</a>
+<a class="doc-row" href="s6-prototype.html">
+<div class="hd"><span class="id">S6</span><span class="ti">45s 原型操作模拟 (Prototype Simulator)</span></div>
+<div class="d">一份包含前端状态流转、图层拆解动画与控制台日志的高保真 Web 交互模拟器。强烈推荐点击体验。</div>
+</a>
+<a class="doc-row" href="s7-concept-conclusion.html">
+<div class="hd"><span class="id">S7</span><span class="ti">商业化落地与风控看盘 (GTM &amp; Risk Metrics)</span></div>
+<div class="d">产品进入规模化商业推广前的灰度切流策略、A/B 测试定价方案与决定业务存亡的战略熔断指标。</div>
+</a>
+</div></body></html>

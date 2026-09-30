@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>图像生成 AI 产品经理职责 · 研发级深度调研</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300..600&amp;family=Manrope:wght@300..700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+
+<style>
+:root{
+  --bg:#fafaf9; --ink:#1c1917; --mute:#78716c; --line:#e7e5e4; --soft:#f5f5f4;
+  --accent:#2563eb; --accent-hover:#1d4ed8; --warn:#b45309; --bad:#b91c1c; --ok:#15803d;
+  --side: 280px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f172a; --ink:#f8fafc; --mute:#94a3b8; --line:#1e293b; --soft:#1e293b;
+        --accent:#38bdf8; --accent-hover:#0ea5e9; --warn:#f59e0b; --bad:#ef4444; --ok:#10b981;}
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:24px; scroll-behavior: smooth;}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  transition:background .2s,color .2s; overflow-x: hidden;}
+
+/* 导航展开按钮 */
+.sidebar-open-btn {
+  position: fixed; top: 16px; left: 16px; z-index: 40;
+  width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--ink); cursor: pointer;
+  display: none; align-items: center; justify-content: center; font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.sidebar-open-btn:hover { color: var(--accent); border-color: var(--accent); }
+body.sidebar-closed .sidebar-open-btn { display: flex; }
+
+aside.side, #sidebar {
+  position:fixed;left:0;top:0;bottom:0;width:var(--side);
+  background:var(--soft);border-right:1px solid var(--line);
+  padding:24px 16px 20px;overflow-y:auto;display:flex;flex-direction:column;z-index:50;
+  transition: transform .25s ease-in-out;
+}
+body.sidebar-closed aside.side, body.sidebar-closed #sidebar { transform: translateX(-100%); }
+
+.sidebar-close-btn {
+  position: absolute; top: 18px; right: 14px;
+  background: transparent; border: none; font-size: 18px; color: var(--mute);
+  cursor: pointer; padding: 6px; border-radius: 6px; line-height: 1;
+}
+.sidebar-close-btn:hover { background: var(--bg); color: var(--ink); }
+
+aside.side .brand, #sidebar h3, #sidebar .brand {font-size:15px;font-weight:650;margin-bottom:18px;color:var(--ink); padding-right: 28px; line-height: 1.4;}
+.side .brand b{color:var(--accent);}
+.navlinks, #sidebar ul {display:flex;flex-direction:column;gap:3px;flex:1;}
+.navlinks a, #sidebar a {font-size:13px;color:var(--mute);text-decoration:none;padding:7px 10px;
+  border-radius:6px;line-height:1.4;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;transition: background .15s, color .15s;}
+.navlinks a:hover, #sidebar a:hover {color:var(--ink);background:var(--line);}
+.navlinks a.active, #sidebar a.active {color:var(--accent);background:var(--bg);font-weight:600;}
+
+.main, #main-content {margin-left:var(--side); padding-top: 36px; padding-bottom: 96px; transition: margin-left .25s ease-in-out;}
+body.sidebar-closed .main, body.sidebar-closed #main-content { margin-left: 0; }
+
+.container, .wrap {max-width:980px;margin:0 auto;padding:0 24px;}
+h1{font-size:30px;line-height:1.3;margin:0 0 16px;color:var(--ink);font-weight:750;}
+h2{font-size:22px;margin:44px 0 18px;padding-bottom:10px;border-bottom:1.5px solid var(--line);color:var(--ink);font-weight:700;}
+h3{font-size:17.5px;margin:28px 0 12px;color:var(--ink);font-weight:650;}
+p,li{font-size:15px;color:var(--ink);line-height:1.8;}
+ul,ol{padding-left:22px;margin:12px 0;}
+li{margin:6px 0;}
+strong{color:var(--ink);font-weight:650;}
+code{background:var(--soft);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:13.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;}
+pre{background:var(--soft);border:1px solid var(--line);padding:16px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.6;margin:18px 0;}
+pre code{background:transparent;padding:0;color:var(--ink);}
+
+.badge{display:inline-block;padding:2px 9px;border-radius:6px;font-size:12px;font-weight:600;line-height:1.5;}
+.badge-pass{background:#dcfce7;color:#166534;border:1px solid #bbf7d0;}
+.badge-pending{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+.badge-gray{background:var(--soft);color:var(--mute);border:1px solid var(--line);}
+
+.thesis-box{background:#eff6ff;border:1.5px solid #bfdbfe;border-left:5px solid var(--accent);border-radius:8px;padding:20px 22px;margin:24px 0;}
+.thesis-box strong.title{display:block;font-size:16px;color:#1e40af;margin-bottom:8px;letter-spacing:0.5px;}
+.thesis-box p{color:#1e3a8a;margin:0;font-size:15px;line-height:1.75;}
+
+.conclusion-item {
+  background: var(--soft);
+  border-left: 4px solid var(--accent);
+  padding: 16px 20px;
+  margin: 18px 0;
+  border-radius: 0 8px 8px 0;
+}
+.conclusion-item h4 { margin: 0 0 8px; color: var(--ink); font-size: 16px; font-weight: 700; }
+.conclusion-item p { margin: 0 0 6px; font-size: 14.5px; }
+.source-tag { font-size: 12.5px; color: var(--mute); display: block; margin-top: 4px; }
+
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:20px 0;}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,0.02);}
+.card .k{font-size:12.5px;color:var(--mute);font-weight:600;text-transform:uppercase;margin-bottom:6px;}
+.card .v{font-size:22px;font-weight:750;color:var(--accent);line-height:1.2;margin-bottom:6px;}
+.card .d{font-size:13px;color:var(--mute);line-height:1.5;}
+
+.tablewrap{overflow-x:auto;margin:22px 0;border:1px solid var(--line);border-radius:8px;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th,td{border-bottom:1px solid var(--line);padding:10px 14px;text-align:left;vertical-align:top;}
+th{background:var(--soft);font-weight:650;color:var(--ink);white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+tr:nth-child(even){background:rgba(0,0,0,0.015);}
+
+.callout{border-left:4px solid var(--accent);background:var(--soft);padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0;}
+.callout.warn{border-left-color:var(--warn);background:#fffbeb;}
+.callout.warn strong{color:var(--warn);}
+.callout.danger{border-left-color:var(--bad);background:#fef2f2;}
+hr{border:none;border-top:1px solid var(--line);margin:36px 0;}
+
+.table { overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 8px; }
+.table table { width: 100%; border-collapse: collapse; margin: 0; border: none; font-size: 13.5px; }
+.table th, .table td { border: 1px solid var(--line); padding: 10px 14px; text-align: left; }
+.table th { background: var(--soft); font-weight: 650; color: var(--ink); }
+.con {
+  background: var(--soft);
+  border-left: 4px solid var(--accent);
+  padding: 16px 20px;
+  margin: 18px 0;
+  border-radius: 0 8px 8px 0;
+}
+.con .ct { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.con .cn { background: var(--accent); color: #fff; font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 700; }
+.con h3.sub { font-size: 16px; font-weight: 700; color: var(--ink); margin: 0; }
+.con p { margin: 6px 0 0; font-size: 14.5px; color: var(--ink); }
+.src { font-size: 12.5px; color: var(--mute); display: block; margin-top: 6px; }
+.grade-a { color: var(--ok); font-weight: 700; }
+.grade-b { color: var(--accent); font-weight: 700; }
+.grade-c { color: var(--mute); }
+details.acc {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 14px 0;
+}
+details.acc summary {
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--ink);
+  outline: none;
+}
+details.acc .body { margin-top: 12px; }
+ul.clean { list-style: none; padding-left: 0; }
+ul.clean li { margin: 6px 0; font-size: 14px; }
+section { padding-bottom: 24px; border-bottom: 1px solid var(--line); margin-bottom: 32px; }
+section:last-of-type { border-bottom: none; }
+h2 { font-size: 22px; color: var(--ink); font-weight: 700; margin: 28px 0 16px; border-bottom: none; }
+
+</style>
+</head>
+<body>
+<button class="sidebar-open-btn" id="sidebarOpen" title="展开导航">☰</button>
+<aside class="side">
+<button class="sidebar-close-btn" id="sidebarClose" title="收起导航">✕</button>
+<div class="brand">Deep Research · <b>Report</b></div>
+
+<nav class="navlinks" id="nl"><a href="../portfolio.html" style="margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px; color: var(--accent); font-weight: bold;">🏠 返回作品集主页</a>
+<a href="#sec1">① 核心结论（5 条）</a>
+<a href="#sec2">② 职责全景框架（8 大职责域 …</a>
+<a href="#sec3">③ 差异矩阵</a>
+<a href="#sec4">④ 按产品形态分化</a>
+<a href="#sec5">⑤ 按场景分化</a>
+<a href="#sec6">⑥ 能力模型（研发级）</a>
+<a href="#sec7">⑦ 工作流 · JTBD · P…</a>
+<a href="#sec8">⑧ 组织 · RACI · 团队搭建</a>
+<a href="#sec9">⑨ 竞品 / JD 对标（10+）</a>
+<a href="#sec10">⑩ 算力与单位经济（SubAge…</a>
+<a href="#sec11">⑪ 失败模式 · 退缩案例 · 监管</a>
+<a href="#sec12">⑫ 立场对照</a>
+<a href="#sources">附录 · 来源</a>
+</nav>
+
+</aside>
+<div class="main">
+<header class="head">
+<h1>图像生成 AI 产品经理职责全景 · 研发级深度调研报告</h1>
+<p style="font-size: 16px; color: var(--mute); margin-bottom: 28px;">
+      从抽卡式生成到工业级工作流 · 美学 Eval 评估体系、安全合规、算力单位经济与 PM 核心能力模型
+    </p>
+</header>
+<section id="sec1">
+<div class="wrap">
+<h2>01 核心结论（5 条）</h2>
+
+<div class="thesis-box" id="sec-thesis">
+<strong class="title">核心 Thesis 判断系统</strong>
+<p style="margin: 8px 0 0; font-size: 14.5px;">
+<strong>TL;DR</strong> — 图像生成 AI PM 的核心不是「调 Prompt」，而是把 <strong>抽卡式生成</strong> 产品化为 <strong>可控工作流</strong>：美学 Eval + 安全校准 + 版权策略 + 分辨率×步数算力经济。2025-2026 行业分水岭：从「模型炫技」→「导演工作台」（分镜/角色卡/版本回溯/一致性）。与通用 AI PM 比，多了 <strong>视觉质量分布、LoRA/风格体系、NSFW 校准、IP 诉讼风险</strong>；与设计工具 PM 比，多了 <strong>概率输出、生成成本、模型选型</strong>。专业交付三件套 (Deliverables)：Aesthetic Rubric + Safety Policy + Workflow Demo（非单张效果图）。
+        </p>
+</div>
+<div class="con"><div class="ct"><span class="cn">结论 1</span><h3 class="sub">2025-2026 图像 PM 的第一职责是「工作流产品化」，不是「堆模型能力」</h3></div>
+<p>行业从 Prompt 驱动「抽卡」转向分镜编辑器、角色/场景资产卡、局部重生成、版本回溯——把导演结构化流程拆成产品模块。Seedance 2.0、PixMax、爱奇艺纳逗 Pro 均指向同一逻辑：可控性 &gt; 单次生成画质。<br/>
+<span class="src"><span class="grade-b">[B1]</span> woshipm《从抽卡到可控》；<span class="grade-b">[B2]</span> 今日头条 Seedance 2.0 分析</span></p>
+</div>
+<div class="con"><div class="ct"><span class="cn">结论 2</span><h3 class="sub">Eval 体系是图像 PM 的「定义性技能」，且与 LLM Eval 完全不同</h3></div>
+<p>不能只用 FID/CLIP；需分层：Prompt Adherence、Aesthetic Appeal、Text Rendering、Domain Accuracy、Safety。Qwen-Image-Bench 五柱（Quality / Aesthetics / Alignment / Real-world Fidelity / Creative Generation）；Gecko 证明细粒度 VQA 模板比 Likert 更稳定。<br/>
+<span class="src"><span class="grade-a">[A1]</span> Qwen-Image-Bench arXiv；<span class="grade-a">[A2]</span> Gecko arXiv 2404.16820</span></p>
+</div>
+<div class="con"><div class="ct"><span class="cn">结论 3</span><h3 class="sub">安全过滤器「松紧」是 PM 决策，不是工程默认</h3></div>
+<p>三层栈：Input 过滤 → In-model guardrails → Output classifier。太严合法用例失败，太松 NSFW/Deepfake/版权角色泄漏——Midjourney 已被 Disney/Universal/WB 联合起诉，诉状指其「已有暴力/裸体过滤技术但未用于版权角色」。<br/>
+<span class="src"><span class="grade-b">[B3]</span> Institute PM Diffusion Guide；<span class="grade-a">[A3]</span> Disney v. Midjourney 诉状 CourtListener</span></p>
+</div>
+<div class="con"><div class="ct"><span class="cn">结论 4</span><h3 class="sub">C 端 vs ToB 图像 PM 是两种职业路径</h3></div>
+<p>C 端（Midjourney/即梦/可灵）：社区审美、订阅、风格探索、抽卡体验优化。ToB（Adobe Firefly/Canva AI）：品牌一致性、合规、工作流嵌入、enterprise governance。即梦走「闭环」（DeepSeek 写词→生成一体），可灵走「下沉+API」。<br/>
+<span class="src"><span class="grade-b">[B4]</span> woshipm《可灵下沉 vs 即梦闭环》；<span class="grade-a">[A4]</span> Adobe Firefly PM JD</span></p>
+</div>
+<div class="con"><div class="ct"><span class="cn">结论 5</span><h3 class="sub">图生视频是图像 PM 的自然延伸，但 Eval 维度翻倍</h3></div>
+<p>新增：时序一致性、运动物理、角色跨帧 ID、时长×帧率算力。视频质量仍落后图像 2-3 年；PM 应设 3-10 秒 clip 为 MVP 边界，而非追 Sora 级长片。<span class="pending">[待确认]</span><br/>
+<span class="src"><span class="grade-b">[B3]</span> Institute PM — "Video 2-3 years behind image"；<span class="grade-b">[B5]</span> woshipm OiiOii Agent 工作流</span></p>
+</div>
+</div>
+</section>
+<section id="sec2">
+<div class="wrap">
+<h2>02 职责全景框架（8 大职责域 · 图像专属增量）</h2>
+<div class="table"><table><thead><tr><th>职责域</th><th>图像 PM 子职责</th><th>关键交付物</th><th>vs 通用 AI PM</th></tr></thead>
+<tr><td><strong>① 创作工作流设计</strong></td><td>分镜/画布/版本树；角色卡/场景卡/风格库；从 gacha → pipeline</td><td>Workflow PRD、Asset Schema</td><td>★★★★★ 增量</td></tr>
+<tr><td><strong>② 美学与 Eval 治理</strong></td><td>Aesthetic rubric；Human preference A/B；Prompt 测试库 50-100条</td><td>Eval Spec、Golden Prompt Set</td><td>★★★★★ 维度不同</td></tr>
+<tr><td><strong>③ 模型与生成参数</strong></td><td>Model 选型；CFG/steps/分辨率；LoRA/风格；Build vs API</td><td>Model ADR、Parameter Presets</td><td>★★★★☆</td></tr>
+<tr><td><strong>④ 内容安全与版权</strong></td><td>NSFW 校准；Deepfake 防护；IP/风格禁令；AIGC 标识</td><td>Safety Policy、Blocklist、Model Card</td><td>★★★★★ 增量</td></tr>
+<tr><td><strong>⑤ 视觉 UX</strong></td><td>生成进度/变体网格；失败态；HITL 选图；对比/放大/编辑链</td><td>Gen UX Spec</td><td>★★★★☆</td></tr>
+<tr><td><strong>⑥ 算力与单位经济</strong></td><td>$/image、$/video-second；Fast vs Quality tier；缓存/蒸馏</td><td>Cost Model、Pricing Tier</td><td>★★★★☆</td></tr>
+<tr><td><strong>⑦ GTM 与社区</strong></td><td>C 端：订阅/积分/社区审美；ToB：品牌包/enterprise seat</td><td>Packaging、Style Marketplace</td><td>★★★☆☆</td></tr>
+<tr><td><strong>⑧ 跨职能协同</strong></td><td>算法(Diffusion) + 视觉设计师 + 审核 + 法务 + 社区</td><td>RACI、Launch Gate</td><td>★★★☆☆ 角色不同</td></tr>
+</table></div>
+<div class="con"><strong>2026 模型迁移清单（SubAgent A merge）</strong><br/>
+DALL·E 2/3 API 已于 2026-05-12 下线 → GPT Image；Imagen 3/4 将于 2026-06-24 停用 → Gemini Image（mask editing 无直接替代 <span class="pending">[待确认]</span>）；Sora 消费端 2026-04-26 下线；Runway Gen-3 2026-07-30 sunset。图像 PM 须内置 deprecation playbook + 用户 prompt 库兼容策略。<br/>
+<span class="src"><span class="grade-a">[A8]</span> firebase.google.com Imagen migration；<span class="grade-b">[B9]</span> dev.to DALL·E shutdown</span></div>
+</div>
+</section>
+<section id="sec3">
+<div class="wrap">
+<h2>03 差异矩阵</h2>
+<h3 class="sub">3.1 vs 通用 AI PM（文本/Agent 类）</h3>
+<div class="table"><table><thead><tr><th>维度</th><th>通用 AI PM</th><th>图像生成 AI PM</th></tr></thead>
+<tr><td>核心 Eval</td><td>Faithfulness、Task Success、Latency</td><td>Aesthetic、Prompt Adherence、Text-in-Image、Anatomy</td></tr>
+<tr><td>输出形态</td><td>文本/结构化 JSON</td><td>像素张量；多候选网格「选图」</td></tr>
+<tr><td>用户交互</td><td>对话/Agent 流</td><td>Prompt + 参考图 + 参数滑块 + 局部编辑</td></tr>
+<tr><td>失败可见性</td><td>Silent wrong answer</td><td>肉眼可见的畸形手/乱码/风格漂移</td></tr>
+<tr><td>成本驱动</td><td>Token</td><td>分辨率 × 步数 × 帧数（视频）</td></tr>
+<tr><td>合规焦点</td><td>幻觉/偏见/Privacy</td><td>NSFW + 版权角色 + Deepfake + 深度合成标识</td></tr>
+<tr><td>社区因素</td><td>低（ToB 为主）</td><td>高（Midjourney Discord、即梦社区）</td></tr>
+<tr><td>Build vs Buy</td><td>LLM API 为主</td><td>开源权重(FLUAX/SDXL) vs 闭源 API 权衡更大</td></tr>
+</table></div>
+<h3 class="sub">3.2 vs 传统设计工具 PM（Photoshop/Figma/Canva）</h3>
+<div class="table"><table><thead><tr><th>维度</th><th>设计工具 PM</th><th>图像生成 AI PM</th></tr></thead>
+<tr><td>输出确定性</td><td>100% 像素精确</td><td>概率分布；同一 Prompt 多张变体</td></tr>
+<tr><td>核心指标</td><td>功能采用、工作流效率</td><td>生成质量分布、选图率、重试次数</td></tr>
+<tr><td>版本控制</td><td>图层/组件/Design System</td><td>Seed/Model/Prompt/LoRA 版本链</td></tr>
+<tr><td>品牌一致性</td><td>Design Token 手动约束</td><td>LoRA/风格库/Brand-aware conditioning</td></tr>
+<tr><td>协作对象</td><td>设计师 ↔ 工程师</td><td>+ 算法 + 审核 + 法务 + 社区运营</td></tr>
+<tr><td>PM 新能力</td><td>用户研究、IA</td><td>+ Diffusion 参数、Eval rubric、Safety 校准</td></tr>
+</table></div>
+<p class="src"><span class="grade-c">[C1]</span> The Product Journey — "AI commoditizing design execution; PM+Design co-create"</p>
+</div>
+</section>
+<section id="sec4">
+<div class="wrap">
+<h2>04 按产品形态分化</h2>
+<div class="table"><table><thead><tr><th>形态</th><th>PM 职责侧重</th><th>代表产品</th><th>关键 Eval</th></tr></thead>
+<tr><td><strong>文生图 T2I</strong></td><td>Prompt 体验、风格探索、订阅/积分</td><td>Midjourney、DALL·E、即梦</td><td>Aesthetic、Adherence</td></tr>
+<tr><td><strong>图编辑/Inpainting</strong></td><td>蒙版 UX、编辑强度、非破坏性工作流</td><td>Photoshop Generative Fill、Firefly</td><td>Edit fidelity、Seam blending</td></tr>
+<tr><td><strong>风格/LoRA/Character</strong></td><td>风格库、角色一致性、训练数据合规</td><td>Civitai 生态、即梦角色参考</td><td>ID consistency、Style drift</td></tr>
+<tr><td><strong>图生视频 I2V/T2V</strong></td><td>分镜、运动控制、时长/成本、时序一致</td><td>可灵、Runway Gen-3、Sora、Seedance</td><td>Temporal consistency、Physics</td></tr>
+<tr><td><strong>Agent 工作流</strong></td><td>多 Agent 分工（编剧/分镜/角色/合成）</td><td>OiiOii、纳逗 Pro、PixMax</td><td>End-to-end 成片率</td></tr>
+<tr><td><strong>Enterprise/API</strong></td><td>Identity、审计、品牌包、metering</td><td>Adobe Firefly API、OpenAI Images API</td><td>SLA、Compliance pass rate</td></tr>
+</table></div>
+</div>
+</section>
+<section id="sec5">
+<div class="wrap">
+<h2>05 按场景分化</h2>
+<div class="table"><table><thead><tr><th>场景</th><th>PM 重心</th><th>Eval/KPI</th><th>监管强度</th></tr></thead>
+<tr><td><strong>C 端创作</strong></td><td>社区审美、探索乐趣、社交分享</td><td>DAU、生成次数、付费转化</td><td>中（深度合成标识）</td></tr>
+<tr><td><strong>ToB 营销设计</strong></td><td>品牌一致、批量变体、审批流</td><td>Time-to-asset、Brand compliance</td><td>高</td></tr>
+<tr><td><strong>电商视觉</strong></td><td>商品还原、白底图、场景图</td><td>SKU 还原准确率、CTR 提升</td><td>中高</td></tr>
+<tr><td><strong>游戏资产</strong></td><td>风格统一、可编辑分层、版权清晰</td><td>Pipeline 接入率、Artist 采纳</td><td>中</td></tr>
+<tr><td><strong>广告/影视</strong></td><td>分镜预演、可控运动、交付级质量</td><td>客户验收率、重拍率</td><td>高</td></tr>
+</table></div>
+</div>
+</section>
+<section id="sec6">
+<div class="wrap">
+<h2>06 能力模型（研发级）</h2>
+<h3 class="sub">6.1 图像专属能力域</h3>
+<div class="table"><table><thead><tr><th>能力</th><th>L2 基础掌握</th><th>L3 独立负责</th><th>L4 专家</th></tr></thead>
+<tr><td>Diffusion 通识</td><td>知 forward/reverse、latent space</td><td>能评 CFG/steps/蒸馏 tradeoff</td><td>指导架构选型 DiT vs UNet</td></tr>
+<tr><td>美学 Eval</td><td>知 FID 局限</td><td>建 Rubric + Human A/B</td><td>参与行业 Benchmark 设计</td></tr>
+<tr><td>Prompt 体系</td><td>Negative prompt 库</td><td>System prompt 层 + 领域库</td><td>多语言/多风格 prompt 治理</td></tr>
+<tr><td>安全校准</td><td>知三层过滤</td><td>定 blocklist + 误杀率 KPI</td><td>跨境合规 playbook</td></tr>
+<tr><td>版权/IP</td><td>知诉讼风险</td><td>风格/角色禁令策略</td><td>授权数据/Indemnification 谈判</td></tr>
+<tr><td>算力经济</td><td>知分辨率影响成本</td><td>定 Fast/Pro tier</td><td>蒸馏/缓存 ROI 模型</td></tr>
+<tr><td>视频增量</td><td>知一致性难点</td><td>分镜+角色卡产品化</td><td>长镜头 roadmap 边界判断</td></tr>
+</table></div>
+<h3 class="sub">6.2 研发级 Eval 指标参考</h3>
+<p><strong>核心原则（SubAgent B merge）</strong>：审美是 <strong>Graded Metric（0–5）</strong>；业务可用性是 <strong>Hard Gate（Pass/Fail）</strong>。二者不可平均——「好看但 Logo 缺失/文字乱码」= 整图失败。</p>
+<div class="table"><table><thead><tr><th>场景</th><th>Hard Gate（一票否决）</th><th>Graded Metric（分层评分）</th></tr></thead>
+<tr><td>营销 Banner</td><td>Logo 存在、文案逐字匹配、品牌色</td><td>构图、光影、风格</td></tr>
+<tr><td>UI Mockup</td><td>组件可识别、文字可读、宽高比</td><td>视觉层级、设计系统贴合</td></tr>
+<tr><td>电商主图</td><td>产品轮廓完整、背景合规</td><td>美学、场景真实感</td></tr>
+<tr><td>虚拟试穿</td><td>人脸/体型 identity 不变</td><td>服装贴合度、阴影</td></tr>
+</table></div>
+<div class="formula">
+Eval 五层栈：L1 Hard Gate → L2 Human Rubric(1-5) → L3 Auto Proxy(HPSv2/PickScore) → L4 Slice Analysis → L5 Release Gate
+</div>
+<div class="table"><table><thead><tr><th>指标</th><th>测什么</th><th>PM 怎么用</th><th>局限</th></tr></thead>
+<tr><td>FID / FVD</td><td>分布距离</td><td>模型版本回归</td><td>与人类偏好相关性弱</td></tr>
+<tr><td>CLIP Score</td><td>图文对齐</td><td>Prompt adherence 自动化</td><td>忽略美学/细节</td></tr>
+<tr><td>LAION-AES / NIMA</td><td>美学预测</td><td>Aesthetic 门槛</td><td>领域偏移</td></tr>
+<tr><td>Gecko / VQAScore</td><td>细粒度 VQA 对齐</td><td>多 skill 分层 eval</td><td>需 prompt 集维护</td></tr>
+<tr><td>Human Preference (HPSv2)</td><td>人类偏好</td><td>Launch gate 金标准</td><td>成本高</td></tr>
+<tr><td>Qwen-Image-Bench 五柱</td><td>Quality/Aesthetic/Alignment/Fidelity/Creative</td><td>Creator-centric 全面诊断</td><td>1000 prompt 级</td></tr>
+<tr><td>Text-in-Image 专项</td><td>文字渲染正确率</td><td>海报/电商场景必测</td><td>当前模型普遍弱项</td></tr>
+<tr><td>Temporal Consistency (视频)</td><td>跨帧 ID/背景稳定</td><td>I2V 核心 gate</td><td>无统一标准 <span class="pending">[待确认]</span></td></tr>
+</table></div>
+<p class="src"><span class="grade-b">[B7]</span> Zro2One Image Eval Guide；<span class="grade-a">[A5]</span> MHP arXiv 2405.14705 — "FID might not reflect human aesthetic appeal"</p>
+<h3 class="sub">6.2b Red Team 与 NSFW（PM Owner）</h3>
+<p>2025 研究：文本过滤 ≠ 安全。DALL·E 3 / Imagen 3 经 rewrite 攻击后 NSFW 成功率可从 0 升至 <strong>44%+</strong>（context shift）。PM 需组织 Red Team sprint，每次 major model version 必跑。</p>
+<div class="table"><table><thead><tr><th>攻击类别</th><th>PM 动作</th></tr></thead>
+<tr><td>Explicit NSFW</td><td>Blocklist + 输出 classifier</td></tr>
+<tr><td>Implicit / 隐晦意图</td><td>Semantic classifier（非关键词）</td></tr>
+<tr><td>Context shift 组合绕过</td><td>Red team seed 库 + 多阶段检测</td></tr>
+<tr><td>版权/IP trigger</td><td>风格/角色 blocklist + 相似度检测</td></tr>
+<tr><td>图生图链式攻击</td><td>Inpaint 输入校验 + 输出二次扫描</td></tr>
+</table></div>
+<p class="src"><span class="grade-a">[A6]</span> OpenReview Red-Teaming NSFW Classifiers</p>
+<h3 class="sub">6.2c 成本优化决策（研发级）</h3>
+<p>ICCV 2025 PostDiff 结论：高保真场景下，<strong>减每步成本（mixed-resolution）</strong> 往往优于 naive 减步数。PM 应优先评估 <strong>Prompt 路由 + 两阶段超分</strong>，而非全局 50→20 步。</p>
+<div class="table"><table><thead><tr><th>策略</th><th>适用</th><th>质量影响</th><th>成本影响</th></tr></thead>
+<tr><td>减步数 50→20</td><td>草稿/预览</td><td>中-高</td><td>线性↓</td></tr>
+<tr><td>Turbo/Distilled</td><td>实时/批量</td><td>中</td><td>50-80%↓</td></tr>
+<tr><td>低分→超分两阶段</td><td>4K 交付</td><td>低-中</td><td>40-70%↓</td></tr>
+<tr><td>Prompt 复杂度路由</td><td>多 tier 产品</td><td>按 slice 优化</td><td>全局最优</td></tr>
+</table></div>
+<p class="src"><span class="grade-a">[A7]</span> PostDiff ICCV 2025；Cost-Aware Routing arXiv 2506.14753</p>
+<h3 class="sub">6.3 Diffusion 关键参数（PM 必懂）</h3>
+<div class="formula">
+Guidance Scale (CFG)：高 → 强 prompt  adherence，易过饱和/artifact；低 → 更 creative 但偏题<br/>
+Inference Steps：20-50 高质量 / 4-8 蒸馏快速（SDXL-Turbo, LCM）<br/>
+Negative Prompt：领域库例 — "blurry, deformed hands, watermark, unreadable text"<br/>
+LoRA：50-200 张图微调风格/角色 → 品牌一致性核心手段
+</div>
+<p class="src"><span class="grade-b">[B3]</span> Institute PM Diffusion Guide</p>
+<h3 class="sub">6.4 与算法/设计师/审核边界</h3>
+<div class="table"><table><thead><tr><th>事项</th><th>图像 PM</th><th>算法</th><th>设计师</th><th>审核/法务</th></tr></thead>
+<tr><td>Eval 维度定义</td><td><strong>A/R</strong></td><td>C</td><td>C</td><td>C</td></tr>
+<tr><td>模型训练/蒸馏</td><td>C</td><td><strong>A/R</strong></td><td>I</td><td>I</td></tr>
+<tr><td>视觉 UX/交互</td><td><strong>A</strong></td><td>I</td><td><strong>R</strong></td><td>I</td></tr>
+<tr><td>Safety 阈值</td><td><strong>R</strong></td><td>C</td><td>I</td><td><strong>A</strong></td></tr>
+<tr><td>风格/品牌方向</td><td>C</td><td>I</td><td><strong>A/R</strong></td><td>C</td></tr>
+<tr><td>LoRA 训练数据</td><td>C</td><td><strong>R</strong></td><td>C</td><td><strong>A</strong>（版权）</td></tr>
+</table></div>
+</div>
+</section>
+<section id="sec7">
+<div class="wrap">
+<h2>07 工作流 · JTBD · Persona</h2>
+<h3 class="sub">7.1 六阶段（图像专属交付物 · SubAgent C merge）</h3>
+<p><strong>铁三角 KPI</strong>：Acceptance Rate × Tweak Time × Safety Recall — 三者不可单点优化（Theodo 框架）。</p>
+<div class="table"><table><thead><tr><th>阶段</th><th>图像 PM 增量动作</th><th>交付物</th></tr></thead>
+<tr><td>Discovery</td><td>跟拍 Brief→参考→生成→修图→导出；竞品模型 shortlist</td><td>Workflow Map、Model Scorecard</td></tr>
+<tr><td>Define</td><td>North Star（Acceptance/Tweak Time）；Aesthetic Rubric；Safety tier</td><td>Eval Spec、Safety Policy v0</td></tr>
+<tr><td>Design</td><td>Prompt 结构化 UX；CFG/steps→「质量/速度」滑杆；Review UI</td><td>Wireframes、Parameter UX Spec</td></tr>
+<tr><td>Develop</td><td>Golden Prompt 50–100 条；Safety 三层联调；后处理管线</td><td>Prompt Suite、Eval Report</td></tr>
+<tr><td>Launch</td><td>Go/No-Go 阈值；分层发布；AIGC 标识；Commercial Safety Pack</td><td>Launch Checklist、Creator Playbook</td></tr>
+<tr><td>Iterate</td><td>KO 原因聚类→Prompt/LoRA 迭代；Safety 误杀/漏放季度复盘</td><td>Quality Dashboard、Style Changelog</td></tr>
+</table></div>
+<p class="src"><span class="grade-a">[A9]</span> Theodo — "Tweak Time: Total time required to make an image usable"</p>
+<h3 class="sub">7.1b 关键交付物 Schema（SubAgent C）</h3>
+<div class="table"><table><thead><tr><th>Style Library 字段</th><th>LoRA Catalog 字段</th></tr></thead>
+<tr><td>style_id、reference_images[]、prompt_prefix/suffix、negative_prompt、brand_id、status(draft/approved/deprecated)</td><td>lora_id/version、domain、training_set_meta、eval_score、weight_range、sunset_date</td></tr>
+</table></div>
+<h3 class="sub">7.1c Senior PM 典型周节奏</h3>
+<div class="table"><table><thead><tr><th>时段</th><th>活动</th></tr></thead>
+<tr><td>周一</td><td>Sprint + Eval 回归结论；ML Review 失败样例</td></tr>
+<tr><td>周二</td><td>用户访谈/可用性测试</td></tr>
+<tr><td>周三</td><td>Safety case 复盘；竞品 diff</td></tr>
+<tr><td>周四</td><td>PRD/Spec + Design Review</td></tr>
+<tr><td>周五</td><td>Launch/Experiment Review；Roadmap 1:1</td></tr>
+</table></div>
+<h3 class="sub">7.2 8 个图像 PM 专属 JTBD</h3>
+<ol class="clean">
+<li>把「抽卡」变成「可控生产流水线」</li>
+<li>定义「够好看/够像/够稳」的多维 rubric（非单一分数）</li>
+<li>校准 Safety 松紧（合法创作 vs 风险）</li>
+<li>管理分辨率×步数×模型的 cost-quality 三角</li>
+<li>设计角色/风格跨镜头一致性（尤其视频）</li>
+<li>建立 Prompt/LoRA 版本化与 regression 门禁</li>
+<li>应对版权/IP 诉讼与政策突变</li>
+<li>C 端社区审美 vs ToB 品牌合规 的平衡</li>
+</ol>
+<h3 class="sub">7.3 五类 Persona</h3>
+<div class="role-block"><h4>P1 · Consumer Creator PM（Midjourney/即梦）</h4>社区审美、订阅、风格探索、Discord/社区运营；KPI：DAU、retention、paid conversion</div>
+<div class="role-block"><h4>P2 · ToB Marketing Design PM（Firefly/Canva AI）</h4>品牌包、批量变体、enterprise governance；KPI：Brand compliance、time-to-asset</div>
+<div class="role-block"><h4>P3 · E-commerce Visual PM</h4>商品还原、白底/场景图、CTR；KPI：SKU 准确率、商家采纳</div>
+<div class="role-block"><h4>P4 · Game/Entertainment Asset PM</h4>风格统一、Pipeline 集成、纳逗类 Agent 矩阵；KPI：Artist 采纳、成片交付率</div>
+<div class="role-block"><h4>P5 · Video-from-Image PM（可灵/Runway）</h4>分镜、运动、一致性、时长成本；KPI：Temporal consistency pass rate、$/accepted clip</div>
+</div>
+</section>
+<section id="sec8">
+<div class="wrap">
+<h2>08 组织 · RACI · 团队搭建</h2>
+<h3 class="sub">8.1 典型组织模式</h3>
+<div class="table"><table><thead><tr><th>模式</th><th>结构</th><th>适用</th></tr></thead>
+<tr><td><strong>Model Hub + Product Squad</strong></td><td>中心 Diffusion 团队 + C端/ToB 产品线 PM</td><td>字节（即梦+可灵）、Adobe（Firefly）</td></tr>
+<tr><td><strong>Lean Creative AI Pod</strong></td><td>PM + Diffusion Eng + Designer + Trust &amp; Safety</td><td>0→1 创业、垂直工具</td></tr>
+<tr><td><strong>Platform API</strong></td><td>PM 偏开发者体验 + metering + 合规</td><td>Stability API、OpenAI Images</td></tr>
+</table></div>
+<h3 class="sub">8.2 核心 RACI（简版）</h3>
+<div class="table"><table><thead><tr><th>活动</th><th>图像 PM</th><th>Diffusion Eng</th><th>设计师</th><th>Trust &amp; Safety</th><th>法务</th><th>社区</th></tr></thead>
+<tr><td>Aesthetic Eval 定义</td><td><strong>A/R</strong></td><td>C</td><td><strong>R</strong></td><td>I</td><td>I</td><td>C</td></tr>
+<tr><td>Model/Prompt 发布</td><td><strong>A</strong></td><td><strong>R</strong></td><td>C</td><td>C</td><td>I</td><td>I</td></tr>
+<tr><td>Safety/Blocklist</td><td><strong>R</strong></td><td>C</td><td>I</td><td><strong>A</strong></td><td>C</td><td>C</td></tr>
+<tr><td>版权/IP 策略</td><td>C</td><td>C</td><td>I</td><td>C</td><td><strong>A</strong></td><td>I</td></tr>
+<tr><td>社区指南/风格趋势</td><td><strong>A</strong></td><td>I</td><td>C</td><td>C</td><td>I</td><td><strong>R</strong></td></tr>
+<tr><td>Go/No-Go</td><td><strong>A</strong></td><td>C</td><td>C</td><td><strong>R</strong></td><td><strong>R</strong></td><td>I</td></tr>
+</table></div>
+<h3 class="sub">8.3 何时需要专职图像 PM？</h3>
+<ul class="clean">
+<li>✅ 生成质量是核心差异化（非「加个 AI 按钮」）</li>
+<li>✅ 需维护风格库/LoRA/角色一致性体系</li>
+<li>✅ 内容安全/版权诉讼风险高（C 端开放生成）</li>
+<li>✅ 视频工作流复杂度超过单 PM 覆盖</li>
+<li>❌ 仅调用第三方 API 做简单包装 → 通用 AI PM + Designer 即可</li>
+</ul>
+<h3 class="sub">8.4 五大协作冲突</h3>
+<div class="table"><table><thead><tr><th>冲突</th><th>化解</th></tr></thead>
+<tr><td>算法追 SOTA vs PM 追可控工作流</td><td>双轨 OKR：Model Benchmark + Workflow Adoption</td></tr>
+<tr><td>设计师要像素控制 vs 生成概率性</td><td>Inpainting/图层导出/Edit chain 保留手动出口</td></tr>
+<tr><td>安全要严 vs 社区要自由</td><td>Tiered policy + 年龄门 + 私密/公开分区</td></tr>
+<tr><td>成本要降 vs 质量要升</td><td>Fast/Pro 双档 + 蒸馏模型 + 缓存热门 prompt</td></tr>
+<tr><td>法务禁风格 vs 用户要「像 XX 艺术家」</td><td>Blocklist + 替代风格推荐 + 授权 LoRA</td></tr>
+</table></div>
+</div>
+</section>
+<section id="sec9">
+<div class="wrap">
+<h2>09 竞品 / JD 对标（10+）</h2>
+<div class="table"><table><thead><tr><th>公司</th><th>岗位要点</th><th>图像 PM 专属</th><th>来源等级</th></tr></thead>
+<tr><td>Adobe Firefly</td><td>GenAI imaging models roadmap；build vs partner；creator workflow</td><td>Photography 理解、Firefly 模型策略、KPI: quality/adoption</td><td><span class="grade-a">A</span></td></tr>
+<tr><td>Adobe FDI</td><td>Layout generation、brand-aware automation</td><td>Design intelligence、enterprise brand governance</td><td><span class="grade-a">A</span></td></tr>
+<tr><td>Adobe Foundry Studio</td><td>VFX pipeline、LoRA、conditioning、eval</td><td>Diffusion 深度、M&amp;E enterprise、cost/quality</td><td><span class="grade-a">A</span></td></tr>
+<tr><td>Midjourney</td><td>订阅图像服务、社区驱动</td><td>审美趋势、Discord 社区、风格探索</td><td><span class="grade-b">B</span></td></tr>
+<tr><td>OpenAI (DALL·E/Images)</td><td>Safety、API、enterprise</td><td>Usage policy、moderation stack</td><td><span class="grade-a">A</span></td></tr>
+<tr><td>Stability AI</td><td>Open weights、API、fine-tune</td><td>License 策略、开发者生态</td><td><span class="grade-b">B</span></td></tr>
+<tr><td>字节 · 即梦</td><td>C 端闭环、DeepSeek 接入、Agent 化</td><td>全模态工作流、创作者生态</td><td><span class="grade-b">B</span></td></tr>
+<tr><td>快手 · 可灵</td><td>视频生成、API 下沉</td><td>运动控制、ToB API、成本</td><td><span class="grade-b">B</span></td></tr>
+<tr><td>Runway</td><td>Gen-3 视频、专业创作</td><td>Film workflow、temporal eval</td><td><span class="grade-b">B</span></td></tr>
+<tr><td>Canva / Figma AI</td><td>设计工具内嵌生成</td><td>Design system 集成、非破坏编辑</td><td><span class="grade-b">B</span></td></tr>
+<tr><td>Google Imagen/Vertex</td><td>Cloud enterprise、responsible AI</td><td>Enterprise eval、ISO 42001</td><td><span class="grade-a">A</span></td></tr>
+</table></div>
+<p><strong>JD 共性（图像专属）</strong>：generative AI / diffusion 经验；creator workflow 理解；eval metrics（quality/adoption）；safety/governance；build vs buy model 判断；cross-functional with research/design/legal。</p>
+</div>
+</section>
+<section id="sec10">
+<div class="wrap">
+<h2>10 算力与单位经济（SubAgent E merge）</h2>
+<div class="formula">
+Cost_per_image ≈ (GPU秒数/3600) × GPU小时单价 / batch产出<br/>
+Cost_per_video_second ≈ credits/秒 × $0.01/credit（Runway API 基准）
+</div>
+<h3 class="sub">10.1 图像 $/image 对标</h3>
+<div class="table"><table><thead><tr><th>场景</th><th>单价 USD/图</th><th>条件</th><th>信源</th></tr></thead>
+<tr><td>OpenAI DALL·E 3 Standard</td><td>$0.040</td><td>1024²</td><td><span class="grade-b">B</span></td></tr>
+<tr><td>OpenAI DALL·E 3 HD</td><td>$0.080–0.120</td><td>高分辨率</td><td><span class="grade-b">B</span></td></tr>
+<tr><td>Runway gen4_image</td><td>$0.05</td><td>720p, 5 credits</td><td><span class="grade-a">A</span></td></tr>
+<tr><td>Runway gen4_image_turbo</td><td>$0.02</td><td>2 credits</td><td><span class="grade-a">A</span></td></tr>
+<tr><td>Midjourney Basic 摊销</td><td>~$0.05</td><td>$10/月≈200 fast</td><td><span class="grade-b">B</span></td></tr>
+<tr><td>自托管 SDXL 优化后</td><td>~$0.0008</td><td>H100 生产管线</td><td><span class="grade-b">B</span></td></tr>
+</table></div>
+<h3 class="sub">10.2 视频 $/秒 对标</h3>
+<div class="table"><table><thead><tr><th>模型</th><th>Credits/秒</th><th>$/秒</th><th>5s 片段</th></tr></thead>
+<tr><td>Runway Gen-4 Turbo</td><td>5</td><td>$0.05</td><td>$0.25</td></tr>
+<tr><td>Runway Gen-4.5</td><td>12</td><td>$0.12</td><td>$0.60</td></tr>
+<tr><td>Runway Veo 3</td><td>40</td><td>$0.40</td><td>$2.00</td></tr>
+</table></div>
+<p class="src"><span class="grade-a">[A10]</span> docs.dev.runwayml.com/pricing — 视频 10s Gen-4.5 ≈ 单张 HD 图 15×</p>
+<h3 class="sub">10.3 PM 决策杠杆</h3>
+<div class="table"><table><thead><tr><th>档位</th><th>典型参数</th><th>场景</th><th>成本倍率 <span class="pending">[待确认]</span></th></tr></thead>
+<tr><td>Fast</td><td>512-768, 4-8 steps, distilled</td><td>预览/抽卡</td><td>1×</td></tr>
+<tr><td>Standard</td><td>1024, 20-30 steps</td><td>社交分享/草稿</td><td>3-5×</td></tr>
+<tr><td>Pro</td><td>2048+, 40-50 steps, upscaler</td><td>印刷/商业交付</td><td>10-20×</td></tr>
+<tr><td>Video 5s</td><td>720p 24fps</td><td>短视频/广告预演</td><td>50-100× vs 单图</td></tr>
+</table></div>
+</div>
+</section>
+<section id="sec11">
+<div class="wrap">
+<h2>11 失败模式 · 退缩案例 · 监管</h2>
+<h3 class="sub">11.1 ≥10 失败/背锅模式</h3>
+<div class="table"><table><thead><tr><th>#</th><th>模式</th><th>案例/后果</th></tr></thead>
+<tr><td>1</td><td>版权角色泄漏</td><td>Disney/Universal/WB v. Midjourney 2025 — 指其「有 NSFW 过滤却无版权过滤」</td></tr>
+<tr><td>2</td><td>NSFW/Deepfake 失控</td><td>开源 SD 社区多次泄漏未审查权重</td></tr>
+<tr><td>3</td><td>抽卡体验疲劳</td><td>用户重试 20 次无可用图 → 流失</td></tr>
+<tr><td>4</td><td>FID 高但用户不买账</td><td>Vanity metric 与 aesthetic 脱节</td></tr>
+<tr><td>5</td><td>文字渲染不可用</td><td>海报/电商场景直接失败</td></tr>
+<tr><td>6</td><td>视频一致性崩溃</td><td>角色跨帧变脸 → 专业用户弃用</td></tr>
+<tr><td>7</td><td>算力成本失控</td><td>免费 tier 被刷 → 毛利率崩盘</td></tr>
+<tr><td>8</td><td>风格同质化</td><td>「AI 味」审美 → 社区负面</td></tr>
+<tr><td>9</td><td>合规标识缺失</td><td>中国深度合成办法处罚</td></tr>
+<tr><td>10</td><td>Getty v. Stability</td><td>英国：版权主张败、商标部分胜；美国案继续 <span class="pending">[待确认]</span></td></tr>
+<tr><td>11</td><td>Copilot Designer 有害图</td><td>良性 prompt 输出有害内容；PM 发布门槛背锅 <span class="grade-a">A</span></td></tr>
+<tr><td>12</td><td>标识被剥离</td><td>用户裁切/重编码去 AIGC 元数据</td></tr>
+</table></div>
+<h3 class="sub">11.2 退缩/失败案例（SubAgent E merge）</h3>
+<ul class="clean">
+<li><strong>Google Gemini 人像</strong>（2024-02）：历史人物族裔错误 → 暂停「生成人物」；hidden diversity prompt 缺场景白名单</li>
+<li><strong>Microsoft Copilot Designer</strong>：DALL·E 叠加层安全不足；封禁部分词条</li>
+<li><strong>Stability AI</strong>：~$99M/年 GPU vs ~$11M 收入；CEO 更迭、战略收缩至企业</li>
+<li><strong>Character.AI</strong>（2025）：终止 U18 开放聊天；青少年伤害诉讼</li>
+<li><strong>Midjourney</strong>：2023 取消免费试用；Disney/Universal/WB 2025 联合起诉</li>
+<li><strong>DeviantArt DreamUp</strong>：默认 opt-in 训练 → 社区反弹改 opt-in</li>
+<li><strong>Runway Gen-3</strong>：2026-07-30 sunset，强制迁移 Gen-4.5</li>
+</ul>
+<h3 class="sub">11.3 中美监管对照（SubAgent E merge）</h3>
+<div class="table"><table><thead><tr><th>维度</th><th>中国</th><th>美国</th></tr></thead>
+<tr><td>核心法规</td><td>深度合成规定 + 生成式暂行办法 + <strong>《AI生成合成内容标识办法》2025-09-01</strong> + GB 45438-2025</td><td>版权人类作者主义；州法 Deepfake（TN ELVIS Act 等）；联邦提案中</td></tr>
+<tr><td>标识义务</td><td><strong>显式角标 + 隐式元数据</strong>（导出须含 AIGC 字段）</td><td>C2PA/SynthID 行业自律为主</td></tr>
+<tr><td>PM 首要风险</td><td>不合规下架、行政处罚</td><td>诉讼赔偿、品牌危机、州法民事起诉</td></tr>
+<tr><td>版权</td><td>训练数据合法性趋严</td><td>纯 AI 输出不享版权（USCO 2025）</td></tr>
+<tr><td>Deepfake</td><td>人像/声纹 consent + 标识</td><td>NIL/V 州法；选举 deepfake 禁令</td></tr>
+</table></div>
+<p class="src"><span class="grade-a">[A11]</span> gov.cn 标识办法第四条 — "在图片适当位置添加显著提示标识"</p>
+</div>
+</section>
+<section id="sec12">
+<div class="wrap">
+<h2>12 立场对照</h2>
+<div class="devil"><p><strong>挑战 1：「图像 PM = 设计师转岗」不完全对</strong> — 设计师转岗缺 Diffusion Eval、算力经济、Safety 校准；纯算法 PM 转岗缺审美 rubric 与创作 workflow 理解。最优仍是 T 型：产品 + 视觉 taste + Diffusion 通识。</p></div>
+<div class="devil"><p><strong>挑战 2：「工作流 &gt; 模型」有边界</strong> — 当基础模型 leap（如角色原生一致性），薄编排层价值会被压缩（OiiOii 类风险）。PM 需同时 bet workflow 深度与 model 升级窗口。</p></div>
+<div class="devil"><p><strong>挑战 3：开源 vs 闭源 PM 技能不通用</strong> — SD/FLUX 生态 PM 需懂权重/LoRA/ComfyUI；Midjourney/DALL·E PM 需懂 API 限制与 policy。产品需对齐公司业务模式。</p></div>
+<div class="devil"><p><strong>挑战 4：美学 Eval 主观性无法完全消除</strong> — Human preference 仍是 gold standard；自动化 metric 仅作 regression 辅助，不能替代 launch gate 人工评审。</p></div>
+<h3 class="sub">行业与工程落地建议 (Actionable Recommendations)</h3>
+<ul class="clean">
+<li><strong>Portfolio 三件套</strong>：① Aesthetic Rubric + 20 条 golden prompt eval ② Safety policy 样例 ③ Workflow teardown（即梦/可灵/MJ 选一）</li>
+<li><strong>Go/No-Go 标准答法</strong>：Hard Gate → offline metric on fixed set → slice regression → human A/B → red team pass rate → cost SLA</li>
+<li><strong>典型业务决策推演</strong>：「FID 很好但设计师说变差」→ 拉 slice，查 gate pass rate，品牌 slice 降则拒上线；「50 步→20 步省 60% 成本做不做」→ 看 gate + HPSv2 + 考虑路由/减每步成本</li>
+<li><strong>边界口诀</strong>：PM 定标准，算法达标准，设计师定审美锚点，审核员守最后一道门</li>
+<li><strong>必会术语</strong>：CFG、Steps、LoRA、Inpainting、ControlNet、Temporal Consistency、HPSv2、Hard Gate</li>
+</ul>
+<p class="src">SubAgent B merge：<span class="grade-b">[B8]</span> Tomorrow Explained 2026 — "If an image fails a gate, it fails completely, no matter how beautiful"</p>
+</div>
+</section>
+<section id="sources" style="border-bottom:none">
+<div class="wrap">
+<h2>✦ 附录 与 来源</h2>
+<details class="acc" open=""><summary>附录 A · 参考来源</summary><div class="body">
+<div class="table"><table><thead><tr><th>#</th><th>来源</th><th>等级</th></tr></thead>
+<tr><td>A1</td><td><a href="https://arxiv.org/html/2605.28091" rel="noopener" target="_blank">Qwen-Image-Bench</a></td><td class="grade-a">A</td></tr>
+<tr><td>A2</td><td><a href="https://arxiv.org/html/2404.16820" rel="noopener" target="_blank">Gecko T2I Evaluation</a></td><td class="grade-a">A</td></tr>
+<tr><td>A3</td><td><a href="https://courtlistener.com (CACD 2:25-cv-05275)" rel="noopener" target="_blank">Disney v. Midjourney 诉状</a></td><td class="grade-a">A</td></tr>
+<tr><td>A4</td><td><a href="https://builtin.com/job/principal-product-manager-generative-ai-models-firefly" rel="noopener" target="_blank">Adobe Firefly PM JD</a></td><td class="grade-a">A</td></tr>
+<tr><td>B1</td><td><a href="https://woshipm.com/ai/6378162.html" rel="noopener" target="_blank">woshipm《从抽卡到可控》</a></td><td class="grade-b">B</td></tr>
+<tr><td>B2</td><td><a href="https://toutiao.com/article/7606618702984888841" rel="noopener" target="_blank">Seedance 2.0 产品分析</a></td><td class="grade-b">B</td></tr>
+<tr><td>B3</td><td><a href="https://institutepm.com/knowledge-hub/diffusion-models-guide" rel="noopener" target="_blank">Institute PM Diffusion Guide</a></td><td class="grade-b">B</td></tr>
+<tr><td>B4</td><td><a href="https://woshipm.com/ai/6191051.html" rel="noopener" target="_blank">woshipm 可灵 vs 即梦</a></td><td class="grade-b">B</td></tr>
+<tr><td>B5</td><td><a href="https://woshipm.com/ai/6358508.html" rel="noopener" target="_blank">woshipm OiiOii Agent 拆解</a></td><td class="grade-b">B</td></tr>
+<tr><td>B6</td><td><a href="https://variety.com/2025/.../midjourney-copyright" rel="noopener" target="_blank">Variety Midjourney 诉讼报道</a></td><td class="grade-b">B</td></tr>
+<tr><td>C1</td><td><a href="https://theproductjourney.substack.com" rel="noopener" target="_blank">PM-Designer 角色演变</a></td><td class="grade-c">C</td></tr>
+</table></div>
+</div></details>
+<details class="acc"><summary>附录 B · 维度执行</summary><div class="body">
+<p>✅ d1 差异矩阵   ✅ d2 产品形态   ✅ d3 场景   ✅ d4 能力模型(研发级)   ✅ d5 工作流+Persona   ✅ d6 RACI   ✅ d7 JD 10+   ✅ d8 算力经济   ✅ d9 失败模式   ✅ d10 中美监管   ✅ d11 退缩案例   ❌ d12 薪资（跳过）</p>
+</div></details>
+<details class="acc"><summary>附录 C · P5 轻量自审计</summary><div class="body">
+<ul class="clean">
+<li>✅ 11/11 维度覆盖</li>
+<li>✅ 研发级：Diffusion 参数 + 8 类 Eval 指标 + 算力公式</li>
+<li>✅ 含图生视频边界</li>
+<li>✅ 行业与工程落地建议 (Actionable Recommendations) 专章</li>
+<li>✅ SubAgent A/C/B/E 已 merge（§2 迁移清单 · §6 Eval · §7 工作流 · §10–11 算力/监管）；D（RACI）待 merge</li>
+<li>⚠️ 部分案例/薪资/诉讼进展标 <span class="pending">[待确认]</span></li>
+</ul>
+</div></details>
+</div>
+</section>
+<footer>
+<div class="wrap">
+<hr style="border:none; border-top:1px solid var(--line); margin: 32px 0 16px;"/>
+<p style="font-size: 13px; color: var(--mute); text-align: center;">
+        本报告基于 deep-research 技能标准编译完成 · 图像生成与多模态视觉产品经理研发级参考指南
+      </p>
+</div>
+</footer>
+</div>
+
+
+
+<script>
+document.getElementById('sidebarClose')?.addEventListener('click', () => { document.body.classList.add('sidebar-closed'); });
+document.getElementById('sidebarOpen')?.addEventListener('click', () => { document.body.classList.remove('sidebar-closed'); });
+const links = [...document.querySelectorAll('#nl a')].filter(a => a.getAttribute('href').startsWith('#'));
+const targets = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const activeLink = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+      if (activeLink) activeLink.classList.add('active');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '-10% 0px -70% 0px' });
+
+targets.forEach(t => observer.observe(t));
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S5b 工业级评测金标集 (Eval Harness) 与护栏规则</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#b4531f;--ok:#2f6b45;--bad:#a12a2a;--warn:#a8761f;--code:#f2f2ef}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#e08a52;--ok:#7ab88f;--bad:#e08585;--warn:#d6a75a;--code:#202020}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:16px/1.72 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:20px 24px 120px}
+h1{font-size:25px;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 8px}
+h2{font-size:15px;margin:58px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--line);letter-spacing:.02em}
+h2 .n{color:var(--muted);font-weight:400;margin-right:10px;font-variant-numeric:tabular-nums}
+h3{font-size:14.5px;margin:26px 0 8px;color:var(--fg)}
+p{margin:0 0 14px}ul,ol{margin:0 0 14px;padding-left:20px}li{margin:6px 0}
+em{font-style:normal;color:var(--accent);font-weight:600}
+.lead{font-size:17px;line-height:1.62;border-left:2px solid var(--accent);padding:2px 0 2px 18px;margin:26px 0 34px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 16px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:12.5px;color:var(--muted);letter-spacing:.03em}
+td.c,th.c{text-align:center}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.wn{color:var(--warn);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin:0 0 16px}
+.card h4{margin:0 0 8px;font-size:13.5px;letter-spacing:.03em;color:var(--muted);text-transform:uppercase}
+.card.hot{border-color:var(--accent);border-width:1.5px}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border:1px solid var(--line);border-radius:20px;color:var(--muted);margin-right:6px}
+.tag.a{border-color:var(--accent);color:var(--accent)}
+hr{border:0;border-top:1px solid var(--line);margin:52px 0}
+.foot{color:var(--muted);font-size:12.5px;line-height:1.7}
+</style></head><body><div class="wrap">
+
+<p><a href="index.html" style="color:var(--muted);text-decoration:none;font-size:13px">← 返回文档导航</a></p>
+
+<h1>S5b 工业级评测金标集 (Eval Harness)</h1>
+<p class="sub">2026-09-17 · 拦截不可控的 AI 幻觉，定义最低可行质量 (MVQ)</p>
+<p><span class="tag a">50+ 恶劣样本库</span><span class="tag a">自动熔断触发器</span><span class="tag a">Gold Standard Dataset</span></p>
+
+<p class="lead"><strong>生成式系统无法依靠穷举点击来完成测试，必须依赖结构化的金标数据集（Gold Standard Eval Harness）。</strong><br>针对「一键图文解耦」与「CMYK映射」两大高危动作，我们构建了包含 50+ 个恶性极端用例（Edge Cases）的评测集，并为算法团队设定了确切的置信度边界与验收标准。</p>
+
+<h2><span class="n">01</span>评测金标集构建（Golden Dataset）</h2>
+<p>我们从真实商单废稿中提取了 50 张极具破坏性的测试图层，划分为三大灾难场景：</p>
+
+<table>
+<tr><th style="width:15%">场景分类</th><th style="width:30%">恶劣样本示例 (Bad Case Examples)</th><th>预期系统行为 (Guardrail)</th><th>验收达标底线 (MVQ)</th></tr>
+<tr>
+<td><b>A. 遮挡与半透明</b><br>(测试 Inpainting)</td>
+<td>
+1. 文字压在半透明的渐变轻纱/烟雾特效上。<br>
+2. 文字周围有大量角色毛发穿插。<br>
+3. 手写书法字体，边缘连笔极其不规则。
+</td>
+<td><b>拒绝暴力修补。</b><br>当底层纹理复杂度 (Texture Entropy) 超标时，主动降低置信度，高亮红框交还画师，生成遮罩蒙版，但不在画布强制合并。</td>
+<td>100% 拦截“强行补平导致画面崩坏”的恶性幻觉。允许 20% 的长尾复杂图挂起需人工处理。</td>
+</tr>
+<tr>
+<td><b>B. 色彩断层</b><br>(测试 CMYK 映射)</td>
+<td>
+1. 赛博朋克风：极高对比度的 RGB 荧光粉色与青色。<br>
+2. 发光图层混合模式 (Color Dodge) 强转。
+</td>
+<td><b>视口热力图预警。</b><br>不能静默转码导致色彩变脏，必须在印前体检阶段，用红色热力图在画布上圈出“色域死区”，让画师自己做饱和度压制决策。</td>
+<td>对 15 个荧光色测试用例的热力图检出率达到 99%。</td>
+</tr>
+<tr>
+<td><b>C. 工程极限</b><br>(测试系统韧性)</td>
+<td>
+1. 2.5 GB 的巨型 PSD (分辨率 12000x8000)。<br>
+2. 包含 350+ 个嵌套编组。
+</td>
+<td><b>触发 OOM 熔断路由。</b><br>3 秒内探出显存或 CPU 溢出，立即中止 AI 解耦，全速回落到纯本地的普通 ZIP 打包。</td>
+<td>OOM 导致 PS 宿主崩溃率 0%。彻底杜绝插件把原软件搞崩。</td>
+</tr>
+</table>
+
+<h2><span class="n">02</span>算法评估指标定义 (Evaluation Metrics)</h2>
+
+<div class="card hot">
+<h4>决不采用学术界的 Accuracy 虚荣指标</h4>
+<p>在交付管线中，画师不在乎大模型在 COCO 数据集上的 IoU (交并比) 多少。我们定义了直击业务痛点的三个专属指标：</p>
+</div>
+
+<ul>
+<li><b>Resolution Rate (一次修复成功率)</b>：在 A 类常规样本中，AI 解耦与修补能直接过审、画师不按 <code>Ctrl+Z</code> 的比例。目标值：<b>85%</b>。</li>
+<li><b>Manual Handover Rate (主动降级接管率)</b>：在检测到可能崩坏时，系统<em>主动拒绝</em>修补并挂起让人工接手的比例。这是健康的指标，目标值：<b>10% ~ 15%</b>（比强行修补惹怒用户好一万倍）。</li>
+<li><b>Destructive Error Rate (破坏性错误率)</b>：最恶劣的指标！即 AI 自作聪明弄脏了底图、合并了错误图层，导致画师必须疯狂撤销。目标值：<b>严格 < 0.5%</b>。</li>
+</ul>
+
+<h2><span class="n">03</span>安全护栏机制 (Guardrails Action)</h2>
+<p>当系统判断当前任务即将击穿安全基线时，触发以下护栏：</p>
+<div class="flow">
+<b>护栏 1：图层保护沙盒</b><br>
+所有的 AI 补底操作，全部在一个新建的 <code>[AI_Temp_Recover]</code> 隐式图层组进行。<br>
+用户永远可以通过隐藏该图层组，一键还原 100% 原始画面，绝不允许直接在用户原图层上做像素覆盖 (Destructive Editing)。<br><br>
+<b>护栏 2：操作日志与置信水印</b><br>
+每一次 Handoff 导出，系统不仅存证，还会向画师输出一份隐藏的 JSON 日志，记录本次打包有哪些图层被 AI 处理过、置信度是多少，为日后追溯定责提供铁证。
+</div>
+
+</div></body></html>

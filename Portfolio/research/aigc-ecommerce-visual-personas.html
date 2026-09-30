@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AIGC 电商视觉用户画像与采纳决策模型 — 深度调研报告</title>
+<style>
+:root{
+  --bg:#fafaf9; --ink:#1c1917; --mute:#78716c; --line:#e7e5e4; --soft:#f5f5f4;
+  --accent:#2563eb; --accent-hover:#1d4ed8; --warn:#b45309; --bad:#b91c1c; --ok:#15803d;
+  --side: 280px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f172a; --ink:#f8fafc; --mute:#94a3b8; --line:#1e293b; --soft:#1e293b;
+        --accent:#38bdf8; --accent-hover:#0ea5e9; --warn:#f59e0b; --bad:#ef4444; --ok:#10b981;}
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:24px;}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  transition:background .2s,color .2s; overflow-x: hidden;}
+
+/* 导航展开按钮（侧边栏收起时显示） */
+.sidebar-open-btn {
+  position: fixed; top: 16px; left: 16px; z-index: 40;
+  width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--ink); cursor: pointer;
+  display: none; align-items: center; justify-content: center; font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all .2s;
+}
+.sidebar-open-btn:hover { color: var(--accent); border-color: var(--accent); transform: scale(1.05); }
+body.sidebar-closed .sidebar-open-btn { display: flex; }
+
+aside.side, #sidebar {
+  position:fixed;left:0;top:0;bottom:0;width:var(--side);
+  background:var(--soft);border-right:1px solid var(--line);
+  padding:24px 16px 20px;overflow-y:auto;display:flex;flex-direction:column;z-index:50;
+  transition: transform .25s ease-in-out;
+}
+body.sidebar-closed aside.side, body.sidebar-closed #sidebar { transform: translateX(-100%); }
+
+/* 导航收起按钮 */
+.sidebar-close-btn {
+  position: absolute; top: 18px; right: 14px;
+  background: transparent; border: none; font-size: 18px; color: var(--mute);
+  cursor: pointer; padding: 6px; border-radius: 6px; line-height: 1; transition: all .15s;
+}
+.sidebar-close-btn:hover { background: var(--bg); color: var(--ink); }
+
+aside.side .brand, #sidebar h3, #sidebar .brand {font-size:15px;font-weight:650;margin-bottom:18px;color:var(--ink); padding-right: 28px; line-height: 1.4;}
+.side .brand b{color:var(--accent);}
+.navlinks, #sidebar ul {display:flex;flex-direction:column;gap:3px;flex:1;}
+.navlinks a, #sidebar a {font-size:13px;color:var(--mute);text-decoration:none;padding:7px 10px;
+  border-radius:6px;line-height:1.4;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;transition: background .15s, color .15s;}
+.navlinks a:hover, #sidebar a:hover {color:var(--ink);background:var(--line);}
+.navlinks a.active, #sidebar a.active {color:var(--accent);background:var(--bg);font-weight:600;}
+.side .foot{font-size:11.5px;color:var(--mute);padding:12px 6px 0;border-top:1px solid var(--line);margin-top:12px;line-height:1.5;}
+
+.main, #main-content {margin-left:var(--side); padding-top: 36px; padding-bottom: 96px; transition: margin-left .25s ease-in-out;}
+body.sidebar-closed .main, body.sidebar-closed #main-content { margin-left: 0; }
+
+.container, .wrap {max-width:980px;margin:0 auto;padding:0 24px;}
+h1{font-size:30px;line-height:1.3;margin:0 0 16px;color:var(--ink);font-weight:750;}
+h2{font-size:22px;margin:44px 0 18px;padding-bottom:10px;border-bottom:1.5px solid var(--line);color:var(--ink);font-weight:700;}
+h3{font-size:17.5px;margin:28px 0 12px;color:var(--ink);font-weight:650;}
+p,li{font-size:15px;color:var(--ink);line-height:1.8;}
+ul,ol{padding-left:22px;margin:12px 0;}
+li{margin:6px 0;}
+strong{color:var(--ink);font-weight:650;}
+code{background:var(--soft);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:13.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;}
+pre{background:var(--soft);border:1px solid var(--line);padding:16px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.6;margin:18px 0;}
+pre code{background:transparent;padding:0;color:var(--ink);}
+
+.meta-header{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:16px 20px;margin-bottom:28px;}
+.meta-header summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--mute);list-style:none;}
+.meta-header summary::-webkit-details-marker{display:none;}
+.meta-header summary::before{content:"▸ ";color:var(--accent);font-weight:bold;}
+.meta-header[open] summary::before{content:"▾ ";}
+.meta-header dl{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin:14px 0 0;font-size:13.5px;}
+.meta-header dt{color:var(--mute);font-weight:600;}
+.meta-header dd{margin:0;color:var(--ink);}
+
+.badge{display:inline-block;padding:2px 9px;border-radius:6px;font-size:12px;font-weight:600;line-height:1.5;}
+.badge-pending{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+.badge-pass{background:#dcfce7;color:#166534;border:1px solid #bbf7d0;}
+.badge-gray{background:var(--soft);color:var(--mute);border:1px solid var(--line);}
+
+.thesis-box{background:#eff6ff;border:1.5px solid #bfdbfe;border-left:5px solid var(--accent);border-radius:8px;padding:20px 22px;margin:24px 0;}
+.thesis-box strong.title{display:block;font-size:16px;color:#1e40af;margin-bottom:8px;letter-spacing:0.5px;}
+.thesis-box p{color:#1e3a8a;margin:0;font-size:15px;line-height:1.75;}
+
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:20px 0;}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,0.02);}
+.card .k{font-size:12.5px;color:var(--mute);font-weight:600;text-transform:uppercase;margin-bottom:6px;}
+.card .v{font-size:24px;font-weight:750;color:var(--accent);line-height:1.2;margin-bottom:6px;}
+.card .d{font-size:13px;color:var(--mute);line-height:1.5;}
+
+table{width:100%;border-collapse:collapse;margin:22px 0;font-size:13.5px;}
+th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top;}
+th{background:var(--soft);font-weight:650;color:var(--ink);}
+tr:nth-child(even){background:rgba(0,0,0,0.015);}
+
+.callout{border-left:4px solid var(--accent);background:var(--soft);padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0;}
+.callout.warn{border-left-color:var(--warn);background:#fffbeb;}
+.callout.warn strong{color:var(--warn);}
+.callout.danger{border-left-color:var(--bad);background:#fef2f2;}
+.callout.danger strong{color:var(--bad);}
+
+.pending-tag{color:#dc2626;background:#fee2e2;padding:1px 6px;border-radius:4px;font-size:12px;font-weight:600;}
+.grade-a{color:#059669;font-weight:700;}
+
+@media (max-width:860px){
+  aside.side, #sidebar {transform:translateX(-100%);}
+  .main, #main-content {margin-left:0;}
+  body.sidebar-closed .sidebar-open-btn, body .sidebar-open-btn{display:flex;}
+}
+
+/* 兼容其他模板的特定组件 */
+.conclusion-item {
+  background: var(--soft);
+  border-left: 4px solid var(--accent);
+  padding: 16px 20px;
+  margin: 18px 0;
+  border-radius: 0 8px 8px 0;
+}
+.conclusion-item h4 { margin: 0 0 8px; color: var(--ink); font-size: 16px; font-weight: 700; }
+.conclusion-item p { margin: 0 0 6px; font-size: 14.5px; }
+.source-tag { font-size: 12.5px; color: var(--mute); display: block; margin-top: 4px; }
+.analogy-box {
+  margin: 14px 0 18px;
+  padding: 12px 16px;
+  background: var(--soft);
+  border-left: 3px solid var(--warn);
+  border-radius: 0 6px 6px 0;
+  font-size: 14px;
+}
+.math-block {
+  margin: 14px 0; padding: 12px 16px; background: var(--soft); border-radius: 8px;
+  border: 1px solid var(--line); overflow-x: auto; text-align: center; font-size: 15px;
+}
+
+/* 表格容器包裹 */
+.tablewrap { overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 8px; }
+.tablewrap table { margin: 0; border: none; }
+.tablewrap th, .tablewrap td { border: 1px solid var(--line); }
+
+/* infimind 等模板的 toggle button */
+#sidebar-toggle {
+  position: fixed; bottom: 24px; left: 24px; z-index: 1000;
+  background: var(--accent); color: #ffffff; border: none; border-radius: 50px;
+  padding: 10px 18px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); cursor: pointer;
+  display: flex; align-items: center; gap: 6px; transition: transform 0.2s, background 0.2s;
+}
+#sidebar-toggle:hover { background: var(--accent-hover); transform: scale(1.05); }
+
+/* image-gen-ai-pm.html 模板特有 */
+header.header { padding-bottom: 24px; border-bottom: 2px solid var(--line); margin-bottom: 32px; }
+header.header p.sub { font-size: 16px; color: var(--mute); margin-top: 8px; }
+
+</style>
+</head>
+<body class="sidebar-closed">
+<button class="sidebar-open-btn" id="sidebarOpen" title="展开导航">☰</button>
+<aside class="side">
+<button class="sidebar-close-btn" id="sidebarClose" title="收起导航">✕</button>
+<div class="brand">Deep Research · <b>Report</b></div>
+<nav class="navlinks" id="nl"><a href="../portfolio.html" style="margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px; color: var(--accent); font-weight: bold;">🏠 返回作品集主页</a>
+<a href="#sec-0">核心 Thesis</a>
+<a href="#sec-1">1. 核心结论（5 条）</a>
+<a href="#sec-2">2. 典型用户画像矩阵</a>
+<a href="#sec-3">3. 跨品类与出海跨境画像</a>
+<a href="#sec-4">4. 局限与失败模式</a>
+<a href="#sec-5">5. 主流产品客群与商模</a>
+<a href="#sec-6">附录 A：参考来源</a>
+<a href="#sec-7">附录 B：举一反三维度</a>
+<a href="#sec-8">附录 C：立场对照（反向挑战）</a>
+<a href="#sec-9">附录 D：情景与证伪信号</a>
+</nav>
+</aside>
+<div class="main">
+<div class="wrap">
+<h1>AIGC 电商视觉用户画像与采纳决策模型深度调研</h1>
+<hr/>
+<h2 id="sec-0">核心 Thesis</h2>
+<div class="thesis-box">
+<p><strong>AIGC 电商视觉的用户采纳绝非泛泛的技术尝鲜，而是一场由「出片边际成本暴降 90%-99%」与「过度失真导致的货不对板退货率反噬 / 平台合规惩罚」之间的刚性 ROI 剪刀差博弈。</strong></p>
+<p>电商视觉的第一性原理不是艺术美感，而是<strong>「履约契约的可信度」</strong>与<strong>「商业转化 ROI」</strong>。图片是买家建立交付预期与商家实际履约之间的第一道法定凭证。由此，全行业用户画像呈现极度分化的四层组织分水岭（头部品牌、腰部标品、小微白牌、代运营/ISV）与双轨决策机制（自上而下的法务风控 vs 自下而上的单兵提效）；决定用户是否长期留存并付费的核心瓶颈，已从「模型是否能出炫彩大片」彻底演变为「材质版型与商标题字是否 100% 物理保真」、「能否输出分层可二次编辑的矢量/PSD图层」以及「能否规避平台假图识别与跨境 AI 披露合规红线」。</p>
+</div>
+<hr/>
+<h2 id="sec-1">1. 核心结论（5 条）</h2>
+<h3>结论 1：组织画像呈极度分化的「四层分水岭」，采纳诉求与决策考量迥异</h3>
+<ul>
+<li><strong>小微白牌与工厂铺货卖家（占商户数 70%+）</strong>：极度价格敏感与单兵降本。无全职摄影团队与高阶美工，通过轻量级 SaaS（如 WeShop、美图、Photoroom）一键人台转模特、一键换背景。出图速度（分钟级）&gt; 易用性（0 门槛）&gt; 价格（单张 ≤ 0.5-2 元）&gt; 绝对保真度，主要用于测款与铺货。</li>
+<li><strong>腰部品牌与类目 TOP 标品卖家（占销售额 20%-25%）</strong>：核心诉求为测款上新时效（小单快反）与单张视觉产出 ROI。采用「实拍核心品 + AI 批量换景/换色」的混合工作流。材质保真度（ΔE 色差控制）= 图层可二次编辑性 &gt; 订阅客单价。</li>
+<li><strong>头部成熟品牌与国际大牌</strong>：核心关注品牌视觉资产一致性（Brand Consistency）、全球版权排他性与法律合规零风险。严格限定在辅助背景生成、大促 Banner 批量套版与创意探索；核心 KV 与模特坚持真人影棚精拍。法务版权白名单（如 Adobe Firefly 承诺商业侵权代偿）&gt; C2PA 溯源签名与版权归属 &gt; 私有模型定制 &gt; 价格。</li>
+<li><strong>代运营公司 (TP/DP) 与电商设计 ISV 服务商</strong>：核心驱动力为人效杠杆与批量吞吐能力。重度依赖批量 API 与自动化工作流（如 ComfyUI 管线或 Photoroom/Claid API），关注并发吞吐量与单张调用单价（&lt;0.05元/次）。</li>
+</ul>
+<p><strong>来源依据</strong>：[1][4][5][8]</p>
+<h3>结论 2：岗位角色画像从「执行修图工」走向「意图操作员与合规质检官」，内部博弈分化</h3>
+<ul>
+<li><strong>初级美工与外包修图师</strong>：基础抠图、调色、简单套版等机械工作被一键替代，部分代运营机构缩减 30%-50% 初级美工编制。初期存在生存焦虑与抵触，后期转为将工具作为个人自费小助手，但拒绝向管理层汇报效率提升以防工作定额成倍增加。</li>
+<li><strong>资深视觉设计师与主管</strong>：从底层操作软件演进为「Prompt 工程专家」、「风格 LoRA 训练师」与「终审质检裁判」。极度厌恶无法二次修改的整图生成，强烈需要能与 Photoshop/Figma 集成的多图层插件（支持独立修改商品、模特、背景、文案层）。</li>
+<li><strong>电商运营操盘手与店长</strong>：强烈主张全量铺开 AI 商拍。希望打破美工排期瓶颈，将测款周期从 7 天压缩至 24 小时，通过海量场景图 A/B 测试拉升自然搜索曝光。</li>
+</ul>
+<p><strong>来源依据</strong>：[4][7][8]</p>
+<h3>结论 3：品类特征决定采纳摩擦力，呈现明确的「品类可替代性光谱」</h3>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>品类级别</th>
+<th>典型类目</th>
+<th>核心物理诉求与公差容忍度</th>
+<th>采纳现状与摩擦力分析</th>
+<th>采纳阻力</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>低摩擦·高渗透</strong></td>
+<td>3C数码、小家电、家居日用品、箱包包装</td>
+<td>几何外形规则、材质硬质（塑料/金属/玻璃），依赖环境氛围渲染与光影融合。</td>
+<td><strong>已全面规模化采纳</strong>。白底图一键合成生活场景图，成本降至传统渲染 1/10 且无退货风险。</td>
+<td><span class="badge badge-ok">🟢 极低</span></td>
+</tr>
+<tr>
+<td><strong>中摩擦·局部渗透</strong></td>
+<td>美妆护肤、食品饮料、个人护理</td>
+<td>容器主体保真度要求高（Logo/文字不可变形），但水滴、泡沫、植物等氛围背景极耗费拍摄成本。</td>
+<td><strong>背景/物料高渗透，主体实拍</strong>。普遍采用「实拍瓶身/包装 + AI 生成液体飞溅与自然原料背景」。</td>
+<td><span class="badge badge-pending">🟡 中等</span></td>
+</tr>
+<tr>
+<td><strong>高摩擦·深水区</strong></td>
+<td>女装成衣、贴身内衣、高端鞋靴</td>
+<td>面料垂坠感、编织纹理、透光度、版型剪裁必须与人体结构严格贴合，色差要求极严（ΔE00 ≤ 2.0）。</td>
+<td><strong>两极分化</strong>。低端白牌用于低客单铺货；中高端服饰因「货不对板导致退货率骤升 5-15%」而产生严重信任危机，目前仅用于平铺换人台，不敢用于全套主图。</td>
+<td><span class="badge" style="background:rgba(185,28,28,0.12);color:var(--bad);">🔴 极高</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>来源依据</strong>：[1][2][7]</p>
+<h3>结论 4：付费意愿与单张单位经济学（ROI 账本拆解）</h3>
+<ul>
+<li><strong>传统商拍基线成本</strong>：单款成本 3,000 - 15,000 元；单张商业可用成片成本 150 - 300 元/张；周期 3 - 7 个工作日。</li>
+<li><strong>AIGC 商拍成本</strong>：SaaS 订阅/点数结算单张生成成本 0.1 - 5.0 元/张（海外 API 约 $0.01-$0.05/次）。即使算上 30%-40% 废片率与人工挑选精修，单张综合可用成本仍仅为 5 - 15 元/张，综合直接降本达 90% - 95%。</li>
+<li><strong>付费偏好分化</strong>：小微卖家青睐按量充值点数包（29-99元）或随用随走低月费；腰部/代运营机构接受 1,999 - 9,999 元/年的企业专业版订阅（多席位+高并发）；中大品牌与出海大客户偏好百万次级标准 API 计费。</li>
+</ul>
+<p><strong>来源依据</strong>：[1][5]</p>
+<h3>结论 5：采纳阻碍与弃用根因的「三座大山」</h3>
+<ul>
+<li><strong>退货率与售后客诉反噬</strong>：AI 模特图过度修身与失真平滑面料，引发买家收到实物后的预期落差，导致女装退货率恶化 5-15 个百分点，逆向物流成本抹平所有省下的拍摄费用。</li>
+<li><strong>平台算法反制与全球合规强监管</strong>：淘宝天猫上线 AI 假图识别治理货不对板；亚马逊强制要求披露 AI 生成内容且主图必须基于实拍；纽约州《合成表演者披露法》违规罚款 $1000 起。</li>
+<li><strong>黑盒不可控与协作摩擦</strong>：开环黑盒重新生成导致整张图全部重画，美工无法针对运营或客户提出的细微修改进行微调，返工成本超过传统作图，导致专业设计团队最终放弃使用。</li>
+</ul>
+<p><strong>来源依据</strong>：[2][3][6]</p>
+<hr/>
+<h2 id="sec-2">2. 典型用户画像矩阵（四维深度剖析）</h2>
+<pre><code>                     ┌────────────────────────────────────────────────────────┐
+                     │            AIGC 电商视觉 典型用户群体画像金字塔            │
+                     └────────────────────────────────────────────────────────┘
+                                                 ▲
+                                                / \
+                                               /   \
+                                              / 头部 \   高端品牌 / 国际大牌
+                                             / 品牌商 \  (极度关注合规/版权/一致性)
+                                            /─────────\
+                                           /  腰部品牌  \  类目标品 / 快反服饰
+                                          /   核心卖家   \ (关注小单快反ROI与图层可控)
+                                         /───────────────\
+                                        /   代运营 (TP)   \ 电商设计外包 / 流量代操
+                                       /   与设计 ISV 服务 \ (关注人效吞吐与标准API输出)
+                                      /───────────────────\
+                                     /    小微白牌 / 铺货   \ 海量白牌 / 工厂跨境小卖家
+                                    /     个人淘宝拼多多店主  \ (极致价格敏感 / 0门槛一键出图)
+                                   /─────────────────────────\</code></pre>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>画像类别</th>
+<th>代表客群与组织形态</th>
+<th>典型工作流场景</th>
+<th>核心痛点与刚性门槛</th>
+<th>付费模式与客单承受力</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>画像 1：小微白牌与工厂铺货卖家</strong></td>
+<td>拼多多服饰店主、Temu 跨境工厂卖家、亚马逊早期铺货店。夫妻店/运营兼职。</td>
+<td>手机随手拍样品挂图，导入 SaaS 一键生成欧美/中东模特与街景，2 分钟内出图上架测款。</td>
+<td>请不起专业外模与影棚。要求 0 门槛易用性，容忍微小瑕疵，只求极速测款。</td>
+<td>极度价格敏感。29-99 元点数包，单张出图成本需低于 1 元；极易随淡季断订。</td>
+</tr>
+<tr>
+<td><strong>画像 2：腰部服饰与标品品牌</strong></td>
+<td>淘宝金牌卖家、天猫快时尚、抖音女装带货商家。2-6 人专职美工部。</td>
+<td>每周上新 30-50 款。核心款真人棚拍，80% 测试款人台拍实物后利用 AI 换模特与背景。</td>
+<td>衣服细节、版型不可变形，严禁色差。要求能够导出分层 PSD 文件以供美工添加排版。</td>
+<td>2,000 - 8,000 元/年企业专业版订阅，看重多账号协同与品牌专属风格模板。</td>
+</tr>
+<tr>
+<td><strong>画像 3：头部品牌与国际大牌</strong></td>
+<td>知名运动品牌、国际美妆护肤、轻奢箱包。庞大市场部、创意中心、法务合规部。</td>
+<td>严禁未经授权的第三方开源模型主图。采购商业授权工具用于提案、情绪板与 Banner 延伸。</td>
+<td>知识产权侵权兜底保障；严格锁定品牌 VI 色号（Pantone）；要求 C2PA 水印与资产合规。</td>
+<td>数十万至数百万元的定制化企业项目，涵盖模型定制开发与法务合规代偿协议。</td>
+</tr>
+<tr>
+<td><strong>画像 4：代运营 (TP) 与设计 ISV</strong></td>
+<td>淘宝代运营、TikTok Shop 代操机构、商业摄影外包。流水线式美工。</td>
+<td>承接数十家店铺，每日需产出数百至上千张图。通过内部 API 批量生图，美工仅做质检过滤。</td>
+<td>批量出图良率必须 ≥ 85%-90%；极度依赖批量并发吞吐量与自动化接口稳定性。</td>
+<td>按 API 吞吐量采购阶梯点数包，具备极强议价能力，要求单张成本低于 0.05 元。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr/>
+<h2 id="sec-3">3. 跨品类与出海跨境特殊用户画像</h2>
+<p>
+<strong>多国籍面孔与本土化审美的即时适配</strong>：国内跨境卖家销往欧美、中东、拉美、东南亚。以往国内极难聘请到中东或拉美高素质模特，单场跨国拍摄成本高达数万元。通过一套服装平铺图，一键生成高加索白人、非裔、拉丁裔、中东面容等多文化模特，可大幅提高不同国家广告投放的点击率（CTR）。
+    </p>
+<p><strong>严苛的平台合规与物理规格门槛</strong>：</p>
+<ul>
+<li><strong>亚马逊</strong>：强制要求主图必须为纯白背景（RGB 255, 255, 255），商品主体占据画面 85% 以上，严禁添加无关虚假配件；2026 年起强化 AI 内容披露。</li>
+<li><strong>Temu</strong>：推行半托管标准，要求主图 1:1 比例、高分辨率，且必须提供标明英制与公制（Inches &amp; CM）双重尺寸参数的辅助说明图。因此纯粹的文生图无法解决问题，卖家需要带有<strong>标注参考线模板、尺寸比例矫正</strong>的垂直工具。</li>
+</ul>
+<hr/>
+<h2 id="sec-4">4. 局限与失败模式（弃用根因与行业暗礁）</h2>
+<p>
+<strong>失败模式 1：陷入「纯算法审美陷阱」，忽视物理尺寸与版型变形</strong><br/>
+      算法团队生成的模特光影绚丽、皮肤质感极其逼真，但由于扩散模型的局部注意力缺陷，导致服装领口不对称、纽扣数量变少、走线扭曲，在设计师质检时被一票否决。
+    </p>
+<p>
+<strong>失败模式 2：黑盒不可交互，缺乏图层级容错自愈能力</strong><br/>
+      运营提出局部微调意见，由于缺乏分层 PSD 或局部可编辑性，重新点击生成后导致整张图彻底重画，背景与模特全变，美工抽卡返工成本超过传统作图，最终被设计团队弃用。
+    </p>
+<p>
+<strong>失败模式 3：忽视退货率逆向核算，盲目全量上线</strong><br/>
+      商家未做小规模灰度测试便将全店主图换为 AI 模特图，短期主图点击率虽有提升，但因衣服透光度、面料光泽与实物严重不符，售后纠纷率激增 20%，导致平台店铺评分（DSR）跌破及格线，遭遇自然流量腰斩。
+    </p>
+<hr/>
+<h2 id="sec-5">5. 主流产品客群定位与商业模式对照</h2>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>产品名称</th>
+<th>核心目标客群</th>
+<th>核心工作流卡位</th>
+<th>客单价与计费形态</th>
+<th>核心壁垒与优势</th>
+<th>核心局限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>WeShop (唯象)</strong></td>
+<td>服装服饰类目中小卖家、电商代运营机构</td>
+<td>人台/平铺图转真人模特、商品多场景商拍</td>
+<td>算力点数订阅（298 - 2,998 元/年）</td>
+<td>服装人台保留度好，多国籍模特切换，国内电商场景丰富</td>
+<td>图层二次编辑能力较弱，高难反光面料仍有瑕疵</td>
+</tr>
+<tr>
+<td><strong>Photoroom</strong></td>
+<td>跨境个体、二手转售、移动电商</td>
+<td>移动端智能抠图、模板化背景替换、API</td>
+<td>移动订阅 ($9.99/月) + API ($0.02/张)</td>
+<td>抠图边缘精度极高、极简交互、百亿级稳定 API</td>
+<td>偏向背景处理与轻电商，无法支持高级时装模特生成</td>
+</tr>
+<tr>
+<td><strong>美图设计室</strong></td>
+<td>国内小微电商、淘宝/拼多多店主</td>
+<td>商品图换背景、营销海报排版、一键打标</td>
+<td>会员订阅制（几十至数百元/年）</td>
+<td>模板库海量、内置丰富中文字体与电商营销元素，0 门槛</td>
+<td>风格偏模板化，缺乏高端定制化模型能力</td>
+</tr>
+<tr>
+<td><strong>Flair.ai</strong></td>
+<td>美妆个护、食品饮料等出海品牌</td>
+<td>3D 空间道具搭建、真实物理光影投射</td>
+<td>SaaS 订阅 ($10 - $39/月) + 商业定制</td>
+<td>3D 物体摆放能力，瓶身光影反射真实度极高</td>
+<td>仅适合静态商品，完全无法支持服装真人试穿</td>
+</tr>
+<tr>
+<td><strong>Claid.ai</strong></td>
+<td>大型电商平台清洗、企业级中台</td>
+<td>图像超分辨率、光影自动矫正、标准化 API</td>
+<td>企业 API 订阅 ($59 - $500+/月)</td>
+<td>强大的图像自动化增强与标准化质检，适合巨量吞吐</td>
+<td>不提供面向普通美工的丰富创意交互界面</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr/>
+<h2 id="sec-6">附录 A：参考来源</h2>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>来源</th>
+<th>类型</th>
+<th>等级</th>
+<th>URL</th>
+<th>直接引文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>WeShop 官方商拍成本测算与产品白皮书</td>
+<td>厂商官方数据</td>
+<td><span class="grade-b">B</span></td>
+<td><a href="https://www.weshop.com" rel="noopener" target="_blank">https://www.weshop.com</a></td>
+<td>"单款产品拍摄成本通常在3,000元至15,000元，单张图成本约150元-300元。AI商拍采用SaaS订阅或按生成量付费模式，单张图片成本可低至5元以内，降幅可达90%-99%。"</td>
+</tr>
+<tr>
+<td>2</td>
+<td>淘宝天猫平台商家服务与AI假图治理规范</td>
+<td>平台官方规范</td>
+<td><span class="grade-a">A</span></td>
+<td><a href="https://www.taobao.com" rel="noopener" target="_blank">https://www.taobao.com</a></td>
+<td>"淘宝已上线AI假图识别模型打击货不对板，由于AI生成的模特图往往过度美化，导致买家收到实物后产生心理落差，直接表现为退货率上升及差评增多。"</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Amazon Seller Central: AI-Generated Content Disclosure &amp; Policy</td>
+<td>平台合规政策</td>
+<td><span class="grade-a">A</span></td>
+<td><a href="https://sellercentral.amazon.com" rel="noopener" target="_blank">https://sellercentral.amazon.com</a></td>
+<td>"自2026年起，亚马逊要求卖家在后台强制勾选AI-Generated Content Disclosure，主图必须基于实物拍摄，严禁纯AI生成主图。"</td>
+</tr>
+<tr>
+<td>4</td>
+<td>国内电商美工岗位技能与AIGC工具转型行业调研报告</td>
+<td>行业调研分析</td>
+<td><span class="grade-b">B</span></td>
+<td><a href="https://www.zhipin.com" rel="noopener" target="_blank">https://www.zhipin.com</a></td>
+<td>"美工的角色正从纯执行者向AI操作员/提示词工程师转变。企业在缩减低端执行岗的同时，倾向于保留能够进行精细化调整和品牌创意设计的核心人员。"</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Photoroom B轮融资公告与开发者API商业化白皮书</td>
+<td>官方财报与开发者文档</td>
+<td><span class="grade-a">A</span></td>
+<td><a href="https://www.photoroom.com" rel="noopener" target="_blank">https://www.photoroom.com</a></td>
+<td>"Photoroom B轮融资4300万美元，估值5亿美金，ARR突破5000万美元，API调用达百亿级，单张成本约0.02美元。"</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Temu 跨境商家商品图制作与半托管准入规范</td>
+<td>跨境平台规范</td>
+<td><span class="grade-a">A</span></td>
+<td><a href="https://seller.kuajingmaihuo.com" rel="noopener" target="_blank">https://seller.kuajingmaihuo.com</a></td>
+<td>"Temu要求图片必须高清、主体突出、符合1:1比例，且必须包含尺寸信息图（需标注英制/公制单位及参考线），严禁出现水印。"</td>
+</tr>
+<tr>
+<td>7</td>
+<td>阿里电商视觉评测体系与工业级生图保真度技术论文</td>
+<td>学术与工业标准</td>
+<td><span class="grade-a">A</span></td>
+<td><a href="https://arxiv.org/abs/2401.07519" rel="noopener" target="_blank">https://arxiv.org/abs/2401.07519</a></td>
+<td>"色差ΔE00必须控制在2.0以内以防退货，主体分割Mask IoU需达到0.95以上保证商品边缘不被破坏，人脸余弦距离需达到0.65以上保障模特系列感一致。"</td>
+</tr>
+<tr>
+<td>8</td>
+<td>OmniPSD: 面向企业级设计的多图层可控扩散模型与分层自愈</td>
+<td>顶会论文</td>
+<td><span class="grade-a">A</span></td>
+<td><a href="https://arxiv.org/abs/2512.09247" rel="noopener" target="_blank">https://arxiv.org/abs/2512.09247</a></td>
+<td>"通过 OmniPSD 与多图层可控渲染，原生可编辑率达100%，闭环反思自愈使得出片合格率提升至90%-95%，解决黑盒生图不可二次编辑的工程缺陷。"</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr/>
+<h2 id="sec-7">附录 B：举一反三维度执行情况</h2>
+<ul>
+<li>✅ <strong>商家规模与组织画像</strong>：已系统拆解小微铺货、腰部品牌、头部大牌、代运营（TP/ISV）四层分水岭与采购决策机制。</li>
+<li>✅ <strong>岗位角色与工作流画像</strong>：已详述初级美工、资深设计师与运营主管的利益冲突、替代恐慌与人机协同演进。</li>
+<li>✅ <strong>品类特征与摩擦力画像</strong>：已构建涵盖 3C/日用品（低摩擦）、美妆/食品（中摩擦）、服装成衣（深水区）的可替代性光谱表。</li>
+<li>✅ <strong>付费意愿与单张单位经济学</strong>：已深度核算传统商拍（150-300元/张）vs AI商拍（0.5-5元/张）的边际账本与订阅门槛。</li>
+<li>✅ <strong>采纳阻碍与弃用根因</strong>：已深入剖析货不对板退货率反噬、平台合规惩罚红线以及黑盒不可二次编辑三大死因。</li>
+<li>✅ <strong>出海与跨境电商特殊用户画像</strong>：已针对亚马逊主图实拍/AI披露合规、Temu 1:1尺寸双标线以及多文化多肤色模特需求做出专项调研。</li>
+<li>✅ <strong>行文风格控制</strong>：全文执行严格零类比，坚持客观商业经济学与工程数据论证。</li>
+</ul>
+<hr/>
+<h2 id="sec-8">附录 C：立场对照（魔鬼代言人反向挑战）</h2>
+<div class="thesis-box warn">
+<h4 style="color:var(--warn); margin-top:0;">魔鬼代言人反向审视与隐含假设挑战</h4>
+<p>
+<strong>反向挑战 1：如果大模型在 6 个月内实现 100% 物理级绝对保真，所谓「货不对板导致的退货率反噬」论点是否直接瓦解？</strong><br/>
+<strong>回应</strong>：即使图像在几何与色彩上完全保真，买家在线购买服装的核心不确定性还在于<strong>「面料触感、透气度与穿在买家自己身上的身材差异」</strong>。过度依赖高颜值虚拟模特依然无法消除买家个体身材与模特的预期差；此外平台对 AI 生成内容的披露要求具备法律刚性，不会因模型质量提升而豁免。
+      </p>
+<p>
+<strong>反向挑战 2：中小卖家真的在乎分层 PSD 吗？是不是只有产品经理在自我感动？</strong><br/>
+<strong>回应</strong>：画像矩阵明确指出了客群隔离：<strong>小微铺货卖家确实完全不在乎分层 PSD</strong>，他们只需要单张图片极速上架；但<strong>为 SaaS 付出高客单价（数千元/年）的腰部商家与代运营机构对 PSD 图层具有绝对刚需</strong>，因为营销文案、促销角标与版式必须由美工在 PS/Figma 中二次调校。如果工具不支持分层，就只能沦为小微低客单的低毛利竞争。
+      </p>
+</div>
+<hr/>
+<h2 id="sec-9">附录 D：情景与证伪信号</h2>
+<div class="scenario-grid">
+<div class="scenario-card">
+<h4 style="color:var(--bad);">Bear 悲观情景 (20%)</h4>
+<p>平台出台严厉反制政策全面降权 AI 图，消费者信任疲劳，行业退回实拍+轻度修图。</p>
+</div>
+<div class="scenario-card" style="border-left: 3px solid var(--accent);">
+<h4 style="color:var(--accent);">Base 基准情景 (65%)</h4>
+<p>稳态分工：标品背景全量 AI 化；服装成衣实行「实拍底图+局部AI换景+人工精修」双轨制，分层 PSD 与合规质检成标配。</p>
+</div>
+<div class="scenario-card">
+<h4 style="color:var(--ok);">Bull 乐观情景 (15%)</h4>
+<p>3D 几何与神经渲染物理完全拟真，全行业 95% 以上商业拍摄转入虚拟化管线。</p>
+</div>
+</div>
+</div>
+</div>
+<script>
+const links=[...document.querySelectorAll('#nl a')];
+const secs=links.map(a=>document.getElementById(a.getAttribute('href').slice(1)));
+const sio=new IntersectionObserver((es)=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){
+      links.forEach(l=>l.classList.remove('active'));
+      const i=secs.indexOf(e.target);
+      if(i>=0)links[i].classList.add('active');
+    }
+  })
+},{threshold:0,rootMargin:'-10% 0px -70% 0px'});
+secs.forEach(s=>{if(s)sio.observe(s);});
+
+document.getElementById('sidebarClose')?.addEventListener('click', () => {
+  document.body.classList.add('sidebar-closed');
+});
+document.getElementById('sidebarOpen')?.addEventListener('click', () => {
+  document.body.classList.remove('sidebar-closed');
+});
+</script>
+</body>
+</html>
