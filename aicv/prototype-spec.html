@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>出版级 AI 绘画工作台 · 交互原型功能与模块规格说明书</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: Georgia, serif;
+      font-size: 20px;
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      word-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202936;
+      --muted: #647181;
+      --line: #e3e8ed;
+      --accent: #276a72;
+      --paper: #ffffff;
+      --canvas: #f1f4f5;
+      --nav-accent: #2563eb;
+      --nav-muted: #64748b;
+      --nav-line: #e2e8f0;
+    }
+    html {
+      background: var(--canvas);
+      color: var(--ink);
+      font: 16px/1.75 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    body {
+      box-sizing: border-box;
+      max-width: 1080px;
+      margin: 36px auto;
+      padding: 58px 76px 72px;
+      background: var(--paper);
+      border: 1px solid #e8ecef;
+      border-radius: 12px;
+      box-shadow: 0 16px 48px rgb(32 41 54 / 7%);
+      hyphens: none;
+      overflow-wrap: anywhere;
+    }
+    .spec-nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: -58px -76px 34px;
+      padding: 13px 28px;
+      border-bottom: 1px solid var(--nav-line);
+      background: rgb(255 255 255 / 95%);
+      backdrop-filter: blur(12px);
+    }
+    .spec-nav a {
+      flex: 0 0 auto;
+      color: var(--nav-muted);
+      text-decoration: none;
+      transition: color .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .spec-nav a:focus-visible {
+      outline: 3px solid rgb(37 99 235 / 28%);
+      outline-offset: 2px;
+    }
+    .spec-nav-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 1px solid var(--nav-line);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .spec-nav-back:hover { color: var(--nav-accent) !important; border-color: var(--nav-accent); background: #eff6ff; }
+    .spec-nav-links {
+      display: flex;
+      flex: 1 1 auto;
+      align-items: center;
+      gap: 3px;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+      white-space: nowrap;
+    }
+    .spec-nav-links::-webkit-scrollbar { display: none; }
+    .spec-nav-links a {
+      padding: 7px 9px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .spec-nav-links a:hover { color: var(--nav-accent); background: #eff6ff; }
+    .spec-nav-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      border: 1px solid var(--nav-accent);
+      border-radius: 6px;
+      background: var(--nav-accent);
+      color: #fff !important;
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .spec-nav-action:hover { border-color: #1d4ed8; background: #1d4ed8; }
+    h1, h2, h3, h4 {
+      color: #172e3d;
+      line-height: 1.38;
+      letter-spacing: 0;
+    }
+    h1 {
+      margin: 0 0 1.1em;
+      font-size: clamp(1.8rem, 4vw, 2.35rem);
+      letter-spacing: .015em;
+    }
+    h2 {
+      margin-top: 2.5em;
+      padding-top: .9em;
+      border-top: 1px solid var(--line);
+      font-size: 1.48rem;
+    }
+    h3 { margin-top: 1.8em; font-size: 1.13rem; }
+    p, li { color: #354252; }
+    strong { color: #182d3b; }
+    a { color: var(--accent); }
+    blockquote {
+      margin: 1.5em 0;
+      padding: .9em 1.2em;
+      border: 0;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+      background: #f4f8f7;
+      color: var(--muted);
+    }
+    blockquote p { margin: .2em 0; }
+    hr { height: 0; border-top: 1px solid var(--line); background: none; margin: 2em 0; }
+    pre {
+      padding: 1.15em 1.25em;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f6f8f9;
+      line-height: 1.45;
+    }
+    pre code { white-space: pre; }
+    :not(pre) > code {
+      padding: .12em .38em;
+      border: 1px solid #e7ecef;
+      border-radius: 4px;
+      background: #f4f6f7;
+      color: #275b62;
+      white-space: normal;
+    }
+    table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
+    thead { background: #f3f6f7; }
+    th, td { padding: .7em .85em; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    tbody { border: 0; }
+    th { color: #203744; font-weight: 650; }
+    @media (max-width: 700px) {
+      body { margin: 0; padding: 30px 22px 44px; border: 0; border-radius: 0; box-shadow: none; }
+      html { font-size: 15px; }
+      h2 { font-size: 1.32rem; }
+      .spec-nav {
+        top: 0;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: -30px -22px 26px;
+        padding: 10px 14px 8px;
+      }
+      .spec-nav-links { order: 3; flex: 1 1 100%; }
+      .spec-nav-links a { padding: 6px 8px; }
+      .spec-nav-action { margin-left: auto; }
+    }
+    @media print {
+      html { background: white; }
+      body { max-width: none; margin: 0; padding: 0; border: 0; box-shadow: none; }
+      h2 { break-after: avoid; }
+      pre, table, blockquote { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+<nav class="spec-nav" aria-label="原型规格导航">
+  <a class="spec-nav-back" href="publishing-workbench.html">← 返回工作台</a>
+  <div class="spec-nav-links" aria-label="章节跳转">
+    <a href="#一-原型定位与设计目标">01 定位</a>
+    <a href="#二-系统架构与三大底层支柱">02 架构</a>
+    <a href="#三-画布系统双层视口架构规格-dual-viewport-canvas">03 画布</a>
+    <a href="#四-核心业务流水线5-大阶段功能模块详细规格">04 流程</a>
+    <a href="#五-全要素资产中台模块规格-asset-hub-specification">05 资产</a>
+    <a href="#六-rbac-权限协同与多租户隔离规格-rbac--multi-tenant-engine">06 权限</a>
+    <a href="#七-界面布局与组件设计规范-uiux-specification">07 界面</a>
+    <a href="#八-验收与交互验证路径-walkthrough-demo-path">08 演示</a>
+  </div>
+  <a class="spec-nav-action" href="publishing-workbench-prototype.html">▶ 打开交互原型</a>
+</nav>
+<h1 id="出版级-ai-绘画工作台--交互原型功能与模块规格说明书-prototype-specification">出版级 AI 绘画工作台 · 交互原型功能与模块规格说明书 (Prototype Specification)</h1>
+<blockquote>
+<p><strong>版本</strong>：v1.0<br />
+<strong>定位</strong>：面向出版级工业化 AIGC 生产线的端到端交互沙盘原型设计规范 (Interactive Sandbox Prototype Spec)<br />
+<strong>对标业务</strong>：教材教辅、儿童绘本（40页长篇叙事）全业务链路工业化闭环<br />
+<strong>配套文档</strong>：PRD 01（全局架构与商业化）、PRD 02（工作流与画布）、PRD 03（LoRA资产化）、PRD 04（质检与合规）</p>
+</blockquote>
+<hr />
+<h2 id="一-原型定位与设计目标">一、 原型定位与设计目标</h2>
+<h3 id="11-核心命题与演示目的">1.1 核心命题与演示目的</h3>
+<p>传统 AIGC 绘画工具多停留在“单张独立生图、碰运气抽卡、扁平位图无法修改、缺乏物理印刷标准”的玩票阶段。本交互原型旨在构建一个<strong>高保真、可沉浸式操作的工业级 SaaS 生产中台沙盒</strong>，直观展现如何将 AIGC 的概率性输出重构为<strong>高度确定性、合规闭环的现代出版流水线</strong>。</p>
+<h3 id="12-演示实战载体案例">1.2 演示实战载体案例</h3>
+<p>原型以实战项目 <strong>《森林里的小兔子》第 3 册（40 页幼教连续绘本）</strong> 的端到端生产作为全景体验载体，完整跑通从文字大纲录入到最终印厂交付的全部核心动作。</p>
+<hr />
+<h2 id="二-系统架构与三大底层支柱">二、 系统架构与三大底层支柱</h2>
+<p>本原型不是单一的画板，而是由 <strong>三纵两横</strong> 构成的完整生产操作系统：</p>
+<pre><code>+---------------------------------------------------------------------------------------------------------+
+|                                顶层协同：RBAC 四角色权限矩阵与状态机                                     |
++------------------------------------+------------------------------------+-------------------------------+
+|  【横向：生产全链路交付流水线】     |  【横向：双层视口画布系统】        |  【横向：全要素资产与风控中台】|
+|  - Stage 01 文稿结构化拆解         |  - 无限分镜全景故事板 (10%~400%)    |  - 角色三视图卡与 FaceID 锁定 |
+|  - Stage 02 资产强约束锁定         |  - 定开本物理受控印刷画板 (210x285)|  - 出版社私有 LoRA 训练/评测  |
+|  - Stage 03 分层工业批量精修       |  - 3mm 红色出血线与中缝避让安全区   |  - 版面开本与图文留白库       |
+|  - Stage 04 三审三校质检与驳回回路 |  - SAM 2 智能选区 + Inpaint 笔刷   |  - 终审出片资产反哺沉淀       |
+|  - Stage 05 印前物理超分与CMYK出片 |  - LayerDiffusion 原生非破坏图层   |  - 租户沙箱隔离与版权存证     |
++------------------------------------+------------------------------------+-------------------------------+
+|                                底层支撑：ComfyUI 异步调度集群与算力计费中台                              |
++---------------------------------------------------------------------------------------------------------+</code></pre>
+<hr />
+<h2 id="三-画布系统双层视口架构规格-dual-viewport-canvas">三、 画布系统：双层视口架构规格 (Dual-Viewport Canvas)</h2>
+<p>原型彻底抛弃“无物理约束的纯涂鸦无限画布”，采用针对出版场景的**“定开本受控画板 ＋ 外围无限分镜看板”双层视口架构**：</p>
+<h3 id="31-视口-a全书分镜故事板无限画布-infinite-storyboard-canvas">3.1 视口 A：全书分镜故事板无限画布 (Infinite Storyboard Canvas)</h3>
+<ul>
+<li><strong>视口特性</strong>：
+<ul>
+<li>支持无极缩放（Zoom 10% ~ 400%）与平滑漫游（按住空格键/鼠标右键自由拖拽平移 Pan）。</li>
+<li>具备网格点阵底纹背景与物理坐标系统。</li>
+</ul></li>
+<li><strong>分镜画板矩阵 (Multi-Artboard Grid)</strong>：
+<ul>
+<li>横向/网格平铺展示整本绘本的 <strong>40 个分镜开本画板 (Page 01 ~ Page 40)</strong>。</li>
+<li>允许主编和插画师统揽全书连贯视觉流：包括<strong>色彩冷暖节奏演进</strong>、<strong>翻页动线</strong>以及<strong>角色面部与服饰的跨页一致性</strong>。</li>
+</ul></li>
+<li><strong>外围自由草稿与垫图区 (Scratchpad / Moodboard Area)</strong>：
+<ul>
+<li>画板四周的无限空间可摆放“角色三视图基准卡”、“Pantone 专属色盘”、“分镜灵感草图”。</li>
+<li><strong>跨画板拖拽</strong>：支持将外围资产卡中的主角头像直接拖放注入某个画板，该画板即刻继承该角色的提示词和一致性编码。</li>
+</ul></li>
+</ul>
+<h3 id="32-视口-b定开本受控印刷画板-focused-print-artboard">3.2 视口 B：定开本受控印刷画板 (Focused Print Artboard)</h3>
+<ul>
+<li><strong>触发机制</strong>：在无限画布中<strong>双击任意单页分镜（如双击 Page 03）</strong>，视口以平滑摄像机动画聚焦放大进入定开本精修模式。</li>
+<li><strong>物理尺规与印刷合规准线 (Print Rule Overlays)</strong>：
+<ul>
+<li><strong>物理毫米标尺 (mm Ruler)</strong>：边缘显示真实大度 16 开（210 × 285 mm）物理尺度。</li>
+<li><strong>3mm 出血切线 (Bleed Box)</strong>：外围标红 3mm 裁切警戒线，防止切边露白。</li>
+<li><strong>装订中缝安全区 (Gutter Safe Margin)</strong>：左侧或右侧显示 10~15mm 胶装阴影区，预警人物主体与文字严禁贴近装订线。</li>
+<li><strong>版心文字安全区 (Text Safe-Zone)</strong>：显示顶部 30% 留白框，确保排版字行不遮挡插画主体。</li>
+</ul></li>
+<li><strong>图层管理与局部重绘</strong>：在此视口下呼出非破坏性图层树，支持针对单一图层执行交互式笔刷修复。</li>
+<li><strong>退出机制</strong>：点击“返回全书总览”或缩小视角，平滑退回无限故事板。</li>
+</ul>
+<hr />
+<h2 id="四-核心业务流水线5-大阶段功能模块详细规格">四、 核心业务流水线：5 大阶段功能模块详细规格</h2>
+<h3 id="阶段-01文稿智能解构室-script-parsing--safe-text-area">阶段 01：文稿智能解构室 (Script Parsing &amp; Safe Text Area)</h3>
+<ul>
+<li><strong>所属角色</strong>：文字编辑 / 策划主编</li>
+<li><strong>输入内容</strong>：原稿故事文本（提供内置样本文稿《小兔子拔萝卜》一键载入按钮）。</li>
+<li><strong>核心交互与功能</strong>：
+<ol type="1">
+<li><strong>LLM 语义拆解</strong>：点击“结构化解析”，模拟打字机动画提取分镜场景 Prompt、光影基调、学科事实要素。</li>
+<li><strong>敏感词与事实初检</strong>：自动扫描文本是否含有意识形态风险或少儿违禁词汇。</li>
+<li><strong>分镜卡片流</strong>：将长篇文本拆解生成 4 组带有编号的标准分镜镜头需求卡。</li>
+<li><strong>文字安全区留白计算</strong>：根据文稿字数自动计算该页顶部所需的留白面积比例（如 25%~35%）。</li>
+</ol></li>
+<li><strong>产出交付物</strong>：结构化分镜脚本元数据、文字安全排版约束。</li>
+</ul>
+<hr />
+<h3 id="阶段-02画风-lora-与角色资产锁定-consistency--style-lock">阶段 02：画风 LoRA 与角色资产锁定 (Consistency &amp; Style Lock)</h3>
+<ul>
+<li><strong>所属角色</strong>：美术监修 / 算法工程师</li>
+<li><strong>核心交互与功能</strong>：
+<ol type="1">
+<li><strong>角色选择与特征激活</strong>：在主角“圆耳朵小白兔欢欢”和配角“红松鼠皮皮”之间切换，激活绑定的 IP-Adapter 特征。</li>
+<li><strong>专属画风 LoRA 调用</strong>：选择《出版社专属水彩水粉风 v2.1》，支持滑动调节 LoRA 权重系数（0.6 ~ 1.0）。</li>
+<li><strong>一致性实时测算面板</strong>：展示当前算法管线预估的“面部一致性置信度 (95.8%)”和“色彩漂移率 (4.2%)”，直观印证 PRD 02 核心指标。</li>
+</ol></li>
+<li><strong>产出交付物</strong>：角色基准特征包、画风权重配置包。</li>
+</ul>
+<hr />
+<h3 id="阶段-03分层画布编辑器与交互式局部重绘-layer-canvas--inpaint--核心高光">阶段 03：分层画布编辑器与交互式局部重绘 (Layer Canvas &amp; Inpaint) —— 【核心高光】</h3>
+<ul>
+<li><strong>所属角色</strong>：插画美编 / 视觉设计师</li>
+<li><strong>核心交互与功能</strong>：
+<ol type="1">
+<li><strong>LayerDiffusion 原生图层解耦管理</strong>：
+<ul>
+<li>图层 1：排版文字与安全区标记层（Eye 开关 / Lock 锁定）</li>
+<li>图层 2：前景角色层（小兔子与萝卜主体，支持透明通道单独提取）</li>
+<li>图层 3：中景道具与篱笆层</li>
+<li>图层 4：背景草地与远山天际层</li>
+</ul></li>
+<li><strong>刻意预设瑕疵诊断</strong>：画面初始状态下，小兔子手部存在“手指粘连/多余肢体”这一典型的 AI 生图瑕疵。</li>
+<li><strong>交互式 Mask 涂抹笔刷 (Inpainting Brush)</strong>：
+<ul>
+<li>用户点击左侧“选区笔刷”工具，在兔子手部瑕疵区域进行涂抹，出现半透明红色蒙版选区。</li>
+<li>支持调节笔刷半径（Brush Size）。</li>
+</ul></li>
+<li><strong>局部提示词定向重绘</strong>：
+<ul>
+<li>提示词框输入：“修复为标准少儿卡通四指爪子，自然握持胡萝卜叶”。</li>
+<li>点击“执行局部重绘”，模拟 2 秒异步任务调度，<strong>手部瞬间修复，背景和衣服 100% 保持完全不变</strong>。</li>
+</ul></li>
+<li><strong>Before / After 动态比对滑块</strong>：用户可左右拖拽分割线，对比修复前后的像素级细节。</li>
+</ol></li>
+<li><strong>产出交付物</strong>：高保真分层修图工程稿件。</li>
+</ul>
+<hr />
+<h3 id="阶段-04vlm-多模态初筛与三审三校在线批注-quality-gate--review-loop--核心闭环">阶段 04：VLM 多模态初筛与三审三校在线批注 (Quality Gate &amp; Review Loop) —— 【核心闭环】</h3>
+<ul>
+<li><strong>所属角色</strong>：责任编辑 / 终审专家</li>
+<li><strong>核心交互与功能</strong>：
+<ol type="1">
+<li><strong>VLM 四级质检漏斗仪表盘</strong>：
+<ul>
+<li>政治与意识形态安全：<code>100% PASS</code>（绿色）</li>
+<li>学科事实与常识准确度：<code>98% PASS</code>（绿色）</li>
+<li>少儿形体与审美达标度：初始预警为 <code>82% WARN</code>（检测出手部畸变）</li>
+<li>印刷物理工程指标：<code>待印前校验</code></li>
+</ul></li>
+<li><strong>责编在线圈点批注工具</strong>：
+<ul>
+<li>责编可在画面任意坐标框选打标，添加便签批注（如：“Page 03 兔子领口纽扣颜色应为黄色，当前为白色，不符合设定”）。</li>
+</ul></li>
+<li><strong>【核心闭环】逆向驳回返修回路 (Review Reject Loop)</strong>：
+<ul>
+<li>点击“❌ 质检驳回并派发工单”按钮，系统触发返修动画，<strong>工单直接回流至 Stage 03 分层画布</strong>，并自动定位到错误图层和批注区域，模拟 15 分钟内快速返修闭环。</li>
+</ul></li>
+<li><strong>终审合格签发</strong>：
+<ul>
+<li>点击“✅ 三审三校合规通过”，画面中央印上鲜艳的<strong>红色“出版审校合格电子签章”</strong>，解锁 Stage 05。</li>
+</ul></li>
+</ol></li>
+<li><strong>产出交付物</strong>：三审三校签署工单、质量审查溯源记录。</li>
+</ul>
+<hr />
+<h3 id="阶段-05印前工业超分与-cmyk-分色出片-pre-press--cmyk-purifier">阶段 05：印前工业超分与 CMYK 分色出片 (Pre-Press &amp; CMYK Purifier)</h3>
+<ul>
+<li><strong>所属角色</strong>：印制排版组 / 印刷厂对接人</li>
+<li><strong>核心交互与功能</strong>：
+<ol type="1">
+<li><strong>300 DPI 出版级超分对比</strong>：
+<ul>
+<li>提供 <code>72 DPI (屏幕预览)</code> 与 <code>300 DPI (出版超分)</code> 切换，放大查看细微毛发与纸张纤维质感。</li>
+</ul></li>
+<li><strong>CMYK 印刷胶印色域模拟滤镜</strong>：
+<ul>
+<li>切换 <code>RGB 屏幕色</code> vs <code>CMYK 印刷打样色</code>，模拟真实油墨吸收造成的轻微饱和度变化，防止印后色差废版。</li>
+</ul></li>
+<li><strong>K100 纯单色黑文字提纯开关</strong>：
+<ul>
+<li>开启/关闭单色黑对比：直观演示“四色黑 (CMYK) 套印重影模糊”与“K100 纯单黑刀刻般锐利”的工艺差异。</li>
+</ul></li>
+<li><strong>3mm 出血裁切自检</strong>：
+<ul>
+<li>自动校验四周出血位内是否有关键图文被误裁。</li>
+</ul></li>
+<li><strong>工业交付物导出</strong>：
+<ul>
+<li>点击“导出工业印刷包”，下载包含分层 PSD、印刷高清 PDF 以及 C2PA 版权哈希存证文件的打包清单。</li>
+</ul></li>
+</ol></li>
+<li><strong>产出交付物</strong>：印刷分层 PSD 母版、300 DPI CMYK 印刷高精 PDF。</li>
+</ul>
+<hr />
+<h2 id="五-全要素资产中台模块规格-asset-hub-specification">五、 全要素资产中台模块规格 (Asset Hub Specification)</h2>
+<p>在原型主界面可通过快捷入口打开 <strong>企业级资产抽屉 (Asset Center Drawer)</strong>，包含四大子模块：</p>
+<h3 id="51-角色全要素资产卡-character-model-cards">5.1 角色全要素资产卡 (Character Model Cards)</h3>
+<ul>
+<li><strong>展示内容</strong>：
+<ul>
+<li>角色三视图（正面、侧面、45度仰角透视基准图）。</li>
+<li>冻结特征标识：<code>FaceID: #4096-VEC</code>、<code>IP-Adapter Weight: 0.85</code>。</li>
+<li>Pantone 标准色盘锁定（如身体毛色：Pantone 11-0601 TPG、衣服色：Pantone 17-1563 TPG）。</li>
+<li>常见情绪表情矩阵（开心、惊讶、疑惑、难过）。</li>
+</ul></li>
+</ul>
+<h3 id="52-出版社专属画风-lora-库-style-lora-hub--studio">5.2 出版社专属画风 LoRA 库 (Style LoRA Hub &amp; Studio)</h3>
+<ul>
+<li><strong>展示内容</strong>：
+<ul>
+<li>当前出版社已训练好的私有画风资产列表（如《阳光绘本风 v2.1》、《国风线描水墨风 v1.2》）。</li>
+<li><strong>轻量训练向导模拟 (No-Code LoRA Studio)</strong>：
+<ul>
+<li>15~50 张正交样本清洗标准规范卡。</li>
+<li>WD14 结构化自动打标预览（正向特征词提取、背景干扰词剔除）。</li>
+<li><strong>过拟合拦截雷达图 (Overfitting Benchmark)</strong>：展示风格泛化度、角色依从度、色彩漂移度雷达打分。</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="53-开本版式与留白模板库-layout--safe-zone-library">5.3 开本版式与留白模板库 (Layout &amp; Safe-Zone Library)</h3>
+<ul>
+<li><strong>展示内容</strong>：
+<ul>
+<li>大度 16 开（210 × 285 mm）绘本模板。</li>
+<li>正度 16 开（185 × 260 mm）教材模板。</li>
+<li>自动带入 3mm 出血位与 12mm 中缝装订装订线。</li>
+</ul></li>
+</ul>
+<h3 id="54-资产反哺增值闭环-asset-mining--feedback">5.4 资产反哺增值闭环 (Asset Mining &amp; Feedback)</h3>
+<ul>
+<li><strong>核心交互</strong>：
+<ul>
+<li>终审项目完成时，支持点击“一键入库反哺”，系统自动将该书的高评分插画切片脱敏归档入社内模型库，使专属画风越用越聪明。</li>
+</ul></li>
+</ul>
+<hr />
+<h2 id="六-rbac-权限协同与多租户隔离规格-rbac--multi-tenant-engine">六、 RBAC 权限协同与多租户隔离规格 (RBAC &amp; Multi-Tenant Engine)</h2>
+<h3 id="61-顶栏-4-角色切换器联动机制">6.1 顶栏 4 角色切换器联动机制</h3>
+<p>原型顶栏常驻角色切换胶囊组件 <code>[文字编辑 | 美术监修 | 责任编辑 | 印制工程师]</code>，点击切换后，整套工作台的按钮可用性、编辑权限与侧边栏进行动态限制：</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">协同角色</th>
+<th style="text-align: left;">允许操作的核心模块</th>
+<th style="text-align: left;">被限制/禁用的越权操作</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>文字编辑</strong></td>
+<td style="text-align: left;">文稿录入、LLM 分镜拆解、排版留白调整</td>
+<td style="text-align: left;">禁改插画底层算法与 LoRA 参数；禁签发终审合格</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>美术监修</strong></td>
+<td style="text-align: left;">资产库调用、LoRA 权重调节、分层画布操作、笔刷局部重绘、提交审校工单</td>
+<td style="text-align: left;">禁擅自审批通过三审三校；禁改动印前分色物理曲线</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>责任编辑</strong></td>
+<td style="text-align: left;">VLM 质检看板查看、在线画圈批注、<strong>派发驳回返修工单</strong>、<strong>电子签章终审放行</strong></td>
+<td style="text-align: left;">禁直接篡改美术图层（权责分离，仅能圈选提返修）</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>印制工程师</strong></td>
+<td style="text-align: left;">300 DPI 超分控制、CMYK 色彩滤镜校准、单色黑分离、出血位检验、导出印刷包</td>
+<td style="text-align: left;">在三审未通过前本模块全局锁定；禁止改动故事文稿</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-多租户物理沙箱与数据安全-tenant-sandbox">6.2 多租户物理沙箱与数据安全 (Tenant Sandbox)</h3>
+<ul>
+<li><strong>租户标识</strong>：顶栏明确显示 <code>【当前租户：人民教育出版集团 (TENANT-PEP-01)】</code>。</li>
+<li><strong>物理隔离提示</strong>：社内专属 LoRA 库标注 <code>[私有沙箱隔离中 · 禁止跨社泄漏]</code>。</li>
+<li><strong>数字资产存证</strong>：导出文件包含包含数字水印 <code>Hash: C2PA-2026-PEP-ILLUST-V3</code>。</li>
+</ul>
+<hr />
+<h2 id="七-界面布局与组件设计规范-uiux-specification">七、 界面布局与组件设计规范 (UI/UX Specification)</h2>
+<ul>
+<li><strong>设计语言</strong>：沉浸式暗色/深灰专业生产力工具风格（类似 Figma / Linear / Adobe UXP / VS Code）。</li>
+<li><strong>主界面划分</strong>：
+<ol type="1">
+<li><strong>Top Bar (高 56px)</strong>：项目信息、租户徽标、<strong>角色切换器</strong>、全书任务进度、算力 Token 监控。</li>
+<li><strong>Left Flow Nav (宽 68px/220px)</strong>：5 大阶段步骤切换（带当前节点完成度徽标）。</li>
+<li><strong>Center Main Canvas (自适应弹性视口)</strong>：
+<ul>
+<li>无限分镜画布模式（多画板平铺 + 缩放拖拽）</li>
+<li>定开本受控精修模式（物理标尺 + 出血线 + 局部 Inpainting 笔刷）</li>
+</ul></li>
+<li><strong>Right Inspector & Agent Copilot Panel (宽 320px · 双模态)</strong>：
+<ul>
+<li><strong>⚙️ 属性面板模式</strong>：根据当前选中的步骤，动态切换“分镜属性”、“图层树”、“LoRA控制”、“质检雷达”、“印前参数”等。</li>
+<li><strong>🤖 协同 Agent 对话模式</strong>：常驻出版协同智能体（策划/美术/审校/印前 Sub-Agent），支持 <code>@画板P03</code> 实体感知、思维链 (CoT) 展开、可执行提案卡片（一键应用至画布）与自然语言人机协同。</li>
+</ul></li>
+<li><strong>Bottom Status Bar (高 32px)</strong>：显示 ComfyUI 集群状态、GPU 延迟（45ms）、当前画布坐标与物理缩放比。</li>
+</ol></li>
+<li><strong>技术规范</strong>：
+<ul>
+<li><strong>单文件极速加载</strong>：采用纯原生 <code>HTML5 + CSS3 + 纯原生 ES6 JavaScript</code>，零外部编译依赖，双击在任意浏览器即可满血运行。</li>
+<li><strong>矢量保真</strong>：界面内所有画板、标尺、切线、三视图及示意图均采用 SVG 动态矢量与 Canvas 绘制，极致清晰。</li>
+</ul></li>
+</ul>
+<hr />
+<h2 id="八-验收与交互验证路径-walkthrough-demo-path">八、 验收与交互验证路径 (Walkthrough Demo Path)</h2>
+<p>原型交付后，可通过以下标准动线进行 5 分钟完整演示：</p>
+<ol type="1">
+<li><strong>[文字编辑]</strong> 载入文稿 ➔ 点击 LLM 拆解 ➔ 查看 4 组分镜与顶部文字安全区。</li>
+<li><strong>[美术监修]</strong> 打开资产抽屉 ➔ 检查小白兔 FaceID 资产卡 ➔ 开启专属画风 LoRA。</li>
+<li><strong>[无限画布]</strong> 缩放平移浏览整本 40 页分镜全景 ➔ 双击 Page 03 进入定开本印刷画板。</li>
+<li><strong>[Agent 对话协同]</strong> 切换至 🤖 协同 Agent 对话 ➔ 识别责任编辑工单 #042 ➔ 点击“自动规划 P03 手部重绘” ➔ 展开思维链 CoT ➔ 点击卡片“一键执行并应用到画布” ➔ 自动触发 SAM 2 笔刷局部重绘并实时修复手部。</li>
+<li><strong>[责任编辑]</strong> 切换责编视角 ➔ 审校合规 Agent 自动跟进 ➔ 查看质检雷达 ➔ 画圈批注 ➔ 模拟驳回工单 ➔ 再次提交后点击“三审合格签发”（盖红色公章）。</li>
+<li><strong>[印制工程师]</strong> 切换印制视角 ➔ 印前 Agent 联动 ➔ 开启 300 DPI 超分与 CMYK 胶印模拟 ➔ 检验 3mm 出血位 ➔ 导出分层 PSD/PDF 工业物料包。</li>
+<li><strong>[资产反哺]</strong> 终审通过后，点击将成稿一键反哺沉淀至社内专属 LoRA 库。</li>
+</ol>
+<hr />
+<p><em>(本文档经用户评审确认后，即作为原型开发代码编写的唯一基准规格。)</em></p>
+</body>
+</html>

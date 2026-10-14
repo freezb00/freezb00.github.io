@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>04. 质量评测闭环与出版合规风控体系 · AI PM 作品集</title>
+<style>
+:root{
+  --bg:#ffffff; --bg-soft:#f7f8fa; --bg-sunk:#f1f3f6;
+  --ink:#1a1d23; --ink-2:#3d4450; --ink-3:#6b7280;
+  --line:#e3e6ea; --line-2:#d0d5dc;
+  --accent:#1a4d8f; --accent-soft:#e8f0fa;
+  --green:#1a7f4b; --green-soft:#e6f4ec;
+  --amber:#a86400; --amber-soft:#fdf3e0;
+  --red:#b03030; --red-soft:#fbeaea;
+  --blue:#1f5f9e; --blue-soft:#e7f0f8;
+  --grey:#5b6470; --grey-soft:#eef0f3;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  font-size:15px; line-height:1.75; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:960px;margin:0 auto;padding:40px 28px 100px}
+h1{font-size:28px;line-height:1.35;margin:0 0 10px;font-weight:700;letter-spacing:-.4px;color:var(--ink)}
+h2{font-size:21px;margin:46px 0 16px;padding-bottom:10px;border-bottom:2px solid var(--line);
+   font-weight:700;letter-spacing:-.2px;scroll-margin-top:20px;color:var(--ink)}
+h3{font-size:17px;margin:28px 0 10px;font-weight:650;color:var(--ink)}
+h4{font-size:15px;margin:20px 0 8px;font-weight:650;color:var(--ink-2)}
+p{margin:12px 0}
+ul,ol{margin:12px 0;padding-left:24px}
+li{margin:6px 0}
+strong{font-weight:650;color:#0d1117}
+code{background:var(--bg-sunk);padding:2px 6px;border-radius:4px;font-size:13.5px;
+  font-family:"SF Mono",Menlo,Consolas,monospace}
+pre{background:var(--bg-sunk);padding:14px 18px;border-radius:6px;overflow-x:auto;border:1px solid var(--line);font-size:13px;line-height:1.6}
+pre code{background:none;padding:0}
+hr{border:0;border-top:1px solid var(--line);margin:36px 0}
+blockquote{margin:16px 0;padding:12px 18px;background:var(--bg-soft);
+  border-left:4px solid var(--accent);color:var(--ink-2);border-radius:0 4px 4px 0}
+blockquote p{margin:4px 0}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:13.5px;
+  border:1px solid var(--line);border-radius:6px;overflow:hidden}
+th{background:var(--bg-sunk);text-align:left;padding:10px 12px;font-weight:650;
+  border-bottom:2px solid var(--line-2);color:var(--ink);font-size:13px}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink-2)}
+tr:last-child td{border-bottom:0}
+tbody tr:nth-child(even){background:#fbfcfd}
+
+/* Badge */
+.b{display:inline-block;padding:1px 7px;border-radius:3px;font-size:11px;
+  font-weight:700;vertical-align:middle;line-height:1.6}
+.bA{background:var(--green-soft);color:var(--green);border:1px solid #bfe3cd}
+.bB{background:var(--blue-soft);color:var(--blue);border:1px solid #c3d9ee}
+.bC{background:var(--grey-soft);color:var(--grey);border:1px solid #d8dce2}
+.bR{background:var(--red-soft);color:var(--red);border:1px solid #f0c4c4}
+.bAmber{background:var(--amber-soft);color:var(--amber);border:1px solid #f0d9ac}
+
+/* 提示块 */
+.note{background:var(--amber-soft);border:1px solid #f0d9ac;border-left:4px solid var(--amber);
+  border-radius:4px;padding:13px 17px;margin:18px 0;font-size:14px;color:#6b4200}
+.good{background:var(--green-soft);border:1px solid #bfe3cd;border-left:4px solid var(--green);
+  border-radius:4px;padding:13px 17px;margin:18px 0;font-size:14px;color:#12512f}
+.bad{background:var(--red-soft);border:1px solid #f0c4c4;border-left:4px solid var(--red);
+  border-radius:4px;padding:13px 17px;margin:18px 0;font-size:14px;color:#7d2020}
+
+/* Footer Nav */
+.doc-footer-nav{
+  display:flex;justify-content:space-between;gap:16px;margin-top:56px;padding-top:24px;border-top:1.5px solid var(--line);
+}
+.nav-card{
+  flex:1;padding:14px 18px;border-radius:6px;border:1px solid var(--line);background:var(--bg-soft);
+  text-decoration:none;transition:all .15s ease;display:flex;flex-direction:column;
+}
+.nav-card:hover{border-color:var(--accent);background:var(--accent-soft)}
+.nav-dir{font-size:11.5px;color:var(--ink-3);margin-bottom:4px;font-weight:600}
+.nav-title{font-size:14px;font-weight:650;color:var(--ink)}
+.nav-card:hover .nav-title{color:var(--accent)}
+
+@media (max-width:768px){
+  .wrap{padding:20px 16px 60px}
+  h1{font-size:22px} h2{font-size:18px}
+  table{font-size:12px} th,td{padding:7px 8px}
+  .doc-footer-nav{flex-direction:column}
+}
+</style>
+
+<!-- ==================== Unified Sidebar Drawer Navigation ==================== -->
+<style id="unified-sidebar-style">
+:root {
+  --unified-nav-width: 300px;
+}
+.unified-nav-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 9999;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.unified-nav-btn:hover {
+  background: #f8fafc;
+  color: #1a4d8f;
+  border-color: #1a4d8f;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(26, 77, 143, 0.15);
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-btn {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  }
+  .unified-nav-btn:hover {
+    background: #0f172a;
+    color: #38bdf8;
+    border-color: #38bdf8;
+  }
+}
+body.unified-nav-open .unified-nav-btn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 无蒙版模式：打开导航时保持正文完全清晰、无遮罩与高斯模糊 */
+.unified-nav-overlay {
+  display: none !important;
+}
+body.unified-nav-open .unified-nav-overlay {
+  display: none !important;
+}
+
+aside.unified-nav-drawer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--unified-nav-width);
+  max-width: 86vw;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  padding: 22px 16px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  z-index: 10001;
+  box-shadow: 8px 0 28px rgba(0, 0, 0, 0.12);
+  transform: translateX(-100%);
+  transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  box-sizing: border-box;
+}
+@media (prefers-color-scheme: dark) {
+  aside.unified-nav-drawer {
+    background: #0f172a;
+    border-right-color: #1e293b;
+    box-shadow: 8px 0 28px rgba(0, 0, 0, 0.45);
+  }
+}
+body.unified-nav-open aside.unified-nav-drawer {
+  transform: translateX(0);
+}
+
+.unified-nav-drawer .drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-header { border-bottom-color: #1e293b; }
+}
+.unified-nav-drawer .drawer-brand {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-brand { color: #f8fafc; }
+}
+.unified-nav-drawer .drawer-brand span {
+  color: #1a4d8f;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-brand span { color: #38bdf8; }
+}
+.unified-nav-drawer .drawer-close-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  font-size: 18px;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: all .15s;
+}
+.unified-nav-drawer .drawer-close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-close-btn:hover {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+  }
+}
+
+.unified-nav-drawer .drawer-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-shortcuts { border-bottom-color: #1e293b; }
+}
+.unified-nav-drawer .shortcut-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all .15s ease;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .shortcut-btn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+  }
+}
+.unified-nav-drawer .shortcut-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1a4d8f;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .shortcut-btn:hover {
+    background: #0369a133;
+    border-color: #0284c7;
+    color: #38bdf8;
+  }
+}
+
+.unified-nav-drawer .toc-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.6px;
+  margin: 6px 0 10px 4px;
+}
+.unified-nav-drawer .drawer-toc {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.unified-nav-drawer .drawer-toc a {
+  font-size: 13px;
+  color: #475569;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: all .15s ease;
+  border-left: 3px solid transparent;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-toc a { color: #94a3b8; }
+}
+.unified-nav-drawer .drawer-toc a:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-toc a:hover {
+    color: #f8fafc;
+    background: #1e293b;
+  }
+}
+.unified-nav-drawer .drawer-toc a.active {
+  color: #1a4d8f;
+  background: #eff6ff;
+  border-left-color: #1a4d8f;
+  font-weight: 600;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-toc a.active {
+    color: #38bdf8;
+    background: #0369a126;
+    border-left-color: #38bdf8;
+  }
+}
+@media print {
+  .unified-nav-btn, aside.unified-nav-drawer, .unified-nav-overlay, .doc-footer-nav {
+    display: none !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Unified Sidebar Drawer HTML -->
+<button class="unified-nav-btn" id="unifiedNavBtn" title="展开目录导航">☰</button>
+<div class="unified-nav-overlay" id="unifiedNavOverlay"></div>
+<aside class="unified-nav-drawer" id="unifiedNavDrawer">
+  <div class="drawer-header">
+    <div class="drawer-brand">作品集方案 · <span>出版级 AI PM</span></div>
+    <button class="drawer-close-btn" id="unifiedNavClose" title="收起导航">✕</button>
+  </div>
+  <div class="drawer-shortcuts">
+    <a href="../index.html" class="shortcut-btn">🏠 返回作品集总览</a>
+    <a href="01_出版级AI绘画产品全链路规划(PRD与架构).html" class="shortcut-btn">01 全链路规划 (PRD与架构)</a>
+    <a href="02_出版级AI绘画工作流与ComfyUI方案设计.html" class="shortcut-btn">02 工作流与 ComfyUI 设计</a>
+    <a href="03_全要素资产中心与算法协同机制(LoRA产品化).html" class="shortcut-btn">03 全要素资产中心与算法协同</a>
+    <a href="04_质量评测闭环与出版合规风控体系.html" class="shortcut-btn" style="border-left:3px solid var(--accent);font-weight:600;">04 质量评测与合规风控</a>
+  </div>
+  <div class="toc-section-title">方案目录 (Contents)</div>
+  <nav class="drawer-toc" id="unifiedNavToc">
+    <a href="#sec-1" title="一、 为什么出版业务必须建立“严苛的质量评测与合规体系”？">一、 严苛评测与合规的必要性</a>
+    <a href="#sec-2" title="二、 出版级图像评测指标闭环 (Evaluation Loop)">二、 出版级图像评测指标闭环</a>
+    <a href="#sec-3" title="三、 印刷工业规范四大物理硬约束自动化预检">三、 印刷工业规范四大物理硬约束校验</a>
+    <a href="#sec-4" title="四、 出版版权合规与数据留痕风控体系">四、 出版版权合规与数据留痕风控体系</a>
+    <a href="#sec-5" title="五、 商业化落地支撑：如何赋能新商家转化与老客续费">五、 商业化落地支撑与续费飞轮</a>
+  </nav>
+</aside>
+
+<div class="wrap">
+  <h1>04. 质量评测闭环与出版合规风控体系</h1>
+
+  <h2 id="sec-1">一、 为什么出版业务必须建立“严苛的质量评测与合规体系”？</h2>
+
+  <p>普通 C 端用户生成一张 AI 图片，手部多一根手指或背景透视失真可能只是一笑了之；但在**教育出版、教材、教辅和儿童绘本**领域：</p>
+
+  <div class="bad">
+    <strong>⚠️ 重大事故警戒线</strong>：
+    <ul>
+      <li><strong>知识错误等于出版事故</strong>：昆虫画成了 8 条腿、人体骨骼位置画错、交通标志符号混乱，直接面临全网下架销毁并追究出版资质；</li>
+      <li><strong>印刷不合规导致批量报废</strong>：分辨率低于 300 DPI 虚化、四色黑套印发虚、重要文字切在 3mm 出血位内导致被裁切、跨页中缝吃字切脸；</li>
+      <li><strong>版权纠纷面临巨额索赔</strong>：训练集侵权、客户资产被其他机构复用。</li>
+    </ul>
+  </div>
+
+  <p>因此，必须把质量把控从“纯人工主观肉眼挑错”升级为**“机审算法初检 + 结构化评测指标 + 人工三审三校”的工业级闭环**。</p>
+
+  <hr>
+
+  <h2 id="sec-2">二、 出版级图像评测指标闭环 (Evaluation Loop)</h2>
+
+  <p>建立三维一体的量化质量评估体系：</p>
+
+  <pre><code>                              ┌────────────────────────┐
+                              │  出版图像质量评测矩阵  │
+                              └───────────┬────────────┘
+                ┌─────────────────────────┼─────────────────────────┐
+                ▼                         ▼                         ▼
+      【维度一：知识准确性】          【维度二：印刷工业规范】      【维度三：流程效率指标】
+  • 生物/科学解剖准确率           • 300 DPI 像素密度达标率       • 首绘采纳率 (First-Pass)
+  • 历史/常识服饰符号合规率       • CMYK 印刷色域安全率          • 单页平均返修轮次 (Turns)
+  • 跨页角色/画风漂移度           • 3mm 出血位安全留白率         • 最终打样返工率 (Rework)
+  • 50 组黄金评测集通过率         • 中缝安全区/K100单黑提纯      • 审校返工工单闭环时效</code></pre>
+
+  <h3>1. 知识准确性机审与 50 组黄金评测集 (AI-assisted Fact-Checking)</h3>
+  <ul>
+    <li><strong>多模态大模型（VLM）逆向质检</strong>：
+      <ul>
+        <li>图片生成后，自动将图像与原始图书教辅文稿送入多模态质检 Agent（如 GPT-4o / Qwen-VL）；</li>
+        <li>设定质检 Prompt：“核对图片是否与文稿事实冲突：1. 画面中主体的肢体数量与关节结构；2. 物理常识逻辑（如影子朝向与光源是否一致）；3. 教材科学知识点（植物叶脉、动物解剖）”；</li>
+        <li>输出自动化审核得分与红框高亮告警，并在编辑画布上提示可疑区域。</li>
+      </ul>
+    </li>
+    <li><strong>50 组冻结黄金评测集（Golden Benchmark Suite）</strong>：
+      <ul>
+        <li>构建涵盖 5 大压力场景的基准测试集：① 极端广角与微距视角；② 复杂手部道具交互（握笔、持剪刀、操作试管）；③ 密集多角色同框；④ 复杂室内外混合光源；⑤ 抽象童书意境；</li>
+        <li>模型每次迭代微调后，必须全量回归黄金评测集，综合通过率 <strong>≥ 90%</strong> 方可上线。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <hr>
+
+  <h2 id="sec-3">三、 印刷工业规范四大物理硬约束自动化预检</h2>
+
+  <p>系统在成图导出阶段内置**自动预检引擎（Pre-flight Engine）**，确保出片 100% 满足印厂物理上机要求：</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:25%;">物理约束维度</th>
+        <th style="width:30%;">工业标准与技术参数</th>
+        <th style="width:45%;">系统自动化预检与处理方案</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. 300 DPI 像素密度</strong></td>
+        <td>按标准 16 开 / 大度 32 开画册计算，输出尺寸稳定在 <code>≥ 3000 x 4000 px</code></td>
+        <td>前置锁死分辨率底线，Tile 分块超分上采样渲染，拒绝插值虚化，保障印刷线稿锐利度。</td>
+      </tr>
+      <tr>
+        <td><strong>2. CMYK 色彩软打样</strong></td>
+        <td>标准印刷色域（如 Japan Color 2001 Coated）</td>
+        <td>AI 原生 sRGB 生成，系统提供实时软打样模拟，高亮色偏超标区，自动通过 ICC Profile 曲线做感知色域无损映射。</td>
+      </tr>
+      <tr>
+        <td><strong>3. 出血位与中缝避让</strong></td>
+        <td><strong>3mm 外出血线</strong> + <strong>4mm 跨页中缝接版线</strong></td>
+        <td>自动绘制安全辅助线；若检测到人物面部或文字排版进入 3mm 出血或 4mm 胶装书缝凹陷处，触发强阻断警告。</td>
+      </tr>
+      <tr>
+        <td><strong>4. 单色黑提纯 &amp; TAC</strong></td>
+        <td>线稿文字纯黑 (K100)，总墨量 TAC ≤ 300%</td>
+        <td>AI 生成的四色黑黑线自动分离提纯为单色黑（C:0 M:0 Y:0 K:100），杜绝印刷套印发虚；限制总油墨量彻底防粘脏。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <h2 id="sec-4">四、 出版版权合规与数据留痕风控体系</h2>
+
+  <h3>1. 训练素材合规链 (Training Data Governance)</h3>
+  <ul>
+    <li><strong>纯正版授权输入</strong>：训练出版社专属 LoRA 时，仅允许上传出版社享有完整著作权的自有历史图书插画，或签约画师书面授权作品。</li>
+    <li><strong>图片指纹去重与溯源</strong>：系统内置图片指纹去重检测，严防未经授权的网络侵权图被误传为训练集。</li>
+  </ul>
+
+  <h3>2. 生成过程全链路留痕与合规备案 (Audit Trail &amp; Watermarking)</h3>
+  <p>为应对网信办与新闻出版署关于生成式人工智能内容管理规定，系统内置全生命周期合规防护：</p>
+  <ul>
+    <li><strong>频域隐形盲水印（Digital Watermarking）</strong>：在图像频域嵌入唯一的作品溯源指纹（包含租户 ID、项目 ID、生成时间），肉眼不可见但抗压缩、抗截图、抗旋转；</li>
+    <li><strong>全流程存证数据包（Metadata Manifest）</strong>：包含操作编辑 ID、所用基模哈希、LoRA 资产版本号、完整 Prompt、随机 Seed 及 VLM 质检通过记录，确保版权审查时可完整复现溯源；</li>
+    <li><strong>生成式 AI 服务合规标识</strong>：提供符合国家标准的一键显性/隐性标识印制开关。</li>
+  </ul>
+
+  <h3>3. 客户资产物理隔离</h3>
+  <p>实行严格的企业级租户数据隔离。任何出版社定制的“画风模型”和“私有角色卡”，绝不对外共享，绝不用于公有基础模型的迭代训练，消除出版机构对“自有画风资产被竞品窃取”的顾虑。</p>
+
+  <hr>
+
+  <h2 id="sec-5">五、 商业化落地支撑：如何赋能新商家转化与老客续费</h2>
+
+  <ul>
+    <li><strong>售前转化 (New Merchant Conversion)</strong>：
+      <ul>
+        <li>针对新接触的出版机构，提供 <strong>“免费画风打样测试（PoC）”</strong>：客户提供 20 张历史样书，48 小时内交付其专属画风模型并在样书上实测 5 页生成，用肉眼可见的降本提效效果击穿决策人。</li>
+      </ul>
+    </li>
+    <li><strong>售后交付与老客续费 (Retention &amp; Expansion)</strong>：
+      <ul>
+        <li>将“返修率降低”与“缩短出书周期”做成量化月度 ROI 报表发给客户主编；</li>
+        <li>建立长效画风资产库，随着出版社在平台上积累的角色、画风模型越多，<strong>迁移成本越高，客户续约粘性天然增强</strong>。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="doc-footer-nav">
+    <a href="03_全要素资产中心与算法协同机制(LoRA产品化).html" class="nav-card">
+      <span class="nav-dir">← 上一篇方案</span>
+      <span class="nav-title">03. 画风资产定制与算法协同机制 (LoRA产品化)</span>
+    </a>
+    <a href="../index.html" class="nav-card" style="text-align:right;">
+      <span class="nav-dir">返回作品集 →</span>
+      <span class="nav-title">🏠 作品集总览首页 (Index)</span>
+    </a>
+  </div>
+</div>
+
+<!-- ==================== Unified Sidebar Drawer Script ==================== -->
+<script id="unified-sidebar-script">
+(function() {
+  const btn = document.getElementById('unifiedNavBtn');
+  const overlay = document.getElementById('unifiedNavOverlay');
+  const closeBtn = document.getElementById('unifiedNavClose');
+  const tocContainer = document.getElementById('unifiedNavToc');
+  if (!btn || !overlay || !closeBtn || !tocContainer) return;
+
+  function openNav() { document.body.classList.add('unified-nav-open'); }
+  function closeNav() { document.body.classList.remove('unified-nav-open'); }
+
+  btn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('unified-nav-open')) closeNav();
+  });
+
+  const links = Array.from(tocContainer.querySelectorAll('a'));
+  links.forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth < 1200) closeNav();
+    });
+  });
+
+  // ScrollSpy
+  const targets = links.map(a => {
+    const id = a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  }).filter(Boolean);
+
+  if (targets.length > 0 && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const cur = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+          if (cur) cur.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0.1 });
+    targets.forEach(t => observer.observe(t));
+  }
+})();
+</script>
+
+</body>
+</html>

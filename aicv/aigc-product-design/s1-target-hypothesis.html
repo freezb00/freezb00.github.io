@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S1 靶心卡 · 商业插画师与工作流断点</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#b4531f;--ok:#2f6b45;--bad:#a12a2a;--warn:#a8761f;--code:#f2f2ef}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#e08a52;--ok:#7ab88f;--bad:#e08585;--warn:#d6a75a;--code:#202020}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:16px/1.72 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:768px;margin:0 auto;padding:20px 24px 120px}
+h1{font-size:25px;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 8px}
+h2{font-size:15px;margin:58px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--line);letter-spacing:.02em}
+h2 .n{color:var(--muted);font-weight:400;margin-right:10px;font-variant-numeric:tabular-nums}
+h3{font-size:14.5px;margin:26px 0 8px}
+p{margin:0 0 14px}ul,ol{margin:0 0 14px;padding-left:20px}li{margin:5px 0}
+em{font-style:normal;color:var(--accent);font-weight:600}
+.lead{font-size:17px;line-height:1.62;border-left:2px solid var(--accent);padding:2px 0 2px 18px;margin:26px 0 34px}
+.warn{border:1.5px solid var(--bad);border-radius:8px;padding:16px 20px;margin:0 0 20px;background:var(--card)}
+.warn h4{margin:0 0 8px;font-size:13px;letter-spacing:.03em;color:var(--bad);text-transform:uppercase}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:0 0 16px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:12.5px;color:var(--muted);letter-spacing:.03em}
+td.c,th.c{text-align:center}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.wn{color:var(--warn);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin:0 0 16px}
+.card h4{margin:0 0 8px;font-size:13px;letter-spacing:.03em;color:var(--muted);text-transform:uppercase}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border:1px solid var(--line);border-radius:20px;color:var(--muted);margin-right:6px}
+.tag.a{border-color:var(--accent);color:var(--accent)}
+.tag.b{border-color:var(--bad);color:var(--bad)}
+.f{border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin:0 0 10px;background:var(--card)}
+.f b{display:block;font-size:14px;margin-bottom:4px}
+.f .v{font-size:14.5px}
+.f .h{color:var(--muted);font-size:13px;margin-top:5px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+hr{border:0;border-top:1px solid var(--line);margin:52px 0}
+.foot{color:var(--muted);font-size:12.5px;line-height:1.7}
+</style></head><body><div class="wrap">
+
+<nav style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:14px;border-bottom:1px solid var(--line)">
+<a href="index.html" style="font-size:13px;color:var(--muted);text-decoration:none;font-weight:600;letter-spacing:.04em">&#8592; &#26041;&#26696;&#24635;&#35272;</a>
+<div style="display:flex;gap:16px;font-size:13px">
+<a href="s0-project-brief.html" style="color:var(--muted);text-decoration:none">Brief</a>
+<a href="s2-competitive-evidence.html" style="color:var(--muted);text-decoration:none">&#31454;&#21697;</a>
+<a href="s4-feature-derivation.html" style="color:var(--muted);text-decoration:none">&#21151;&#33021;&#25512;&#23548;</a>
+</div>
+</nav>
+<div style="background:rgba(180,83,31,0.06);border:1px solid rgba(180,83,31,0.25);border-radius:8px;padding:14px 18px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+<div>
+<span style="font-size:11.5px;color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase">用户研究 · 靶心画像与反常识 Thesis</span>
+<p style="margin:4px 0 0;font-size:13px;color:var(--muted)">深挖商业插画师四套笨拙土办法与惨烈代价，确立“宿主插件寄生”反常识产品形态裁决。</p>
+</div>
+<a href="index.html" style="font-size:13px;color:var(--accent);text-decoration:none;white-space:nowrap;font-weight:600">&#8592; &#36820;&#22238;&#26041;&#26696;&#24635;&#35272;</a>
+</div>
+
+
+<h1>目标用户画像 · 商业插画师与工作流断点</h1>
+<p class="sub">目标角色：自由商业插画师 / 独立创作者 · 产品形态：宿主插件 + 交付监视总线</p>
+
+
+<p class="lead"><strong>核心结论</strong>：目标用户首选<em>自由商业插画师</em>（触达性最高、痛感最直接）。形态上确立关键反常识：<strong>绝不做脱离现有工作流的独立 Web 画布</strong>，插画师生存在 Photoshop / Illustrator / Procreate 中，产品必须以<strong>「宿主插件（PS/AI UXP Panel）+ 交付监视总线」</strong>的形式寄生在既有工具链中。</p>
+
+<h2><span class="n">01</span>目标画像与决策理由</h2>
+
+<table>
+<tr><th style="width:22%">维度</th><th>画像详情</th></tr>
+<tr><td><strong>目标角色</strong></td><td>自由商业插画师、独立视觉设计师、接单画手（全职接单或副业高频接单）。</td></tr>
+<tr><td><strong>主要承接品类</strong></td><td>品牌商业插画、包装外观配图、图书/杂志绘本、电商大促 KV、素材库（站酷海洛）供稿。</td></tr>
+<tr><td><strong>客群选择逻辑</strong></td><td><strong>可触达性极高</strong>：小红书、米画师、站酷、涂鸦王国、插画接单微信群均有密集体量；且没有 B 端采购审批漫长周期，单人即可完成安装与付费决策。</td></tr>
+<tr><td><strong>核心使用工具链</strong></td><td>Photoshop (主力) + Illustrator (矢量/印刷) + Procreate (手绘草稿) + Midjourney/SD/Flux (垫图或局部灵感辅助)。</td></tr>
+</table>
+
+<h2><span class="n">02</span>调研：画师现有的四套“土办法”与惨烈代价</h2>
+
+<p>在没有交付层工具前，画师在定稿后被甲方挑刺时，不得不使用以下四套笨拙土办法：</p>
+
+<div class="f">
+<b>① 文字硬改：PS 套索 + 仿制图章 + 涂抹补底</b>
+<div class="v">甲方要改标语或修正错字。因 AI 生成的是扁平图，画师先套索抠出原字，用仿制图章/内容识别或外挂 Inpainting 把被遮挡的底纹涂抹补平，再打上新字。</div>
+<div class="h">代价：底纹经常出现色块断层、模糊边缘，修补 1 处文字耗时 30~60 分钟；多次修改后画面整体质感崩溃。</div>
+</div>
+
+<div class="f">
+<b>② 绝望重抽：重新跑 Prompt + 蒙版拼贴</b>
+<div class="v">改动较大时，只能回生图软件换词重抽。受限于 C2（身份不持久）与 C4（多样性互斥），新图的五官、色调、光影全变了。</div>
+<div class="h">代价：不得不把新图和旧图拖进 PS 做局部蒙版拼合，反复修接缝色差，一个微调单子耗费半天，还被甲方质疑“怎么前后画风变了”。</div>
+</div>
+
+<div class="f">
+<b>③ 暴力色彩转换：PS 菜单直切 CMYK</b>
+<div class="v">印厂要求交 CMYK，画师在 PS 中直接点击「图像 → 模式 → CMYK」，然后保存为未转曲的 PSD。</div>
+<div class="h">代价：RGB 高饱和亮色（荧光绿、明黄、宝石蓝）发生灾难性色彩坍缩变灰；且字体未转曲、未内嵌，印厂打开缺少字体文件报错，打样被退回。</div>
+</div>
+
+<div class="f">
+<b>④ 人工打包与截图自证</b>
+<div class="v">手动在本地建 4 个文件夹（预览/全清PNG/CMYK印刷/源文件），按规范逐一另存；被质疑版权时，将草图图层、生成日志截图拼成长图自证。</div>
+<div class="h">代价：打包与重命名耗费 1~2 小时；版权证明毫无司法规范效力，依然被强势甲方找借口扣款。</div>
+</div>
+
+<h2><span class="n">03</span>靶心卡五栏（核心定义）</h2>
+
+<table>
+<tr><th style="width:20%">靶心维度</th><th>定义与推导</th><th>S3 访谈检验问题</th></tr>
+<tr>
+<td><strong>① 结算场景与时刻</strong></td>
+<td>交付日前 24–48 小时：甲方终审提出文字/排版调整，或印厂工程人员发来预检失败告警。</td>
+<td>“你上一次在定稿交付后被客户要求改文案或被印厂退单是什么时候？当时距离截止时间还有多久？”</td>
+</tr>
+<tr>
+<td><strong>② 失败代价量化</strong></td>
+<td>无偿返工 4–8 小时；因打样报废赔偿 200–1000 元；尾款拖欠 2 周至 2 个月（涉及合同总额 30%–50%，即 1500–8000 元）。</td>
+<td>“最近半年有没有因为格式、色差或版权争议被扣尾款或反复返工的经历？损失了多少工时或真金白银？”</td>
+</tr>
+<tr>
+<td><strong>③ 替代方案花费</strong></td>
+<td>买 Photoshop/Creative Cloud 年费、购买第三方修图脚本、付费请助理兼职切图打包（每次 50–100 元）。</td>
+<td>“为了应付最后的交付格式与色偏，你目前买了什么插件或工具？有付钱找人帮忙修图过吗？”</td>
+</tr>
+<tr>
+<td><strong>④ 付费转移逻辑</strong></td>
+<td>按交付项目计费（19–39 元/单次交付包）或季度专业订阅（59–99 元/月）。预算从“被扣的尾款风险”与“外包修图工时”中平移。</td>
+<td>“如果有个工具能在 PS 里一键搞定改字补底、合规转曲 CMYK 和交付打包，帮你稳稳拿到尾款，你愿意每单付多少钱？”</td>
+</tr>
+<tr>
+<td><strong>⑤ 关键反常识 Thesis</strong></td>
+<td><strong>工作流寄生原则</strong>：绝不逼画师去独立 Web 端。工具必须是 <strong>Photoshop/Illustrator 宿主插件</strong>，在设计师已有画布内一键解决。离开 PS 的独立交付工具必死。</td>
+<td>“如果必须把图上传到一个新网页去处理，和在 PS 右侧边栏直接点一个按钮，两者的体验差异对你有多关键？”</td>
+</tr>
+</table>
+
+<h2><span class="n">04</span>产品形态裁决：原生插件 vs 独立 SaaS</h2>
+
+<div class="card">
+<h4>架构形态：PS/AI 原生 UXP 扩展面板 + 本地轻量处理引擎</h4>
+<p><b>为什么不能是独立 Web 工具：</b><br>
+插画师绝不会把一个 500MB 的多图层 PSD 导出成 PNG，传到网页端做处理，再下载回本地。这增加了 3 次格式转换和中断。<br>
+<b>正确形态：</b>在 Photoshop 扩展面板中常驻。当画师导入 AI 底图或绘制完草图后：<br>
+1. <b>文字安全层剥离</b>：点击一键分离文本安全区，底层由本地轻量 Inpainting 自动补齐无缝纹理；<br>
+2. <b>合规预检仪表盘</b>：在画板侧边实时显示 RGB→CMYK 色域溢出告警、出血辅助线检测；<br>
+3. <b>一键 Handoff 导出</b>：后台调用转曲与 ICC 映射算法，自动在项目文件夹生成规范的交付物料包与版权时间戳记录。</p>
+</div>
+
+</div></body></html>

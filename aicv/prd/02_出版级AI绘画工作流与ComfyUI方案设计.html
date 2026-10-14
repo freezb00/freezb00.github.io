@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>02. 出版级 AI 绘画工作流与 ComfyUI 方案设计 · AI PM 作品集</title>
+<style>
+:root{
+  --bg:#ffffff; --bg-soft:#f7f8fa; --bg-sunk:#f1f3f6;
+  --ink:#1a1d23; --ink-2:#3d4450; --ink-3:#6b7280;
+  --line:#e3e6ea; --line-2:#d0d5dc;
+  --accent:#1a4d8f; --accent-soft:#e8f0fa;
+  --green:#1a7f4b; --green-soft:#e6f4ec;
+  --amber:#a86400; --amber-soft:#fdf3e0;
+  --red:#b03030; --red-soft:#fbeaea;
+  --blue:#1f5f9e; --blue-soft:#e7f0f8;
+  --grey:#5b6470; --grey-soft:#eef0f3;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  font-size:15px; line-height:1.75; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:960px;margin:0 auto;padding:40px 28px 100px}
+h1{font-size:28px;line-height:1.35;margin:0 0 10px;font-weight:700;letter-spacing:-.4px;color:var(--ink)}
+h2{font-size:21px;margin:46px 0 16px;padding-bottom:10px;border-bottom:2px solid var(--line);
+   font-weight:700;letter-spacing:-.2px;scroll-margin-top:20px;color:var(--ink)}
+h3{font-size:17px;margin:28px 0 10px;font-weight:650;color:var(--ink)}
+h4{font-size:15px;margin:20px 0 8px;font-weight:650;color:var(--ink-2)}
+p{margin:12px 0}
+ul,ol{margin:12px 0;padding-left:24px}
+li{margin:6px 0}
+strong{font-weight:650;color:#0d1117}
+code{background:var(--bg-sunk);padding:2px 6px;border-radius:4px;font-size:13.5px;
+  font-family:"SF Mono",Menlo,Consolas,monospace}
+pre{background:var(--bg-sunk);padding:14px 18px;border-radius:6px;overflow-x:auto;border:1px solid var(--line);font-size:13px;line-height:1.6}
+pre code{background:none;padding:0}
+hr{border:0;border-top:1px solid var(--line);margin:36px 0}
+blockquote{margin:16px 0;padding:12px 18px;background:var(--bg-soft);
+  border-left:4px solid var(--accent);color:var(--ink-2);border-radius:0 4px 4px 0}
+blockquote p{margin:4px 0}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:13.5px;
+  border:1px solid var(--line);border-radius:6px;overflow:hidden}
+th{background:var(--bg-sunk);text-align:left;padding:10px 12px;font-weight:650;
+  border-bottom:2px solid var(--line-2);color:var(--ink);font-size:13px}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink-2)}
+tr:last-child td{border-bottom:0}
+tbody tr:nth-child(even){background:#fbfcfd}
+
+/* Badge */
+.b{display:inline-block;padding:1px 7px;border-radius:3px;font-size:11px;
+  font-weight:700;vertical-align:middle;line-height:1.6}
+.bA{background:var(--green-soft);color:var(--green);border:1px solid #bfe3cd}
+.bB{background:var(--blue-soft);color:var(--blue);border:1px solid #c3d9ee}
+.bC{background:var(--grey-soft);color:var(--grey);border:1px solid #d8dce2}
+.bR{background:var(--red-soft);color:var(--red);border:1px solid #f0c4c4}
+.bAmber{background:var(--amber-soft);color:var(--amber);border:1px solid #f0d9ac}
+
+/* 提示块 */
+.note{background:var(--amber-soft);border:1px solid #f0d9ac;border-left:4px solid var(--amber);
+  border-radius:4px;padding:13px 17px;margin:18px 0;font-size:14px;color:#6b4200}
+.good{background:var(--green-soft);border:1px solid #bfe3cd;border-left:4px solid var(--green);
+  border-radius:4px;padding:13px 17px;margin:18px 0;font-size:14px;color:#12512f}
+.bad{background:var(--red-soft);border:1px solid #f0c4c4;border-left:4px solid var(--red);
+  border-radius:4px;padding:13px 17px;margin:18px 0;font-size:14px;color:#7d2020}
+
+/* Footer Nav */
+.doc-footer-nav{
+  display:flex;justify-content:space-between;gap:16px;margin-top:56px;padding-top:24px;border-top:1.5px solid var(--line);
+}
+.nav-card{
+  flex:1;padding:14px 18px;border-radius:6px;border:1px solid var(--line);background:var(--bg-soft);
+  text-decoration:none;transition:all .15s ease;display:flex;flex-direction:column;
+}
+.nav-card:hover{border-color:var(--accent);background:var(--accent-soft)}
+.nav-dir{font-size:11.5px;color:var(--ink-3);margin-bottom:4px;font-weight:600}
+.nav-title{font-size:14px;font-weight:650;color:var(--ink)}
+.nav-card:hover .nav-title{color:var(--accent)}
+
+@media (max-width:768px){
+  .wrap{padding:20px 16px 60px}
+  h1{font-size:22px} h2{font-size:18px}
+  table{font-size:12px} th,td{padding:7px 8px}
+  .doc-footer-nav{flex-direction:column}
+}
+</style>
+
+<!-- ==================== Unified Sidebar Drawer Navigation ==================== -->
+<style id="unified-sidebar-style">
+:root {
+  --unified-nav-width: 300px;
+}
+.unified-nav-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 9999;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.unified-nav-btn:hover {
+  background: #f8fafc;
+  color: #1a4d8f;
+  border-color: #1a4d8f;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(26, 77, 143, 0.15);
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-btn {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  }
+  .unified-nav-btn:hover {
+    background: #0f172a;
+    color: #38bdf8;
+    border-color: #38bdf8;
+  }
+}
+body.unified-nav-open .unified-nav-btn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 无蒙版模式：打开导航时保持正文完全清晰、无遮罩与高斯模糊 */
+.unified-nav-overlay {
+  display: none !important;
+}
+body.unified-nav-open .unified-nav-overlay {
+  display: none !important;
+}
+
+aside.unified-nav-drawer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--unified-nav-width);
+  max-width: 86vw;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  padding: 22px 16px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  z-index: 10001;
+  box-shadow: 8px 0 28px rgba(0, 0, 0, 0.12);
+  transform: translateX(-100%);
+  transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  box-sizing: border-box;
+}
+@media (prefers-color-scheme: dark) {
+  aside.unified-nav-drawer {
+    background: #0f172a;
+    border-right-color: #1e293b;
+    box-shadow: 8px 0 28px rgba(0, 0, 0, 0.45);
+  }
+}
+body.unified-nav-open aside.unified-nav-drawer {
+  transform: translateX(0);
+}
+
+.unified-nav-drawer .drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-header { border-bottom-color: #1e293b; }
+}
+.unified-nav-drawer .drawer-brand {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-brand { color: #f8fafc; }
+}
+.unified-nav-drawer .drawer-brand span {
+  color: #1a4d8f;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-brand span { color: #38bdf8; }
+}
+.unified-nav-drawer .drawer-close-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  font-size: 18px;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: all .15s;
+}
+.unified-nav-drawer .drawer-close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-close-btn:hover {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+  }
+}
+
+.unified-nav-drawer .drawer-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-shortcuts { border-bottom-color: #1e293b; }
+}
+.unified-nav-drawer .shortcut-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all .15s ease;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .shortcut-btn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+  }
+}
+.unified-nav-drawer .shortcut-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1a4d8f;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .shortcut-btn:hover {
+    background: #0369a133;
+    border-color: #0284c7;
+    color: #38bdf8;
+  }
+}
+
+.unified-nav-drawer .toc-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.6px;
+  margin: 6px 0 10px 4px;
+}
+.unified-nav-drawer .drawer-toc {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.unified-nav-drawer .drawer-toc a {
+  font-size: 13px;
+  color: #475569;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: all .15s ease;
+  border-left: 3px solid transparent;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-toc a { color: #94a3b8; }
+}
+.unified-nav-drawer .drawer-toc a:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-toc a:hover {
+    color: #f8fafc;
+    background: #1e293b;
+  }
+}
+.unified-nav-drawer .drawer-toc a.active {
+  color: #1a4d8f;
+  background: #eff6ff;
+  border-left-color: #1a4d8f;
+  font-weight: 600;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-toc a.active {
+    color: #38bdf8;
+    background: #0369a126;
+    border-left-color: #38bdf8;
+  }
+}
+@media print {
+  .unified-nav-btn, aside.unified-nav-drawer, .unified-nav-overlay, .doc-footer-nav {
+    display: none !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Unified Sidebar Drawer HTML -->
+<button class="unified-nav-btn" id="unifiedNavBtn" title="展开目录导航">☰</button>
+<div class="unified-nav-overlay" id="unifiedNavOverlay"></div>
+<aside class="unified-nav-drawer" id="unifiedNavDrawer">
+  <div class="drawer-header">
+    <div class="drawer-brand">作品集方案 · <span>出版级 AI PM</span></div>
+    <button class="drawer-close-btn" id="unifiedNavClose" title="收起导航">✕</button>
+  </div>
+  <div class="drawer-shortcuts">
+    <a href="../index.html" class="shortcut-btn">🏠 返回作品集总览</a>
+    <a href="01_出版级AI绘画产品全链路规划(PRD与架构).html" class="shortcut-btn">01 全链路规划 (PRD与架构)</a>
+    <a href="02_出版级AI绘画工作流与ComfyUI方案设计.html" class="shortcut-btn" style="border-left:3px solid var(--accent);font-weight:600;">02 工作流与 ComfyUI 设计</a>
+    <a href="03_全要素资产中心与算法协同机制(LoRA产品化).html" class="shortcut-btn">03 全要素资产中心与算法协同</a>
+    <a href="04_质量评测闭环与出版合规风控体系.html" class="shortcut-btn">04 质量评测与合规风控</a>
+  </div>
+  <div class="toc-section-title">方案目录 (Contents)</div>
+  <nav class="drawer-toc" id="unifiedNavToc">
+    <a href="#sec-1" title="一、 出版级图像生成的核心刚性约束与攻坚方案">一、 出版场景六大刚性约束与攻坚方案</a>
+    <a href="#sec-2" title="二、 角色一致性技术选型与“多角色同框防串扰”攻坚">二、 角色一致性与多角色防串扰管线</a>
+    <a href="#sec-3" title="三、 出版级 ComfyUI 工业化多步骤工作流设计">三、 ComfyUI 工业级四阶工作流架构</a>
+    <a href="#sec-3-2" title="3.2 ComfyUI 核心节点与算法模型工程清单表" style="padding-left:18px;font-size:12px;opacity:0.9;">↳ 节点与模型工程清单</a>
+    <a href="#sec-4" title="四、 创作体验设计：面向编辑的画布分层与多轮修改">四、 创作体验设计与分层交互</a>
+  </nav>
+</aside>
+
+<div class="wrap">
+  <h1>02. 出版级 AI 绘画工作流与 ComfyUI 方案设计</h1>
+
+  <h2 id="sec-1">一、 出版级图像生成的核心刚性约束与攻坚方案 (Publication Constraints)</h2>
+
+  <p>在传统 C 端工具中，“随机抽卡”与“不可控瑕疵”被视为常态；但在严肃出版物（绘本、教辅、教材）场景中，这是不可接受的。必须在工作流与模型底层建立<strong>六大核心刚性工程约束</strong>：</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:16%;">刚性约束维度</th>
+        <th style="width:22%;">C 端工具现状 / 行业死穴</th>
+        <th style="width:34%;">出版级硬性指标与业务标准</th>
+        <th style="width:28%;">ComfyUI 底层核心攻坚机制</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. 跨页角色一致性<br>(Character Sync)</strong></td>
+        <td>单图随机变脸，同一角色在不同分镜中服饰、发型与五官频繁漂移（漂移率 &gt;35%）。</td>
+        <td>整本 32 页分镜面容特征高度锁死；支持四季服装、特定年龄与喜怒哀乐表情差分。</td>
+        <td><code>Regional IP-Adapter-Plus</code> 拓扑提取 + <code>InstantID</code> 骨骼注入 + 专属 <code>Character LoRA</code>。</td>
+      </tr>
+      <tr>
+        <td><strong>2. 出版画风统一性<br>(Style Control)</strong></td>
+        <td>前后章节画风浓淡脱节，有的水彩晕染，有的突变扁平动漫或油画厚涂。</td>
+        <td>全书艺术风格、纸张肌理（宣纸/水彩纸）与色彩饱和度区间 100% 连贯统一。</td>
+        <td>出版社私有 <code>Style LoRA (Rank 64)</code> + <code>StyleAlign</code> 跨分镜 Self-Attention Key/Value 共享。</td>
+      </tr>
+      <tr>
+        <td><strong>3. 确定性局部精修<br>(Deterministic Edit)</strong></td>
+        <td>“改顶帽子，人脸全变；修只小手，背景全乱”；每次局部重绘导致整图重新去噪。</td>
+        <td>外科手术式局部重绘：除涂抹目标（手/五官/道具）外，非选区像素 <strong>100% 冻结不动</strong>。</td>
+        <td>反向遮罩强制 <strong>Latent 潜空间冻结</strong> + <code>SAM</code> 智能吸附羽化 + <code>Inpaint KSampler</code> 边缘缝合。</td>
+      </tr>
+      <tr>
+        <td><strong>4. 版面文字留白与构图<br>(Layout &amp; Safe Zone)</strong></td>
+        <td>画面主体填满画布，导致正文文字无处安放；插画跨越物理中缝装订被裁切。</td>
+        <td>自动预留 35%~45% 正文排版安全区；跨页接缝处预留 4~6mm 中缝避让线（Gutter Margin）。</td>
+        <td><code>LLM 版面意图约束器</code> 生成负向构图引导遮罩 + <code>ControlNet LineArt/Tile</code> 强制版心排空。</td>
+      </tr>
+      <tr>
+        <td><strong>5. 物理印刷与超分出片<br>(300 DPI &amp; CMYK)</strong></td>
+        <td>原生输出仅 1024px（发虚无法印刷）；RGB 直接转 CMYK 灰暗发脏；正文黑字多色套印发虚。</td>
+        <td>物理成品印刷达标 <strong>300 DPI 超高清</strong>；CMYK 软打样偏色率 &lt;5%；正文字提纯为单色黑（K100）。</td>
+        <td><code>Ultimate SD Upscale (Tile分块)</code> 超分至 4096px+ + <code>LittleCMS FOGRA39</code> 软打样与纯黑提纯。</td>
+      </tr>
+      <tr>
+        <td><strong>6. 意识形态与事实质检<br>(Review &amp; Compliance)</strong></td>
+        <td>画面暗含政治涉暴红线漏洞、动植物生理结构硬伤（如昆虫多腿、叶脉倒生）。</td>
+        <td>零意识形态政治差错；符合国家出版物“三审三校”责任制与百科科普事实常识。</td>
+        <td><code>多模态 VLM (Qwen2-VL)</code> 自动化审校漏斗 + 事实知识库 RAG 交叉检索 + 责编划线在线返修工单。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <strong>💡 架构决策洞察</strong>：严肃出版 AI 工具与通用绘图工具的根本分水岭，在于“是否具备交付至胶印印刷厂与三审三校终审签发的能力”。只有将上述 6 大刚性约束全数做成底层计算图中的硬性 Filter 与控制节点，AI 绘图才能真正进入出版工业化生产阶段。
+  </div>
+
+  <hr>
+
+  <h2 id="sec-2">二、 角色一致性技术选型与“多角色同框防串扰”攻坚</h2>
+
+  <h3>1. 主流一致性方案优劣势评估</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:18%;">方案类别</th>
+        <th style="width:22%;">代表技术</th>
+        <th style="width:25%;">核心优势</th>
+        <th style="width:20%;">劣势与边界</th>
+        <th style="width:15%;">产品化决策</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>特征向量注入</strong></td>
+        <td><strong>IP-Adapter-Plus / FaceID</strong></td>
+        <td>即插即用，无需训练，输入单张参考图即可保持特征</td>
+        <td>复杂姿态下服饰细节易丢，极端角度面部可能扭曲</td>
+        <td><span class="b bB">标准模块</span><br>首轮草图与日常角色快速生成</td>
+      </tr>
+      <tr>
+        <td><strong>轻量级微调</strong></td>
+        <td><strong>Character LoRA</strong></td>
+        <td>特征绑定度最高（服饰、发饰、体态高度锁定）</td>
+        <td>需要预先准备 15~20 张多角度样本并经历训练过程</td>
+        <td><span class="b bA">VIP资产</span><br>核心 IP / 主力系列绘本主角</td>
+      </tr>
+      <tr>
+        <td><strong>免训练即时ID</strong></td>
+        <td><strong>InstantID / PhotoMaker</strong></td>
+        <td>单图高保真保持面部，结合 ControlNet 控制姿态</td>
+        <td>容易出现“贴脸感”，艺术风格融合度受限</td>
+        <td><span class="b bC">慎用/垂类</span><br>真人写真教辅配图，艺术绘本慎用</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>2. 多角色同框特征串扰 (Feature Bleeding) 攻坚方案</h3>
+  <p>绘本中超过 80% 的画面属于<strong>多主体同框</strong>（例：小明与妈妈、小男孩与宠物犬）。传统全局 IP-Adapter 会导致严重的“特征污染”（小明的蓝色衣服被染到了妈妈身上，或狗的斑纹出现在人物裤子上）。</p>
+
+  <p>系统采用 <strong>“区域注意力隔离（Regional Prompting + Attention Mask）” 混合管线</strong>：</p>
+
+  <pre><code>[分镜版面与骨骼姿态] ──➔ ControlNet (OpenPose / LineArt)
+                                 │
+[角色A参考图] ──➔ IP-Adapter A ─┼──➔ [区域 Mask A: 潜空间注意力注入] ─┐
+                                 │                                     │
+[角色B参考图] ──➔ IP-Adapter B ─┼──➔ [区域 Mask B: 潜空间注意力注入] ─┼──➔ [UNet / DiT 去噪计算] ──➔ [无串扰多角色同框]
+                                 │                                     │
+[出版社画风LoRA] ───────────────┴──➔ [全局 Cross-Attention (权重 0.7)] ─┘</code></pre>
+
+  <ul>
+    <li><strong>实现机理</strong>：利用注意力矩阵拦截，将角色 A 的特征向量硬性限制在 Mask A 区域内部，角色 B 的特征向量限制在 Mask B 区域内部；全局画风 LoRA 则作用于 Cross-Attention 整体，既保证了全幅画面统一的艺术笔触，又彻底根除了角色之间的特征互染。</li>
+    <li><strong>边界撕裂与接缝熔接攻坚 (Latent Soft Feathering)</strong>：
+      <ul>
+        <li>针对多角色肢体交互（如妈妈牵着小男孩的手）容易产生“硬切拼接痕迹”的问题，系统引入 <strong>8~16px 潜空间动态软羽化 (Soft Mask Blend)</strong>；</li>
+        <li>采用<strong>“分步解冻注意力机制 (Late-Step Attention Unfreezing)”</strong>：前 70% 步长（Step 1~20）严格锁定区域特征防串扰，最后 30% 步长（Step 21~28）解冻区域限制，执行全局自注意力混合去噪，确保人物交互接触面与背景光影自然交融，杜绝拼贴感。</li>
+      </ul>
+    </li>
+    <li><strong>跨页画风对齐演进 (StyleAlign)</strong>：除了画风 LoRA 外，系统引入 <strong>StyleAlign</strong> 机制：跨页生成时，让当前分镜与第一页基准分镜共享自注意力（Self-Attention）层的 Key/Value 矩阵，实现零训练的跨页连续色调与笔触锁死。</li>
+  </ul>
+
+  <hr>
+
+  <h2 id="sec-3">三、 出版级 ComfyUI 工业化多步骤工作流设计</h2>
+
+  <p>为了将复杂的模型交互转化为 B 端编辑可一键操作的功能，底层搭建了模块化的 ComfyUI 串联工作流：</p>
+
+  <pre><code>┌──────────────────────────────────────────────────────────────────────────────────┐
+│                           ComfyUI 生产级工作流架构拆解                            │
+└──────────────────────────────────────────────────────────────────────────────────┘
+
+【Stage 1: 输入与多模态条件装配 (Conditioning)】
+  [出版文稿] ──➔ LLM 节点 (自动扩写高质量视觉提示词，版面文字安全区负向遮罩)
+                   │
+                   ├──➔ CLIP Text Encode (Positive Prompt)
+                   └──➔ CLIP Text Encode (Negative Prompt: 劣质手部/多肢/版权印记/文字区侵占)
+  [参考资产] ──➔ Load Image ──➔ Regional IP-Adapter (多角色分区域特征绑定)
+  [分镜草图] ──➔ ControlNet (LineArt/Canny 边缘提取，控制整体构图透视与文字留白)
+
+【Stage 2: 基础生成与潜空间去噪 (Base Generation)】
+  [Base Model: SDXL / Flux.1] ──➔ LoRA Stacker (注入出版社专属画风 LoRA，权重 0.7)
+                   │
+                   └──➔ KSampler (Euler a / DPM++ 2M Karras, Steps: 28, CFG: 6.5, Denoise: 1.0)
+                                 │
+                                 ▼ Latent
+【Stage 3: 确定性局部重绘与背景空洞自动填补 (Inpainting &amp; Layer Refinement)】
+  [自动面部/手部检测 (YOLO/SAM)] ──➔ 生成微调遮罩 (Mask) ──➔ Inpaint KSampler (修复手部与表情)
+  [前景主体提取 (BiRefNet)] ──────➔ 分离为独立透明图层 (RGBA PNG)
+                   │
+                   └──➔ 背景空洞自动填补 (Dilate 8px + Background Inpaint Hole-Filling)
+                                 │
+                                 ▼ 干净完整背景层 + 独立主体层
+【Stage 4: 出版印刷级超分辨率上采样 (Publication Upscaling)】
+  [中间高质渲染图 (1024x1024)]
+         │
+         ├──➔ Ultimate SD Upscale (Tile 分块渲染，解决爆显存，步长增加细节纹理)
+         │       └── 配合 4x-UltraSharp / RealESRGAN
+         │
+         ▼
+  [输出成果: 4096 x 4096 (达标 300 DPI 印刷级标准)] ──➔ 单色黑提纯 (K100) ──➔ CMYK 软打样预览</code></pre>
+
+  <h3 id="sec-3-2">2. ComfyUI 核心节点与算法模型工程清单表 (Nodes &amp; Models Matrix)</h3>
+
+  <p>为满足工程化落地、API 自动化装配与部署运维要求，系统将底层涉及到的所有 <strong>ComfyUI 节点扩展（Custom Nodes）</strong>、<strong>算法模型（Models/Checkpoints）</strong> 与 <strong>输入/输出参数流</strong> 归纳梳理如下：</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:14%;">工作流阶段</th>
+        <th style="width:20%;">ComfyUI 核心节点 (Node Name)</th>
+        <th style="width:22%;">依托算法 / 底模 (Models / Weights)</th>
+        <th style="width:24%;">输入 / 输出信号 (I/O Payload)</th>
+        <th style="width:20%;">出版级工程作用与约束</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Stage 1 -->
+      <tr>
+        <td rowspan="4"><strong>Stage 1<br>条件装配与<br>输入解析</strong></td>
+        <td><code>LLM Prompt Parser</code><br>(自定义 LangChain/Ollama 节点)</td>
+        <td>Qwen2.5-72B-Instruct / GPT-4o 知识抽取模型</td>
+        <td><strong>In:</strong> 书稿正文文本<br><strong>Out:</strong> 结构化正反向 Prompt、版面构图与镜头描述</td>
+        <td>拆解时间/环境/主体要素，在反向词中强制注入劣质肢体与文字侵占负向约束</td>
+      </tr>
+      <tr>
+        <td><code>Regional IP-Adapter</code><br>(ComfyUI_IPAdapter_plus)</td>
+        <td><code>ip-adapter-plus_sdxl_vit-h.safetensors</code><br>+ CLIP-Vision 图像编码器</td>
+        <td><strong>In:</strong> 角色三视图基准图、注意力 Mask<br><strong>Out:</strong> 局部定向 Conditioning 特征</td>
+        <td>将主角特征向量限制在独立区域内，根除多角色同框互染与面部漂移</td>
+      </tr>
+      <tr>
+        <td><code>Apply ControlNet</code><br>(ComfyUI-ControlNet-Aux)</td>
+        <td><code>controlnet-lineart-sdxl.safetensors</code><br><code>controlnet-openpose-sdxl.safetensors</code></td>
+        <td><strong>In:</strong> 美编线稿/骨骼线、预处理器预处理图<br><strong>Out:</strong> 空间骨架约束 Conditioning</td>
+        <td>锁定整体构图透视、人物物理骨骼站位与 35% 正文排版留白安全区</td>
+      </tr>
+      <tr>
+        <td><code>StyleAlign Apply</code><br>(ComfyUI-StyleAlign)</td>
+        <td>零训练自注意力共享算法 (Cache Key/Value)</td>
+        <td><strong>In:</strong> 跨页前序分镜 Latent 特征缓存<br><strong>Out:</strong> 对齐后的自注意力加权层</td>
+        <td>免微调共享第一页基准分镜的色彩键值，实现跨章节色调与笔触连续锁死</td>
+      </tr>
+
+      <!-- Stage 2 -->
+      <tr>
+        <td rowspan="2"><strong>Stage 2<br>基础生成与<br>去噪渲染</strong></td>
+        <td><code>LoRA Stacker / Efficient Loader</code><br>(ComfyUI-Inspire-Pack)</td>
+        <td><code>Flux.1-Dev</code> / <code>SDXL Base 1.0</code><br>+ 出版社定制画风 LoRA (Rank 64)</td>
+        <td><strong>In:</strong> 扩散大底模、画风 LoRA 权重配比 (0.7)<br><strong>Out:</strong> 注入艺术笔触风格的 MODEL / CLIP</td>
+        <td>加载出版细分品类（水墨/水彩/绘本）版权模型，实现高质感颗粒度与笔触对齐</td>
+      </tr>
+      <tr>
+        <td><code>KSampler (Advanced)</code></td>
+        <td>采样器：<code>dpmpp_2m_sde</code> / <code>euler_ancestral</code><br>调度器：<code>karras</code> (Steps: 28~32, CFG: 6.0~6.5)</td>
+        <td><strong>In:</strong> 潜空间空 Latent (1024×1024)、装配条件<br><strong>Out:</strong> 去噪后高质量全彩潜空间 Latent</td>
+        <td>快速收敛生成全局画面底稿，保障构图饱满与主体轮廓清晰度</td>
+      </tr>
+
+      <!-- Stage 3 -->
+      <tr>
+        <td rowspan="3"><strong>Stage 3<br>分层精修与<br>背景填补</strong></td>
+        <td><code>Face / Hand Detailer</code><br>(ComfyUI-Impact-Pack)</td>
+        <td><code>yolov8x-face.pt</code> (检测)<br><code>sam_vit_h.pth</code> (高精语义分割)</td>
+        <td><strong>In:</strong> 全局渲染图、手部/面部目标 BoundingBox<br><strong>Out:</strong> 精准五官/手指区域 Mask</td>
+        <td>针对绘本中手部畸变、面部微表情执行“外科手术式”自动裁切与二次精修</td>
+      </tr>
+      <tr>
+        <td><code>BiRefNet Background Remover</code><br>(ComfyUI-BiRefNet)</td>
+        <td><code>BiRefNet-general-epoch_244.safetensors</code><br>(高精度双边参考分割模型)</td>
+        <td><strong>In:</strong> 精修全彩合并图<br><strong>Out:</strong> RGBA 独立主体透明通道 PNG + 主体 Mask</td>
+        <td>发丝级边缘抽离，实现角色/道具与背景环境物理分层，供美编进入 InDesign 排版</td>
+      </tr>
+      <tr>
+        <td><code>Inpaint Hole-Filling</code><br>(ComfyUI-Inpaint-Nodes)</td>
+        <td><code>lama-cleaner-watermark-spectral.pt</code> /<br><code>fooocus_inpaint_head.safetensors</code></td>
+        <td><strong>In:</strong> 抽离主体后的空洞图、膨胀遮罩 (Dilate 8px)<br><strong>Out:</strong> 100% 完整无破损干净背景图</td>
+        <td>智能向外扩充修补抽离主体后的背景死白遮挡，生成完整无缝的底层环境图层</td>
+      </tr>
+
+      <!-- Stage 4 -->
+      <tr>
+        <td rowspan="2"><strong>Stage 4<br>印刷预检与<br>超分出片</strong></td>
+        <td><code>Ultimate SD Upscale</code><br>(ComfyUI-Ultimate-SD-Upscale)</td>
+        <td><code>4x-UltraSharp.pth</code> /<br><code>RealESRGAN_x4plus.pth</code> / <code>Tile Inpaint</code></td>
+        <td><strong>In:</strong> 1024×1024 分层图、分块 Tile 尺寸 (1024)<br><strong>Out:</strong> 4096×4096 印刷级超高分辨率光栅图</td>
+        <td>分块缝合渲染，防爆显存，细节重绘步长 0.25，物理分辨率达标 300 DPI 印刷标准</td>
+      </tr>
+      <tr>
+        <td><code>ICC Color Convert &amp; K100 Pure</code><br>(自定义 LittleCMS 印前节点)</td>
+        <td><code>ISOcoated_v2_eci.icc</code> /<br><code>JapanColor2001Coated.icc</code></td>
+        <td><strong>In:</strong> RGB 4096px 图像、总墨量限制 (TAC 300%)<br><strong>Out:</strong> 分色 CMYK TIFF / PSD、单色黑通道提纯</td>
+        <td>执行印刷软打样色彩偏色预警，将正文文字自动提纯为单色黑（C0 M0 Y0 K100），杜绝多色套印重影</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <h2 id="sec-4">四、 创作体验设计：面向编辑的画布分层与多轮修改</h2>
+
+  <p>复杂的 ComfyUI 节点必须对前台业务编辑做“黑盒封装”。前台画布产品体验遵循以下逻辑：</p>
+
+  <h3>1. “锁定-涂抹-替换”三阶交互设计</h3>
+  <ul>
+    <li><strong>图层锁定机制</strong>：
+      <ul>
+        <li>编辑在画布上选中满意图层（如：满意背景、满意小猫），点击“锁定”。</li>
+        <li>系统自动将锁定区域生成为反向遮罩，在下一轮扩散计算中<strong>强制 Latent 固定</strong>，彻底解决“改个帽子把脸改没了”的编辑噩梦。</li>
+      </ul>
+    </li>
+    <li><strong>智能魔棒与选区羽化 (SAM Assisted Brush)</strong>：
+      <ul>
+        <li>编辑无需手工精准勾勒复杂发丝或衣服轮廓，点击“智能拾取”，基于 Segment Anything 自动吸附主体边界；</li>
+        <li>支持 1~10px 动态边缘羽化与原图融合系数调节，确保局部重绘区域与未修改背景边缘严丝合缝，无割裂拼贴感。</li>
+      </ul>
+    </li>
+    <li><strong>分层 PSD 导出 (Layered PSD 导出)</strong>：
+      <ul>
+        <li>前景主体抽离后自动补全背景，导出包含“背景层、独立人物层、道具层、文字参考层”的标准分层 PSD；</li>
+        <li>美编可无缝导入 Photoshop 或 InDesign 排版添加文字对话框与出版社标识。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>2. 交互式画风滑块 (Style Strength Slider)</h3>
+  <ul>
+    <li>避免让编辑输入抽象的 LoRA 权重数值（0.1~1.0）。</li>
+    <li>抽象为：<strong>“画风浓郁度：轻度 (0.4) / 标准 (0.7) / 深度 (0.9)”</strong>，并结合实时低分辨率草图预演，响应时间控制在 2 秒内。</li>
+  </ul>
+
+  <div class="doc-footer-nav">
+    <a href="01_出版级AI绘画产品全链路规划(PRD与架构).html" class="nav-card">
+      <span class="nav-dir">← 上一篇方案</span>
+      <span class="nav-title">01. 出版级 AI 绘画产品全链路规划 (PRD与架构)</span>
+    </a>
+    <a href="03_全要素资产中心与算法协同机制(LoRA产品化).html" class="nav-card" style="text-align:right;">
+      <span class="nav-dir">下一篇方案 →</span>
+      <span class="nav-title">03. 画风资产定制与算法协同机制 (LoRA产品化)</span>
+    </a>
+  </div>
+</div>
+
+<!-- ==================== Unified Sidebar Drawer Script ==================== -->
+<script id="unified-sidebar-script">
+(function() {
+  const btn = document.getElementById('unifiedNavBtn');
+  const overlay = document.getElementById('unifiedNavOverlay');
+  const closeBtn = document.getElementById('unifiedNavClose');
+  const tocContainer = document.getElementById('unifiedNavToc');
+  if (!btn || !overlay || !closeBtn || !tocContainer) return;
+
+  function openNav() { document.body.classList.add('unified-nav-open'); }
+  function closeNav() { document.body.classList.remove('unified-nav-open'); }
+
+  btn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('unified-nav-open')) closeNav();
+  });
+
+  const links = Array.from(tocContainer.querySelectorAll('a'));
+  links.forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth < 1200) closeNav();
+    });
+  });
+
+  // ScrollSpy
+  const targets = links.map(a => {
+    const id = a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  }).filter(Boolean);
+
+  if (targets.length > 0 && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const cur = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+          if (cur) cur.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0.1 });
+    targets.forEach(t => observer.observe(t));
+  }
+})();
+</script>
+
+</body>
+</html>

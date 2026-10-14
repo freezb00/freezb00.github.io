@@ -1,0 +1,104 @@
+# research-thesis.yaml — AI 绘画产品全景与商业化判断系统
+# 遵循 Research Compiler v1.0.3 判断系统规范
+
+metadata:
+  topic: ai-painting-products-landscape
+  compiled_at: "2026-10-12"
+  lead_analyst: "Product Manager & ResearchCompiler"
+
+thesis:
+  core_thesis: >
+    单一以‘文生图/图生图提示词黑盒’为核心的 AI 绘画工具已丧失独立构建平台级 SaaS 的窗口期，正在迅速商品化（Commoditization）；
+    未来的长期价值捕获仅存在于两极：
+    一极是‘端到端设计与生产力协同操作系统’（如 Canva/Adobe，通过吞噬生成能力消除工作流断点）；
+    另一极是‘深度工业化垂直场景工作流’（如电商商拍极高ROI、游戏影视可控管线、以及底层模型资产双边网络）。
+    纯套壳生图工具若无法通过专有闭环数据沉淀美学壁垒，或无法解决‘最后10%交付不可控’的工程诅咒，将在算力通胀与底层模型能力吞噬的双重夹击下遭遇严重流失与单客负毛利。
+
+old_consensus:
+  - id: OC-01
+    statement: "“模型能力越强，AI绘画工具壁垒越高，谁先做出最逼真的生图算法谁就能统领市场。”"
+    flaw: "忽视了开源 DiT 架构（如 FLUX）与多模态通用大模型（GPT-4o, Imagen 3, Gemini）对基础画质的快速平权化；纯算法领先优势窗口期缩短至 3-6 个月。"
+  - id: OC-02
+    statement: "“C端用户有海量头像、壁纸、娱乐生图需求，做低门槛免费/平价生图工具能形成超级流量入口。”"
+    flaw: "C端娱乐尝鲜用户流失率极高（次月留存普遍低于 15%），付费意愿极低且缺乏复购；纯走流量变现无法覆盖昂贵的 GPU 推理成本。"
+  - id: OC-03
+    statement: "“软件收费只要定一个 19.9-29.9 美元的不限量月订阅，就能像传统 SaaS 一样享受 80%+ 的软件毛利。”"
+    flaw: "无视了‘算力消耗是动态可变成本’的硬件物理约束。未设防御机制的不限量订阅，重度专业用户单月数千次高阶推理将导致单客毛利直接转负（负毛利爆仓）。"
+
+new_variables:
+  - id: NV-01
+    name: "交互形态从黑盒 Prompt 向‘无界画布（Infinite Canvas）与实时交互’升维"
+    impact: "静态文本框被淘汰，创作者需要图层、局部选区、画笔引导、参考图解耦的多模态实时响应（如 Krea, Leonardo, Magnific）。交互深度成为用户迁移成本的关键来源。"
+  - id: NV-02
+    name: "巨头并购与二阶吞噬（Canva 吞 Leonardo、Freepik 吞 Magnific）"
+    impact: "传统拥有海量存量资产和排版工作流的平台，通过资本手段快速整合独立 AI 生成独角兽，彻底消除‘生图完成后需导出到外部修图排版’的断点。"
+  - id: NV-03
+    name: "DiT（Diffusion Transformer）架构开源对商业 API 成本结构的重塑"
+    impact: "Black Forest Labs (FLUX) 确立了 12B 参数 DiT 事实标准，使得中小平台无需自研底模即可获得电影级质感，但推理步数与显存开销对底层工程优化提出苛刻要求。"
+
+first_principle_constraints:
+  - id: FPC-01
+    category: "物理与算力成本约束 (Compute Economics)"
+    description: "图像与视频生成的推理成本无法随用户规模扩大而无限归零。单张 1024x1024 质量图需要数十亿参数完成 20-30 次迭代去噪，GPU 硬件折旧与电力属于硬性变动成本。"
+  - id: FPC-02
+    category: "交付精度与最后 10% 诅咒 (The 90-10 Hand-off Problem)"
+    description: "商业级生产（广告、电商、出版、游戏）对构图、品牌色号、文字排版、多视角色彩具有确定性硬指标。纯扩散模型的随机性导致修图返工成本远超生成草图收益。"
+  - id: FPC-03
+    category: "法律与版权穿透约束 (Copyright & IP Indemnification)"
+    description: "主流司法管辖区（如美国版权局 USCO）明确纯 AI 生成内容不受版权法保护；企业客户采购的核心先决条件是供应商是否提供反侵权免责赔偿（如 Adobe Firefly）。"
+
+bypass_routes:
+  - id: BR-01
+    method: "算力熔断与潮汐降权机制（Midjourney 模式）"
+    mechanism: "通过 Fast Hours 控制高价值即时算力，用 Relax Mode 潮汐排队吞吐抵消重度用户成本，配合年度百万美元营收强制购买高阶方案，锁定 65%+ 毛利率。"
+  - id: BR-02
+    method: "垂直生产力工作流 ROI 锚定（美图设计室 / 电商商拍模式）"
+    mechanism: "避开通用艺术创作竞争，直接对接电商‘商品图/模特图’的替换场景。用户单次使用可直接节省实体摄影棚数千元开支，软件按价值而非单纯按算力定价。"
+  - id: BR-03
+    method: "双边开源资产网络黏性（Liblib / Civitai 模式）"
+    mechanism: "将平台重心从模型本身转向‘创作者生态基础设施’，沉淀海量私域 LoRA 与工作流，通过分成激励创作者锁死下游生产链条。"
+
+second_order_beneficiaries:
+  - beneficiary: "云原生 GPU 算力聚合与推理加速服务商（Fal.ai, Replicate, SaladCloud, Modal）"
+    logic: "不管上层 AI 绘画产品谁胜出，所有轻资产应用都必须采购低延迟 Serverless GPU 推理；吞吐量越大，基础设施提供商的底盘越稳。"
+  - beneficiary: "存量设计排版与协作平台（Canva, Adobe）"
+    logic: "无须承担早期技术探索的高昂试错成本，在技术成熟期通过捆绑或收购迅速将生成能力变为现有数亿付费会员的增值功能，ARPU 提升且边际获客成本为零。"
+
+scenarios:
+  bear:
+    name: "悲观情景（商业化价值塌陷）"
+    probability: 25%
+    core_assumption: "开源多模态大模型（如新一代开源端到端多模态模型）将高质量生图与实时画布能力彻底变成操作系统原生基础能力；独立独立 AI 绘画网站沦为过渡期玩具，付费转化率暴跌至 0.5% 以下。"
+    trigger_signal: "Apple / Google / Microsoft 在操作系统和办公套件内直接内置零边际成本的无缝图像/视觉生成与智能画布。"
+  base:
+    name: "基准情景（两极分化与垂直深耕）"
+    probability: 60%
+    core_assumption: "通用设计场景被 Adobe/Canva 双寡头完全垄断；Midjourney 守住独立艺术美学头部生态；国内垂直电商、游戏美术和出版场景由垂直 SaaS（美图设计室、行业定制作业台）及社区生态（Liblib）分食。"
+    trigger_signal: "Canva 与 Adobe 持续将 AI-first 收入拉升至 20% 以上，纯生图工具要么委身被并购，要么彻底转入垂直工业管线。"
+  bull:
+    name: "乐观情景（多模态视觉交互操作系统诞生）"
+    probability: 15%
+    core_assumption: "AI 绘画进化出能够完全理解 3D 空间、精准物理光影、连续分镜状态和矢量分层的全能无界交互引擎，诞生颠覆传统 Photoshop/Figma 的新一代全球级 Creative OS 巨头。"
+    trigger_signal: "出现首个支持无损原生图层反向编辑、动态物理一致性模拟并实现超 5000 万月活的纯 AI 原生独立设计平台。"
+
+falsification_signals:
+  - id: FS-01
+    signal: "开源单张高质量 DiT 推理成本降至 $0.0001 以下，且端侧 NPU 可本地流畅运行 20B 级视觉模型"
+    impact: "云端算力租赁与订阅模式逻辑崩塌，商业模式必须全面转向本地隐私或垂直资产服务。"
+  - id: FS-02
+    signal: "主流版权法规裁定 AI 生成内容在满足人机交互微调条件下享受完整排他性版权"
+    impact: "企业客户对 Adobe Firefly 等合规免赔产品的壁垒预期下降，独立生图产品的商业采购门槛大幅降低。"
+  - id: FS-03
+    signal: "某款纯文生图独立产品在不拓展画布和工作流的情况下实现连续 24 个月净留存率（NDR）> 130%"
+    impact: "证明纯生成黑盒本身具备独立网络效应与高复购粘性，推翻‘单一生成工具必然被吞噬’的判断。"
+
+action_checklist:
+  - target: "追踪 Canva 与 Adobe 的季度财报中 AI 驱动 ARR 与净利润增速"
+    timeline: "按季度跟踪 (2026 Q3-Q4)"
+    owner: "商业模式分析组"
+  - target: "实测 Fal.ai / Replicate 上 FLUX 系列模型在端到端并发下的真实批处理成本与延迟抖动"
+    timeline: "每月更新基准测试"
+    owner: "算法工程评估组"
+  - target: "调研国内电商大促（618 / 双11）中商拍摄影师被 AI 商拍工具（美图设计室等）替换的真实渗透率"
+    timeline: "关键促销节点前后"
+    owner: "垂直行业用户研究组"

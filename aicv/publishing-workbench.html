@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>出版级 AI 绘画工作台 · 核心产品规划与系统架构 (Product PRD & Architecture)</title>
+<style>
+:root{
+  --bg:#f8fafc; --ink:#0f172a; --mute:#64748b; --line:#e2e8f0; --card:#ffffff;
+  --accent:#2563eb; --accent-light:#eff6ff; --hover:#1d4ed8;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f172a; --ink:#f8fafc; --mute:#94a3b8; --line:#334155; --card:#1e293b;
+        --accent:#60a5fa; --accent-light:#1e3a8a; --hover:#93c5fd;}
+}
+body{
+  margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",sans-serif;
+  padding: 36px 24px 60px;
+}
+.container { max-width: 920px; margin: 0 auto; }
+.top-nav { margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; }
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px; color: var(--accent);
+  text-decoration: none; font-size: 13.5px; font-weight: 600;
+  padding: 6px 14px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 8px; transition: all 0.2s;
+}
+.back-link:hover { border-color: var(--accent); background: var(--accent-light); }
+.header { margin-bottom: 40px; }
+.header h1 { font-size: 32px; margin: 0 0 14px; letter-spacing: -0.02em; font-weight: 800; line-height: 1.3; }
+.header p.lead { font-size: 16px; color: var(--mute); margin: 0 0 20px; line-height: 1.7; }
+
+.section { margin-bottom: 48px; }
+.section-title { font-size: 21px; border-bottom: 2px solid var(--line); padding-bottom: 12px; margin-bottom: 24px; font-weight: 750; display: flex; align-items: center; gap: 10px; }
+.section-title span.icon { font-size: 24px; }
+
+/* ==================== 核心产品定义与业务闭环样式 ==================== */
+.product-def-box {
+  background: var(--card); border: 1.5px solid var(--accent); border-radius: 14px;
+  padding: 28px 26px 26px; margin-bottom: 32px; box-shadow: 0 4px 20px rgba(37,99,235,0.06);
+}
+.pd-badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+.pd-badge { display: inline-flex; align-items: center; gap: 4px; background: var(--accent-light); color: var(--accent); font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+.pd-badge.accent-orange { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+.pd-badge.accent-green { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+@media (prefers-color-scheme: dark) {
+  .pd-badge.accent-orange { background: rgba(234,88,12,0.15); color: #fb923c; border-color: rgba(234,88,12,0.3); }
+  .pd-badge.accent-green { background: rgba(22,163,74,0.15); color: #86efac; border-color: rgba(22,163,74,0.3); }
+}
+
+.pd-title { font-size: 23px; font-weight: 800; margin: 0 0 12px; color: var(--ink); letter-spacing: -0.01em; line-height: 1.35; }
+.pd-title .pd-sub { font-size: 15px; color: var(--mute); font-weight: 600; }
+.pd-manifesto {
+  font-size: 14.5px; line-height: 1.8; color: var(--ink); margin: 0 0 24px;
+  background: var(--bg); border-left: 4px solid var(--accent); padding: 14px 18px; border-radius: 0 8px 8px 0;
+}
+.pd-manifesto strong { color: var(--accent); }
+
+/* 四大核心定位支撑柱 */
+.pd-pillars-title { font-size: 14.5px; font-weight: 750; color: var(--ink); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.pd-pillars-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px;
+}
+.pd-pillar-card {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 14px 14px 12px;
+  display: flex; flex-direction: column; justify-content: flex-start;
+}
+.pd-pillar-header { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+.pd-pillar-icon { font-size: 16px; }
+.pd-pillar-title { font-size: 13.5px; font-weight: 750; color: var(--ink); }
+.pd-pillar-desc { font-size: 12px; color: var(--mute); line-height: 1.6; margin: 0; }
+
+/* 业务双飞轮机制 */
+.pd-flywheels {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 26px;
+}
+@media (max-width: 760px) {
+  .pd-flywheels { grid-template-columns: 1fr; }
+}
+.flywheel-card {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 16px 16px 14px;
+}
+.flywheel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.flywheel-name { font-size: 14px; font-weight: 750; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.flywheel-tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+.flywheel-tag.blue { background: var(--accent-light); color: var(--accent); }
+.flywheel-tag.green { background: #f0fdf4; color: #16a34a; }
+@media (prefers-color-scheme: dark) {
+  .flywheel-tag.green { background: rgba(22,163,74,0.18); color: #86efac; }
+}
+.flywheel-list { list-style: none; padding: 0; margin: 0; font-size: 12.5px; color: var(--mute); line-height: 1.65; }
+.flywheel-list li { position: relative; padding-left: 14px; margin-bottom: 6px; }
+.flywheel-list li::before { content: "•"; position: absolute; left: 0; color: var(--accent); font-weight: bold; }
+.flywheel-list li strong { color: var(--ink); font-weight: 700; }
+
+/* ==================== 业务流程图视觉组件 ==================== */
+.flowchart-container {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 12px;
+  padding: 22px 20px 22px; margin-top: 10px;
+}
+.flowchart-header {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--line);
+}
+.flowchart-title { font-size: 15px; font-weight: 750; color: var(--ink); display: flex; align-items: center; gap: 7px; }
+.flowchart-legends { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--mute); }
+.legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.legend-dot.main { background: var(--accent); }
+.legend-dot.reject { background: #ef4444; }
+.legend-dot.asset { background: #10b981; }
+
+/* 5 阶段主流程卡片网格 */
+.flow-stages-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; position: relative;
+}
+@media (max-width: 900px) {
+  .flow-stages-grid { grid-template-columns: 1fr; gap: 12px; }
+}
+
+.flow-stage-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 13px 11px; display: flex; flex-direction: column; justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03); transition: transform 0.2s, border-color 0.2s;
+  position: relative;
+}
+.flow-stage-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.flow-stage-card.stage-1 { border-top: 3px solid #3b82f6; }
+.flow-stage-card.stage-2 { border-top: 3px solid #8b5cf6; }
+.flow-stage-card.stage-3 { border-top: 3px solid #06b6d4; }
+.flow-stage-card.stage-4 { border-top: 3px solid #f59e0b; }
+.flow-stage-card.stage-5 { border-top: 3px solid #10b981; }
+
+.stage-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+.stage-idx { font-size: 10.5px; font-weight: 800; letter-spacing: 0.2px; }
+.stage-1 .stage-idx { color: #2563eb; }
+.stage-2 .stage-idx { color: #7c3aed; }
+.stage-3 .stage-idx { color: #0891b2; }
+.stage-4 .stage-idx { color: #d97706; }
+.stage-5 .stage-idx { color: #059669; }
+
+.role-badge {
+  font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; white-space: nowrap;
+}
+.role-badge.editor { background: #eff6ff; color: #1d4ed8; }
+.role-badge.art { background: #f5f3ff; color: #6d28d9; }
+.role-badge.draw { background: #ecfeff; color: #0e7490; }
+.role-badge.audit { background: #fef3c7; color: #92400e; }
+.role-badge.print { background: #ecfdf5; color: #065f46; }
+@media (prefers-color-scheme: dark) {
+  .role-badge.editor { background: rgba(37,99,235,0.18); color: #93c5fd; }
+  .role-badge.art { background: rgba(124,58,237,0.18); color: #c4b5fd; }
+  .role-badge.draw { background: rgba(8,145,178,0.18); color: #67e8f9; }
+  .role-badge.audit { background: rgba(217,119,6,0.18); color: #fde68a; }
+  .role-badge.print { background: rgba(5,150,105,0.18); color: #a7f3d0; }
+}
+
+.stage-name { font-size: 13px; font-weight: 750; color: var(--ink); margin-bottom: 5px; line-height: 1.35; }
+.stage-action { font-size: 11.5px; color: var(--mute); line-height: 1.5; margin-bottom: 10px; flex-grow: 1; }
+.stage-deliverable {
+  background: var(--bg); border: 1px dashed var(--line); border-radius: 6px;
+  padding: 6px 7px; font-size: 11px; color: var(--ink); line-height: 1.4;
+}
+.stage-deliverable strong { color: var(--accent); font-weight: 700; }
+.stage-prd-pill {
+  display: inline-block; background: var(--accent-light); color: var(--accent);
+  font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 4px;
+  margin-bottom: 5px;
+}
+@media (prefers-color-scheme: dark) {
+  .stage-prd-pill { background: rgba(37,99,235,0.2); color: #93c5fd; }
+}
+
+/* 闭环反馈通道：驳回返修回路 & 资产复用反哺 */
+.flow-loops-box {
+  margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+@media (max-width: 760px) {
+  .flow-loops-box { grid-template-columns: 1fr; }
+}
+.loop-card {
+  border-radius: 8px; padding: 12px 14px; font-size: 12px; line-height: 1.6;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.loop-card.reject-loop {
+  background: #fef2f2; border: 1px solid #fee2e2; color: #991b1b;
+}
+.loop-card.asset-loop {
+  background: #f0fdf4; border: 1px solid #dcfce7; color: #166534;
+}
+@media (prefers-color-scheme: dark) {
+  .loop-card.reject-loop { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.25); color: #fca5a5; }
+  .loop-card.asset-loop { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.25); color: #86efac; }
+}
+.loop-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.loop-title { font-weight: 750; margin-bottom: 2px; }
+/* ==================== 出版级 AI Agent 对话协同体系视觉样式 ==================== */
+.agent-arch-box {
+  background: var(--card); border: 1.5px solid #6366f1; border-radius: 14px;
+  padding: 28px 26px 26px; margin-bottom: 32px; box-shadow: 0 4px 20px rgba(99,102,241,0.07);
+}
+.agent-tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+.agent-tag { display: inline-flex; align-items: center; gap: 4px; background: #eef2ff; color: #4f46e5; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+@media (prefers-color-scheme: dark) {
+  .agent-tag { background: rgba(99,102,241,0.18); color: #a5b4fc; }
+}
+
+.agent-matrix-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 18px 0 24px;
+}
+.subagent-card {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 15px 14px;
+  display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, border-color 0.2s;
+}
+.subagent-card:hover { transform: translateY(-2px); border-color: #6366f1; }
+.subagent-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.subagent-icon { font-size: 20px; }
+.subagent-name { font-size: 13.5px; font-weight: 750; color: var(--ink); }
+.subagent-role { font-size: 11px; color: var(--mute); font-weight: 600; margin-bottom: 8px; }
+.subagent-skills { list-style: none; padding: 0; margin: 0; font-size: 11.5px; color: var(--mute); line-height: 1.6; }
+.subagent-skills li { position: relative; padding-left: 12px; }
+.subagent-skills li::before { content: "›"; position: absolute; left: 0; color: #6366f1; font-weight: bold; }
+
+/* 交互式对话流演示组件 */
+.chat-demo-container {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 12px;
+  padding: 20px; margin-top: 18px;
+}
+.chat-demo-title { font-size: 14.5px; font-weight: 750; color: var(--ink); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+.chat-stream { display: flex; flex-direction: column; gap: 14px; }
+.chat-bubble { max-width: 92%; padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.65; position: relative; }
+.chat-bubble.user {
+  align-self: flex-end; background: #2563eb; color: #fff; border-bottom-right-radius: 3px;
+}
+.chat-bubble.agent {
+  align-self: flex-start; background: var(--card); border: 1px solid var(--line); color: var(--ink);
+  border-bottom-left-radius: 3px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.chat-entity-pill {
+  display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px; border-radius: 4px;
+  font-weight: 700; font-size: 11px; margin: 0 2px; vertical-align: baseline;
+}
+.chat-bubble.user .chat-entity-pill { background: rgba(255,255,255,0.22); color: #fff; }
+.chat-bubble.agent .chat-entity-pill { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+@media (prefers-color-scheme: dark) {
+  .chat-bubble.agent .chat-entity-pill { background: rgba(37,99,235,0.2); color: #93c5fd; border-color: rgba(37,99,235,0.4); }
+}
+
+/* 思维链流 */
+.chat-cot-block {
+  background: var(--bg); border-left: 3px solid #8b5cf6; padding: 8px 12px;
+  margin: 8px 0; border-radius: 0 6px 6px 0; font-size: 11.5px; color: var(--mute);
+}
+.chat-cot-summary { font-weight: 750; color: #7c3aed; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+@media (prefers-color-scheme: dark) {
+  .chat-cot-summary { color: #a78bfa; }
+}
+
+/* 结构化执行卡片 */
+.chat-action-card {
+  background: var(--bg); border: 1px solid #c7d2fe; border-radius: 8px;
+  padding: 12px 14px; margin-top: 10px;
+}
+.action-card-header { display: flex; justify-content: space-between; align-items: center; font-weight: 750; font-size: 12.5px; color: #3730a3; margin-bottom: 6px; }
+@media (prefers-color-scheme: dark) {
+  .chat-action-card { border-color: #4338ca; }
+  .action-card-header { color: #c7d2fe; }
+}
+.action-card-body { font-size: 12px; color: var(--mute); margin-bottom: 10px; line-height: 1.5; }
+.action-card-btns { display: flex; gap: 8px; }
+
+/* 项目卡片 */
+.project-card { 
+  display: block; background: var(--card); border: 1px solid var(--line); border-radius: 12px; 
+  padding: 24px; text-decoration: none; color: var(--ink); margin-bottom: 22px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+}
+.project-card:hover { border-color: var(--accent); box-shadow: 0 4px 14px rgba(15,23,42,0.08); }
+.project-card h3 { font-size: 19px; margin: 0 0 10px; color: var(--accent); font-weight: 750; }
+.project-card p.desc { font-size: 14.5px; color: var(--mute); margin: 0 0 14px; line-height: 1.65; }
+
+/* PRD 卡片核心攻坚与指标成果 */
+.card-meta-box {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 10px 14px; margin-bottom: 16px; font-size: 12.5px; display: flex; flex-direction: column; gap: 6px;
+}
+.card-meta-row { display: flex; align-items: baseline; gap: 8px; line-height: 1.5; }
+.card-meta-label { font-size: 11.5px; font-weight: 750; color: var(--accent); flex-shrink: 0; }
+.card-meta-text { color: var(--ink); }
+.card-meta-metric { color: #16a34a; font-weight: 700; }
+@media (prefers-color-scheme: dark) {
+  .card-meta-metric { color: #86efac; }
+}
+
+.project-card .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.project-card .tag { background: var(--accent-light); color: var(--accent); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.card-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: auto; }
+.btn-sm { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: none; transition: all 0.2s; }
+.btn-sm:hover { background: var(--line); border-color: var(--mute); color: var(--ink); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--hover); color: #fff; border-color: var(--hover); }
+
+.footer { border-top: 1px solid var(--line); padding: 32px 24px; text-align: center; margin-top: 60px; color: var(--mute); font-size: 13.5px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Top Navigation -->
+  <div class="top-nav">
+    <a href="portfolio.html" class="back-link">← 返回作品集总览 (Portfolio Home)</a>
+    <span style="font-size: 13px; color: var(--mute);">出版数字化 · 工业化 AIGC 生产线</span>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>🚀 出版级 AI 绘画工作台<br><span style="font-size: 22px; font-weight: 600; color: var(--mute);">(AI Publishing Workbench · Product PRD & Architecture)</span></h1>
+    <p class="lead">面向教辅 / 儿童绘本出版社的插画工业化生产线：贯通「文稿解析 → 角色/画风资产锁定 → 分镜画布精修 → 三审三校质检 → 印制合规出片」全链路，兼顾算法底层边界、确定性编辑交互与出版 300 DPI / CMYK 物理合规标准。</p>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px;">
+      <a href="publishing-workbench-prototype.html" class="btn-sm btn-primary" style="font-size:14px; padding:10px 20px; box-shadow:0 4px 14px rgba(37,99,235,0.25);">
+        ▶️ 启动工业级可交互原型沙盘 (Interactive Sandbox)
+      </a>
+      <a href="#agent-architecture" class="btn-sm" style="font-size:13.5px; border-color:#818cf8; color:#4f46e5; background:#eef2ff; font-weight:700;">
+        🤖 出版 Agent 对话体系架构
+      </a>
+      <a href="prototype-spec.html" class="btn-sm" style="font-size:13.5px;">
+        📋 原型规格设计说明书 (Prototype Spec)
+      </a>
+    </div>
+  </div>
+
+  <!-- Section: 系统产品定义与业务闭环 -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🎯</span> 核心产品定义与业务闭环 (Product Definition & Business Loop)</div>
+
+    <div class="product-def-box">
+      <!-- 头部与定位宣言 -->
+      <div class="pd-header">
+        <div class="pd-badge-row">
+          <span class="pd-badge">B 端工业级内容生产 OS</span>
+          <span class="pd-badge accent-orange">解决长叙事角色走样 &amp; 印前合规死穴</span>
+          <span class="pd-badge accent-green">双飞轮业务闭环 · 降本 80%+</span>
+        </div>
+        <div class="pd-title">出版级 AI 插画工业化生产平台 <span class="pd-sub">（AI-Native Publishing Illustration OS）</span></div>
+        <div class="pd-manifesto">
+          <strong>产品本质定义：</strong>告别传统“作坊式”画师外包与通用生图软件的“碰运气抽卡”，本产品是专为<strong>教材教辅、儿童绘本与学术图谱</strong>打造的<strong>工业化内容生成协同中台</strong>。它将 AIGC 不可控的黑盒概率，重构为以<strong>「文稿语义结构化为输入、资产强约束锁定为基准、分层画布确定性交互为核心、出版三审三校与印前 CMYK 物理指标为合规底线」</strong>的端到端确定性工业生产管线。
+        </div>
+      </div>
+
+      <!-- 四大核心价值支撑柱 -->
+      <div class="pd-pillars-title">💎 四大工业级确定性支撑柱 (Core Value Pillars)</div>
+      <div class="pd-pillars-grid">
+        <div class="pd-pillar-card">
+          <div class="pd-pillar-header">
+            <span class="pd-pillar-icon">🎭</span>
+            <span class="pd-pillar-title">跨页角色确定性</span>
+          </div>
+          <p class="pd-pillar-desc">基于 IP-Adapter + FaceID + 私有画风 LoRA，攻克童书绘本 40+ 页长叙事中角色脸型漂移、服装换页变色、发型变形的行业死穴，角色漂移率 &lt; 8%。</p>
+        </div>
+        <div class="pd-pillar-card">
+          <div class="pd-pillar-header">
+            <span class="pd-pillar-icon">🖌️</span>
+            <span class="pd-pillar-title">画布交互确定性</span>
+          </div>
+          <p class="pd-pillar-desc">图层解耦（前景人物 / 背景环境 / 文字安全区）与精准交互式笔刷局部重绘 (Inpainting)，美术编辑“哪里不准改哪里”，告别全局抽卡重跑。</p>
+        </div>
+        <div class="pd-pillar-card">
+          <div class="pd-pillar-header">
+            <span class="pd-pillar-icon">⚖️</span>
+            <span class="pd-pillar-title">出版合规确定性</span>
+          </div>
+          <p class="pd-pillar-desc">构建四级质检漏斗（意识形态安全、学科事实无误、少儿肢体无畸变、版权全链路存证），三审三校一次通过率 (FTR) 达到 85%+。</p>
+        </div>
+        <div class="pd-pillar-card">
+          <div class="pd-pillar-header">
+            <span class="pd-pillar-icon">🖨️</span>
+            <span class="pd-pillar-title">印前物理合规性</span>
+          </div>
+          <p class="pd-pillar-desc">贯通 300 DPI 工业超分、RGB 转 CMYK 色域映射、K100 纯单色黑文字分离及 3mm 出血位自检，规避印刷糊版与跑偏，直连印厂制版。</p>
+        </div>
+      </div>
+
+      <!-- 业务双飞轮机制 -->
+      <div class="pd-pillars-title">🔄 业务双飞轮闭环机制 (Dual-Flywheel Business Mechanics)</div>
+      <div class="pd-flywheels">
+        <div class="flywheel-card">
+          <div class="flywheel-head">
+            <span class="flywheel-name">⚙️ 生产交付飞轮 (Operational Delivery Loop)</span>
+            <span class="flywheel-tag blue">效率跃迁 80%+</span>
+          </div>
+          <ul class="flywheel-list">
+            <li><strong>文稿快速转化：</strong>文字编辑上传教辅大纲，LLM 5 分钟内完成结构化拆解与图文安全区留白标定。</li>
+            <li><strong>批量初绘与精准微调：</strong>ComfyUI 集群并发生成，美编利用分层画布定向局部重绘，修图耗时降低 75%。</li>
+            <li><strong>审校驳回逆向闭环：</strong>责任编辑批注瑕疵工单直接回流局部重绘，单次返修 15 分钟内完成，杜绝整图作废。</li>
+            <li><strong>周期极致压缩：</strong>整本插画交付周期由传统 2~3 个月大幅压缩至 3~5 天，边际生产成本下降 80%+。</li>
+          </ul>
+        </div>
+        <div class="flywheel-card">
+          <div class="flywheel-head">
+            <span class="flywheel-name">📈 资产增值与商业飞轮 (Commercial & Capital Loop)</span>
+            <span class="flywheel-tag green">资产护城河</span>
+          </div>
+          <ul class="flywheel-list">
+            <li><strong>企业级私有资产沉淀：</strong>每套交付绘本的优质角色特征与画风样本，沉淀回出版社专属 LoRA 库，资产越用越准。</li>
+            <li><strong>多租户隔离与版权存证：</strong>严格租户沙箱隔离，训练集、提示词与出片哈希上链留痕，完全具备可溯源出版版权。</li>
+            <li><strong>三维商业变现闭环：</strong>席位订阅年费（稳定现金流）+ 专属风格模型定制（高毛利交付）+ 阶梯算力消耗（防负毛利爆仓）。</li>
+            <li><strong>持续复购与跨册复用：</strong>系列丛书角色资产一键复用，续集制作边际成本趋近于零，客户 LTV 持续增长。</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 核心业务流程图 -->
+      <div class="flowchart-container">
+        <div class="flowchart-header">
+          <div class="flowchart-title">📊 工业级端到端业务流程图 (End-to-End Business Process Workflow)</div>
+          <div class="flowchart-legends">
+            <span class="legend-item"><span class="legend-dot main"></span> 正向主线工单</span>
+            <span class="legend-item"><span class="legend-dot reject"></span> 逆向质检驳回回路</span>
+            <span class="legend-item"><span class="legend-dot asset"></span> 资产沉淀反哺流</span>
+          </div>
+        </div>
+
+        <!-- 5 阶段流转节点卡片 -->
+        <div class="flow-stages-grid">
+          <!-- Stage 1 -->
+          <div class="flow-stage-card stage-1">
+            <div class="stage-top-bar">
+              <span class="stage-idx">STAGE 01</span>
+              <span class="role-badge editor">文字编辑 · 策划主编</span>
+            </div>
+            <div class="stage-name">文稿结构化解析与版式规划</div>
+            <div class="stage-action">
+              上传教材文稿 / 故事大纲；LLM 结构化抽取学科知识点、角色动作与场景情绪；自动计算开本文字安全区与排版留白。
+            </div>
+            <div class="stage-deliverable">
+              <span class="stage-prd-pill">规格对应 PRD 01</span>
+              <div><strong>产出：</strong>结构化分镜脚本清单、版面安全区元数据</div>
+            </div>
+          </div>
+
+          <!-- Stage 2 -->
+          <div class="flow-stage-card stage-2">
+            <div class="stage-top-bar">
+              <span class="stage-idx">STAGE 02</span>
+              <span class="role-badge art">美术监修 · 算法团队</span>
+            </div>
+            <div class="stage-name">画风资产绑定与角色强锁定</div>
+            <div class="stage-action">
+              调取出版社专属风格 LoRA（或启动 15~50 张快速轻量训练）；绑定角色标准卡，注入 IP-Adapter 与三视图特征嵌入，冻结面部与服饰。
+            </div>
+            <div class="stage-deliverable">
+              <span class="stage-prd-pill">规格对应 PRD 01 · 03</span>
+              <div><strong>产出：</strong>多租户角色基准卡、风格 LoRA 约束包</div>
+            </div>
+          </div>
+
+          <!-- Stage 3 -->
+          <div class="flow-stage-card stage-3">
+            <div class="stage-top-bar">
+              <span class="stage-idx">STAGE 03</span>
+              <span class="role-badge draw">插画美编 · 视觉设计</span>
+            </div>
+            <div class="stage-name">分层工业初生与画布精修</div>
+            <div class="stage-action">
+              ComfyUI 异步并行批量出图；分层画布解耦（图文层/角色层/背景层）；使用笔刷交互进行局部重绘 (Inpainting) 与姿态微调。
+            </div>
+            <div class="stage-deliverable">
+              <span class="stage-prd-pill">规格对应 PRD 02</span>
+              <div><strong>产出：</strong>高保真分层原画草稿、局部修图工程文件</div>
+            </div>
+          </div>
+
+          <!-- Stage 4 -->
+          <div class="flow-stage-card stage-4">
+            <div class="stage-top-bar">
+              <span class="stage-idx">STAGE 04</span>
+              <span class="role-badge audit">责任编辑 · 终审专家</span>
+            </div>
+            <div class="stage-name">VLM 多模态初筛与三审三校</div>
+            <div class="stage-action">
+              VLM 自动质检意识形态、事实常识与肢体畸变；责任编辑在线画圈批注审校。
+              <div style="margin-top:6px; font-weight:700; color:var(--ink);">
+                ⚖️ <span style="color:#ef4444;">驳回</span> 触发回路 01 / <span style="color:#10b981;">通过</span> 签署放行
+              </div>
+            </div>
+            <div class="stage-deliverable">
+              <span class="stage-prd-pill">规格对应 PRD 04</span>
+              <div><strong>产出：</strong>三审三校合规签署件 / 差异化驳回工单</div>
+            </div>
+          </div>
+
+          <!-- Stage 5 -->
+          <div class="flow-stage-card stage-5">
+            <div class="stage-top-bar">
+              <span class="stage-idx">STAGE 05</span>
+              <span class="role-badge print">印制排版组 · 印刷厂</span>
+            </div>
+            <div class="stage-name">印前工业超分与 CMYK 出片</div>
+            <div class="stage-action">
+              自动调用 300 DPI 印刷级超分引擎；RGB 映射至 CMYK 印刷色域；提取 K100 纯单色黑文字；校验 3mm 出血位与切口，直连印厂制版。
+            </div>
+            <div class="stage-deliverable">
+              <span class="stage-prd-pill">规格对应 PRD 04</span>
+              <div><strong>产出：</strong>出版级分层 PSD 母版、CMYK 高清印刷 PDF</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 关键闭环反馈通道：驳回回路 & 资产反哺 -->
+        <div class="flow-loops-box">
+          <div class="loop-card reject-loop">
+            <div class="loop-icon">🔁</div>
+            <div>
+              <div class="loop-title">【逆向闭环】三审三校局部重绘返修回路 (Review Reject &amp; Inpaint Loop)</div>
+              <p class="loop-desc">
+                当 Stage 04 发现事实差错（如历史服饰形制错误、少儿手指异常）时，责任编辑划定异常区域直接派发局部修图工单，回流至 <strong>Stage 03 分层画布</strong> 针对性局部重绘，<strong>不破坏全景图层、无需整书重画</strong>，15 分钟完成单页闭环。
+              </p>
+            </div>
+          </div>
+          <div class="loop-card asset-loop">
+            <div class="loop-icon">📈</div>
+            <div>
+              <div class="loop-title">【增值闭环】出版资产沉淀与多租户反哺流 (Asset Mining &amp; Commercial Loop)</div>
+              <p class="loop-desc">
+                经 Stage 05 印制出片的优质成品自动进入企业数字资产库，提取优质特征反哺 <strong>Stage 02 专属画风 LoRA</strong>，赋能下一学期/续集丛书制作；同时结算租户算力消耗 Token，形成“生产-资产-商业”的可持续增值闭环。
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Section: 出版级 AI Agent 对话协同架构与多模态交互规范 -->
+  <div class="section" id="agent-architecture">
+    <div class="section-title"><span class="icon">🤖</span> 出版级 AI Agent 对话协同体系与多模态交互规范 (Publishing Agent Conversational System & Multimodal UX)</div>
+
+    <div class="agent-arch-box">
+      <!-- 头部与核心定位 -->
+      <div class="pd-header">
+        <div class="agent-tag-row">
+          <span class="agent-tag">双核工作台架构 · Canvas + Conversational Copilot</span>
+          <span class="agent-tag" style="background:#fef3c7; color:#92400e;">告别机械表单与滑块地狱</span>
+          <span class="agent-tag" style="background:#ecfdf5; color:#065f46;">实体像素级对齐 · Human-in-the-Loop</span>
+        </div>
+        <div class="pd-title" style="font-size:22px;">出版协同智能体矩阵与多模态对话流 <span class="pd-sub">（Agentic Publishing Interaction Framework）</span></div>
+        <div class="pd-manifesto" style="border-left-color:#6366f1;">
+          <strong>为什么必须引入 Agent 对话形态？</strong>传统 AI 绘画工具强依赖复杂的表单输入框与繁琐的参数微调，而出版业务需求具有<strong>“高语境语义性、跨图层关联性与出版级严苛规范”</strong>。编辑和画师更习惯用自然语言描述出版意图（例如<em>“把胡萝卜换成用力拔出带飞溅泥星的动态，但别动兔子的脸和衣服”</em>）。本系统将工作台升级为<strong>「定开本物理受控画布（底座） + 伴随式 Agent 对话控制台（中枢）」</strong>的双核架构，由 Agent 自动完成意图拆解、实体定位、参数换算与底层工具链（SAM 2 / ComfyUI / VLM）调度。
+        </div>
+      </div>
+
+      <!-- 四大专业 Sub-Agent 角色矩阵 -->
+      <div class="pd-pillars-title">👥 四大领域专业 Sub-Agent 协同矩阵 (Domain Sub-Agent Matrix)</div>
+      <div class="agent-matrix-grid">
+        <!-- Sub-Agent 1 -->
+        <div class="subagent-card" style="border-top:3px solid #3b82f6;">
+          <div>
+            <div class="subagent-head">
+              <span class="subagent-icon">📝</span>
+              <div>
+                <div class="subagent-name">策划与文本 Agent</div>
+                <div class="subagent-role">Script & Editorial Agent</div>
+              </div>
+            </div>
+            <ul class="subagent-skills">
+              <li><strong>文稿智能分镜：</strong>解析大纲、拆解叙事情感节拍</li>
+              <li><strong>版式留白计算：</strong>自动计算并锁定 30% 文字排版安全区</li>
+              <li><strong>适龄语言筛查：</strong>少儿词汇难度评估与意识形态合规预检</li>
+            </ul>
+          </div>
+          <div style="margin-top:10px; font-size:11px; background:var(--card); padding:6px 8px; border-radius:6px; border:1px dashed var(--line); color:var(--mute);">
+            💬 <em>“@P01 文稿文字较密，建议角色向右侧偏移，留出左上方大字区”</em>
+          </div>
+        </div>
+
+        <!-- Sub-Agent 2 -->
+        <div class="subagent-card" style="border-top:3px solid #8b5cf6;">
+          <div>
+            <div class="subagent-head">
+              <span class="subagent-icon">🎨</span>
+              <div>
+                <div class="subagent-name">美术监修 Agent</div>
+                <div class="subagent-role">Art Direction & Canvas Agent</div>
+              </div>
+            </div>
+            <ul class="subagent-skills">
+              <li><strong>角色特征锁定：</strong>三视图 FaceID 向量注入与衣服特征锁死</li>
+              <li><strong>局部重绘调度：</strong>解析自然语言修图诉求，反推 SAM 2 Mask 与 Prompt</li>
+              <li><strong>图层解耦管理：</strong>自动调度 LayerDiffusion 进行前景/背景/文字分层</li>
+            </ul>
+          </div>
+          <div style="margin-top:10px; font-size:11px; background:var(--card); padding:6px 8px; border-radius:6px; border:1px dashed var(--line); color:var(--mute);">
+            💬 <em>“@P03 识别到手指粘连，已自动生成四指卡通手局部重绘方案”</em>
+          </div>
+        </div>
+
+        <!-- Sub-Agent 3 -->
+        <div class="subagent-card" style="border-top:3px solid #f59e0b;">
+          <div>
+            <div class="subagent-head">
+              <span class="subagent-icon">⚖️</span>
+              <div>
+                <div class="subagent-name">审校合规 Agent</div>
+                <div class="subagent-role">Audit & Compliance Agent</div>
+              </div>
+            </div>
+            <ul class="subagent-skills">
+              <li><strong>VLM 多模态初筛：</strong>常识错误（如植物解剖、少儿手足）自动标注</li>
+              <li><strong>批注转工单：</strong>将责任编辑手绘圈选圈注转化为可执行修图任务</li>
+              <li><strong>驳回闭环管理：</strong>阻断式缺陷追踪，修复前后自动做像素与语义 Diff</li>
+            </ul>
+          </div>
+          <div style="margin-top:10px; font-size:11px; background:var(--card); padding:6px 8px; border-radius:6px; border:1px dashed var(--line); color:var(--mute);">
+            💬 <em>“工单 #042 修复完毕，VLM 解剖评分升至 98%，建议批准出片”</em>
+          </div>
+        </div>
+
+        <!-- Sub-Agent 4 -->
+        <div class="subagent-card" style="border-top:3px solid #10b981;">
+          <div>
+            <div class="subagent-head">
+              <span class="subagent-icon">🖨️</span>
+              <div>
+                <div class="subagent-name">印前工程 Agent</div>
+                <div class="subagent-role">Pre-Press Production Agent</div>
+              </div>
+            </div>
+            <ul class="subagent-skills">
+              <li><strong>300 DPI 动态超分：</strong>自适应图块拼接，消弭印刷锯齿与网点虚焦</li>
+              <li><strong>CMYK 色域映射：</strong>智能抑制荧光溢色，模拟印刷机网点压印吸收</li>
+              <li><strong>K100 纯黑分离：</strong>文字层独立提纯为单色黑，避免套印重影模糊</li>
+            </ul>
+          </div>
+          <div style="margin-top:10px; font-size:11px; background:var(--card); padding:6px 8px; border-radius:6px; border:1px dashed var(--line); color:var(--mute);">
+            💬 <em>“全册出血位自检完成，文字已分离至 K100，生成印刷交付包”</em>
+          </div>
+        </div>
+      </div>
+
+      <!-- 对话形式设计规范与四大交互机制 -->
+      <div class="pd-pillars-title">📐 对话形式设计规范与核心交互机制 (Conversational UI/UX Specifications)</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+        <div style="background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px 14px; font-size:12.5px; line-height:1.6;">
+          <strong style="color:#6366f1; display:flex; align-items:center; gap:5px; margin-bottom:4px;">
+            <span>🏷️</span> 1. 上下文感知与实体 @ 语法引用 (Entity Grounding)
+          </strong>
+          编辑在对话中可随时输入 <span class="chat-entity-pill" style="background:#eff6ff; color:#2563eb;">@P03·画板</span>、<span class="chat-entity-pill" style="background:#f5f3ff; color:#7c3aed;">@小白兔欢欢</span> 或 <span class="chat-entity-pill" style="background:#fef2f2; color:#dc2626;">@右手瑕疵选区</span>。Agent 对话与中央画布建立双向锚定，用户点击对话实体标签，画布平滑聚焦至对应图层与坐标。
+        </div>
+        <div style="background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px 14px; font-size:12.5px; line-height:1.6;">
+          <strong style="color:#7c3aed; display:flex; align-items:center; gap:5px; margin-bottom:4px;">
+            <span>🧠</span> 2. 思维链可视化推演流 (Agent CoT & Tool DAG)
+          </strong>
+          Agent 接收指令后，透明化展示思考过程（意图识别 ➔ 约束条件提取 ➔ 算力参数组装 ➔ 工具链调用）。既消除 AI 黑盒感，又向专业出版人员清晰呈现 SAM 2 选区范围与 LoRA 权重配比依据。
+        </div>
+        <div style="background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px 14px; font-size:12.5px; line-height:1.6;">
+          <strong style="color:#059669; display:flex; align-items:center; gap:5px; margin-bottom:4px;">
+            <span>⚡</span> 3. 结构化可执行交互提案卡片 (Actionable Proposal Cards)
+          </strong>
+          Agent 拒绝纯文本对话废话，直接输出包含<strong>「修图前后缩略对比、差异 Diff 区域标定、消耗 Token 预估、[一键应用到画布] 交互按钮」</strong>的结构化卡片，点击即可物理驱动画布像素更新。
+        </div>
+        <div style="background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px 14px; font-size:12.5px; line-height:1.6;">
+          <strong style="color:#d97706; display:flex; align-items:center; gap:5px; margin-bottom:4px;">
+            <span>🛡️</span> 4. 阻断式 Human-in-the-Loop 安全确认栅栏
+          </strong>
+          对于高风险操作（如跨页画风全覆盖重绘、三审终审电子签章、印厂直接出片制版），Agent 必须在对话流中弹出<strong>阻断式确认卡片 (Confirmation Guardrail)</strong>，严格经岗位责任人二次点击签署后方能放行。
+        </div>
+      </div>
+
+      <!-- 逼真的对话协同流原型演示 -->
+      <div class="chat-demo-container">
+        <div class="chat-demo-title">
+          <span>💬 出版协同对话全景演示：基于责任编辑工单的局部重绘闭环 (Interactive Dialogue Simulator)</span>
+          <span style="font-size:11px; font-weight:600; color:#16a34a; background:#f0fdf4; padding:2px 8px; border-radius:4px;">● 上下文对齐: P03 拔胡萝卜</span>
+        </div>
+
+        <div class="chat-stream">
+          <!-- Turn 1: User -->
+          <div class="chat-bubble user">
+            针对 <span class="chat-entity-pill">@画板 P03</span> 责任编辑提报的 <span class="chat-entity-pill">@工单 #042</span>，小兔子的右手粘连严重，请在不破坏背景与身体其他部分的前提下，帮我修复为符合少儿绘本规范的四指卡通手爪。
+          </div>
+
+          <!-- Turn 2: Agent Response with CoT and Action Card -->
+          <div class="chat-bubble agent">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px; font-weight:750; color:#4f46e5; font-size:12px;">
+              <span>🎨 美术监修 Agent</span> · <span>意图解析完成</span>
+            </div>
+            
+            已锁定 <span class="chat-entity-pill">@画板 P03</span> 的前景图层 <span class="chat-entity-pill">Layer 3: 角色层</span>。以下是执行规划：
+
+            <!-- 思维链折叠流 -->
+            <div class="chat-cot-block">
+              <div class="chat-cot-summary"><span>⚡</span> Agent 规划链 (Chain-of-Thought)</div>
+              <div>1. <strong>目标定位：</strong>调用 SAM 2 针对右手粘连坐标 (X:285, Y:405) 生成精准闭环掩膜 (Mask)</div>
+              <div>2. <strong>物理不变性约束：</strong>锁定 Layer 1 背景、Layer 2 篱笆泥土与兔子脸部 FaceID 向量，确保非选区 100% 像素冻结</div>
+              <div>3. <strong>生图管线编排：</strong>ComfyUI Inpainting 节点绑定少儿水彩 LoRA (权重: 0.85)，组装提示词 <code>"clean 4-finger cartoon rabbit paw firmly gripping carrot leaf"</code></div>
+              <div>4. <strong>质检预演：</strong>预估 VLM 解剖合规度提升至 98%，消耗算力约 15 Token</div>
+            </div>
+
+            <!-- 可执行卡片 -->
+            <div class="chat-action-card">
+              <div class="action-card-header">
+                <span>🎯 执行提案：P03 手部局部重绘 (Inpainting Proposal #08)</span>
+                <span style="font-size:11px; color:#16a34a;">● 算力消耗预估: 15 Token</span>
+              </div>
+              <div class="action-card-body">
+                <div>• <strong>重绘目标：</strong>右手粘连修复为标准四指卡通手爪，手握胡萝卜叶动态自然</div>
+                <div>• <strong>约束范围：</strong>除手部 65×65px 区域外，其余全景 100% 物理不变</div>
+                <div>• <strong>质量预期：</strong>解决解剖硬伤，符合三审三校通过标准</div>
+              </div>
+              <div class="action-card-btns">
+                <a href="publishing-workbench-prototype.html" class="btn-sm btn-primary" style="font-size:11.5px; padding:6px 12px; text-decoration:none;">
+                  ⚡ 在交互沙盘中即刻体验一键应用
+                </a>
+                <span style="font-size:11.5px; color:var(--mute); align-self:center;">已在右侧原型沙盒中集成可交互对话控制台</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Section: 四份完整 PRD 方案与规格说明书 -->
+  <div class="section">
+    <div class="section-title"><span class="icon">📄</span> 4 份工业级 PRD 方案与规格说明书 (PRD Specifications)</div>
+
+    <!-- PRD 01 -->
+    <div class="project-card">
+      <h3><a href="prd/01_出版级AI绘画产品全链路规划(PRD与架构).html" style="color:inherit;text-decoration:none;">01. 出版级 AI 绘画产品全链路规划（PRD 与系统架构）</a></h3>
+      <p class="desc">贯通从教辅/绘本文稿结构化解析、知识点抽取、分镜生成、分层画布精修到印前合规导出的全业务链路。交付高保真功能架构图、四层中台时序设计、商业化计费模型与出版工业降本财务测算模型。</p>
+      
+      <div class="card-meta-box">
+        <div class="card-meta-row">
+          <span class="card-meta-label">🎯 核心攻坚：</span>
+          <span class="card-meta-text">教辅文稿工业化语义拆解 · 三层解耦调度架构 · SaaS 阶梯算力计费与防爆仓防套利机制</span>
+        </div>
+        <div class="card-meta-row">
+          <span class="card-meta-label">📈 关键指标：</span>
+          <span class="card-meta-metric">交付周期从 60~90 天压缩至 3~5 天 · 综合制作成本降低 80%+</span>
+        </div>
+      </div>
+
+      <div class="tags">
+        <span class="tag">📍 全局架构与商业化</span>
+        <span class="tag">全流程业务架构</span>
+        <span class="tag">文稿结构化解析</span>
+        <span class="tag">B端工作台PRD</span>
+        <span class="tag">出版降本财务模型</span>
+      </div>
+      <div class="card-actions">
+        <a href="prd/01_出版级AI绘画产品全链路规划(PRD与架构).html" class="btn-sm btn-primary">📄 查阅 PRD 完整方案</a>
+        <a href="reports/publishing-business-requirements/report.html" class="btn-sm">📖 配套业务底线调研</a>
+        <a href="reports/ai-painting-products-landscape/report.html" class="btn-sm">💼 商业模式与算力经济调研</a>
+      </div>
+    </div>
+
+    <!-- PRD 02 -->
+    <div class="project-card">
+      <h3><a href="prd/02_出版级AI绘画工作流与ComfyUI方案设计.html" style="color:inherit;text-decoration:none;">02. 出版级 AI 绘画工作流与 ComfyUI 方案设计</a></h3>
+      <p class="desc">攻克少儿绘本连续叙事中角色“脸型走样、衣服变色、发型变形”的跨页一致性死穴。基于 IP-Adapter + FaceID + ControlNet 混合编排管线，设计图层解耦的分层画布编辑器（支持局部重绘 Inpainting）与企业级无状态并发调度架构。</p>
+      
+      <div class="card-meta-box">
+        <div class="card-meta-row">
+          <span class="card-meta-label">🎯 核心攻坚：</span>
+          <span class="card-meta-text">跨页角色面部/发型/服饰一致性 · 图层解耦分层画布 · 精准笔刷局部重绘 (Inpainting) · 无状态并发调度</span>
+        </div>
+        <div class="card-meta-row">
+          <span class="card-meta-label">📈 关键指标：</span>
+          <span class="card-meta-metric">角色跨页漂移率 &lt; 8% · 局部修图耗时降低 75%</span>
+        </div>
+      </div>
+
+      <div class="tags">
+        <span class="tag">📍 生成引擎与画布编辑器</span>
+        <span class="tag">角色一致性攻坚</span>
+        <span class="tag">分层画布编辑器</span>
+        <span class="tag">局部重绘 Inpainting</span>
+        <span class="tag">ComfyUI 工业编排</span>
+      </div>
+      <div class="card-actions">
+        <a href="prd/02_出版级AI绘画工作流与ComfyUI方案设计.html" class="btn-sm btn-primary">📄 查阅 PRD 完整方案</a>
+        <a href="reports/comfyui-workflows-character-consistency/report.html" class="btn-sm">⚡ 角色一致性管线研报</a>
+        <a href="reports/publishing-ai-canvas-workflow-ux/report.html" class="btn-sm">🎨 分层画布交互设计研报</a>
+      </div>
+    </div>
+
+    <!-- PRD 03 -->
+    <div class="project-card">
+      <h3><a href="prd/03_全要素资产中心与算法协同机制(LoRA产品化).html" style="color:inherit;text-decoration:none;">03. 画风资产定制与算法协同机制 (LoRA 产品化)</a></h3>
+      <p class="desc">为没有算法背景的普通编辑和插画师建立低门槛的 LoRA 画风资产训练与验收产品闭环。规范 15–50 张正交样本黄金清洗法、WD14 结构化打标、画风过拟合拦截标准以及出版社专属画风资产多租户隔离库。</p>
+      
+      <div class="card-meta-box">
+        <div class="card-meta-row">
+          <span class="card-meta-label">🎯 核心攻坚：</span>
+          <span class="card-meta-text">15~50 张黄金样本清洗法 · WD14 结构化打标 · 无代码轻量训练面板 · 过拟合拦截与评测沙箱</span>
+        </div>
+        <div class="card-meta-row">
+          <span class="card-meta-label">📈 关键指标：</span>
+          <span class="card-meta-metric">画风微调上线周期缩短 60% · 租户私有模型物理隔离</span>
+        </div>
+      </div>
+
+      <div class="tags">
+        <span class="tag">📍 画风/角色资产中台</span>
+        <span class="tag">LoRA 画风适配</span>
+        <span class="tag">15-50张样本规范</span>
+        <span class="tag">过拟合红线评测</span>
+        <span class="tag">多租户资产库</span>
+      </div>
+      <div class="card-actions">
+        <a href="prd/03_全要素资产中心与算法协同机制(LoRA产品化).html" class="btn-sm btn-primary">📄 查阅 PRD 完整方案</a>
+        <a href="reports/lora-style-dataset-prep/report.html" class="btn-sm">🎨 样本准备与打标指南</a>
+      </div>
+    </div>
+
+    <!-- PRD 04 -->
+    <div class="project-card">
+      <h3><a href="prd/04_质量评测闭环与出版合规风控体系.html" style="color:inherit;text-decoration:none;">04. 质量评测闭环与出版合规风控体系</a></h3>
+      <p class="desc">颠覆传统通用生图开源打分体系，构建教材教辅级四级质检漏斗：意识形态红线、学科事实准确度、印刷工程硬指标（300 DPI 超分、CMYK单色黑分色、出血位留白）以及全生命周期版权溯源留痕机制。</p>
+      
+      <div class="card-meta-box">
+        <div class="card-meta-row">
+          <span class="card-meta-label">🎯 核心攻坚：</span>
+          <span class="card-meta-text">意识形态红线 · 学科事实硬伤 · 印刷工程硬指标四级质检漏斗 · K100 单色黑分色与 300 DPI 导出</span>
+        </div>
+        <div class="card-meta-row">
+          <span class="card-meta-label">📈 关键指标：</span>
+          <span class="card-meta-metric">三审三校一次通过率 (FTR) 达 85%+ · 印刷返修率 &lt; 2%</span>
+        </div>
+      </div>
+
+      <div class="tags">
+        <span class="tag">📍 质检与合规风控</span>
+        <span class="tag">四级质检漏斗</span>
+        <span class="tag">一次通过率 (FTR)</span>
+        <span class="tag">300 DPI 印前合规</span>
+        <span class="tag">CMYK 单色黑分色</span>
+      </div>
+      <div class="card-actions">
+        <a href="prd/04_质量评测闭环与出版合规风控体系.html" class="btn-sm btn-primary">📄 查阅 PRD 完整方案</a>
+        <a href="reports/ai-illustration-quality-eval/report.html" class="btn-sm">🎯 质量评测闭环研报</a>
+        <a href="reports/printing-production-workflow/report.html" class="btn-sm">🖨️ 印制工程与CMYK合规调研</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 AI Product Manager Portfolio · <a href="portfolio.html" style="color:var(--accent);text-decoration:none;">返回作品集主页</a></p>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>企业级 AI 电商出图自动化平台立项草案 S0</title>
+<style>
+:root{
+--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#0f52ba;--accent-light:#eef4fc;--ok:#2f6b45;--bad:#a12a2a;--warn:#a8761f;--code:#f2f2ef;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#4d8bf0;--accent-light:#192538;--ok:#7ab88f;--bad:#e08585;--warn:#d6a75a;--code:#202020;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:15.5px/1.75 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:24px 24px 0}
+h1{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-.01em;font-weight:700}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 12px}
+h2{font-size:16px;margin:56px 0 16px;padding-bottom:9px;border-bottom:1px solid var(--line);
+letter-spacing:.02em;font-weight:700}
+h2 .n{background:var(--accent);color:#fff;font-size:11px;padding:2px 6px;border-radius:4px;margin-right:8px;}
+h3{font-size:15px;margin:28px 0 10px;font-weight:600}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 14px;padding-left:20px}li{margin:6px 0}
+strong{font-weight:600}
+em{font-style:normal;color:var(--accent);font-weight:600}
+.lead{font-size:17.5px;line-height:1.65;border-left:3px solid var(--accent);
+padding:4px 0 4px 18px;margin:28px 0 34px;background:var(--accent-light);border-radius:0 6px 6px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px 22px;margin:0 0 18px}
+.card h4{margin:0 0 10px;font-size:13.5px;letter-spacing:.03em;color:var(--muted);text-transform:uppercase}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 18px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:12.5px;color:var(--muted);letter-spacing:.03em;background:var(--code)}
+td.c,th.c{text-align:center;font-variant-numeric:tabular-nums}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.wn{color:var(--warn);font-weight:600}
+code{background:var(--code);padding:2px 6px;border-radius:4px;font-size:13px;
+font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border:1px solid var(--line);
+border-radius:20px;color:var(--muted);margin-right:6px}
+.tag.a{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.chain{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
+.chain div{flex:1 1 120px;border:1px solid var(--line);border-radius:6px;padding:10px 10px;
+font-size:12.5px;text-align:center;background:var(--card)}
+.chain div.hot{border-color:var(--accent);color:var(--accent);font-weight:600;background:var(--accent-light)}
+.chain div small{display:block;color:var(--muted);font-size:11px;margin-top:4px;font-weight:400}
+.q{border:1px solid var(--accent);border-radius:8px;padding:18px 20px;margin:0 0 16px;background:var(--card)}
+.q b{display:block;margin-bottom:6px;font-size:15px;color:var(--accent)}
+.q span{color:var(--muted);font-size:13.5px}
+hr{border:0;border-top:1px solid var(--line);margin:48px 0}
+.nav-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.nav-link{font-size:13px;color:var(--muted);text-decoration:none}
+.nav-link:hover{color:var(--accent)}
+</style></head><body><div class="wrap">
+
+<div class="nav-bar">
+  <a href="index.html" style="font-weight:700;font-size:14px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:6px;">← 返回目录 (Index)</a>
+  <div style="display:flex;gap:14px;font-size:13px">
+    <a href="s0-project-brief.html" class="nav-link" style="color:var(--accent);font-weight:600">S0 Brief</a>
+    <a href="s1-target-hypothesis.html" class="nav-link">S1 目标假说</a>
+    <a href="s2-competitive-evidence.html" class="nav-link">S2 竞品实测</a>
+    <a href="s3-architecture-adr.html" class="nav-link">S3 架构ADR</a>
+    <a href="s5-prd-v0.1.html" class="nav-link">S5 PRD</a>
+  </div>
+</div>
+
+<div style="background:var(--accent-light);border:1px solid rgba(15,82,186,0.25);border-radius:8px;padding:14px 18px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+  <div>
+    <span style="font-size:11.5px;color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase">产品立项 Brief · 战略决策核心</span>
+    <p style="margin:4px 0 0;font-size:13px;color:var(--muted)">攻克电商大促万级 SKU 视觉切版困境，厘清扩散模型物理边界与企业级工业交付闭环。</p>
+  </div>
+  <span class="tag a">S0 Milestone</span>
+</div>
+
+<h1>AI 出图自动化平台 · 企业级 AI 电商出图自动化平台</h1>
+<p class="sub">面向大促万级 SKU 矩阵的自动化视觉 Agent 管线 · 立项 Brief & 核心边界推导</p>
+
+<div class="lead">
+  <strong>AI 出图自动化平台 绝非另一款在线作图画板，也不是简单的 AI 换背景工具。</strong><br>
+  它是一套<strong>“数据驱动的视觉批处理管线”（支持极轻量级的 Excel/CSV 快照导入，直接在沙盘中台维护数据）</strong>。通过 Agent 编排高保真场景重构、物理接触光影投射、公式级动态营销排版与全域平台合规防火墙，让全域品牌在天猫、京东、抖音的双11/618 多轮切版工时从 <strong>7 天压缩至 2 小时</strong>，显著降低标价错漏与平台违规风险。
+</div>
+
+<h2><span class="n">01</span> 真实业务断点：电商大促的“视觉换版修罗场”</h2>
+
+<p>年销售额过亿的成熟消费品牌（服饰、美妆个护、3C数码、食品快消），在面对 618 / 双11 等大型大促节点时，面临极其残忍的<strong>工程吞吐量瓶颈</strong>：</p>
+
+<div class="chain">
+  <div><strong>1. 营销节点密集</strong><small>预售➔开门红➔爆发➔返场 (4-6轮)</small></div>
+  <div><strong>2. SKU 规模庞大</strong><small>单店 2,000 ~ 10,000+ SKU</small></div>
+  <div><strong>3. 渠道格式割裂</strong><small>天猫 1:1, 抖音 3:4, 京东标签</small></div>
+  <div class="hot"><strong>4. 价格动态计算</strong><small>跨店满减+品类券+会员价</small></div>
+  <div class="hot"><strong>5. 极高错漏惩罚</strong><small>价格标错退差价 / 平台违规下架</small></div>
+</div>
+
+<div class="card">
+  <h4>业务一线的真实代价（Pain Points）</h4>
+  <ul>
+    <li><strong>美工沦为“人肉套版搬砖工”</strong>：外包团队或店内美工通宵熬夜打开 PS 复制粘贴促销文案，重复劳动导致核心创意能力流失、团队离职率高。</li>
+    <li><strong>到手价错算导致“灭顶灾难”</strong>：由于不同 SKU 基础加价率不同、凑单门槛不同，人工修改极易算错到手价，曾多次出现“被羊毛党薅秃”或被平台判定为虚假折扣。</li>
+    <li><strong>平台合规限流</strong>：抖音搜索主图左下角被购物车组件遮挡核心卖点、天猫主图牛皮癣违规扣分、广告法极限词（“全网第一”、“最强”）误发导致商家被罚款。</li>
+  </ul>
+</div>
+
+<h2><span class="n">02</span> 核心约束：为什么 Diffusion 模型不能直接用于电商交付？</h2>
+
+<p>市面上许多声称做“电商 AIGC”的产品在实际落地中迅速溃败，核心原因在于<strong>产品经理缺乏对生成式 AI 物理硬约束的清醒认知</strong>。商业交付追求 100% 的确定性，而 Diffusion 本质是概率场采样：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>模型物理硬约束</th>
+      <th>原生 Diffusion 抽卡的表征缺陷</th>
+      <th>AI 出图自动化平台 的工程防御策略</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. SKU 结构漂移 (Identity Drift)</strong></td>
+      <td>扩散模型在重绘背景时会微调商品边缘、Logo 变形、瓶盖五金结构改变，导致“实物与图不符”退货。</td>
+      <td><strong>前景掩码强锁定 + ControlNet 边缘硬锚定</strong>，严格像素隔离，禁止重绘商品本体任何像素。</td>
+    </tr>
+    <tr>
+      <td><strong>2. 物理光影断层 (Contact Shadows)</strong></td>
+      <td>扣出的商品直接贴在新背景上产生“悬空贴纸感”，缺乏重力压痕、接触阴影与地面环境反射。</td>
+      <td><strong>多阶段光影管线</strong>：生成深度法线图 ➔ 渲染地面定向衰减阴影 ➔ 局部环境光反射调和（Inpainting 仅作用于接触面）。</td>
+    </tr>
+    <tr>
+      <td><strong>3. 文字排版黑盒 (Typo & Layout)</strong></td>
+      <td>扩散模型无法精准稳定输出多语言汉字，字体排版无法精确对齐，改动价格必须全图重新生成。</td>
+      <td><strong>图文严格解耦（Layered Architecture）</strong>：背景由 AI 渲染，前景所有促销文案由<strong>自研 Headless SVG 矢量排版引擎</strong>确定性渲染。</td>
+    </tr>
+    <tr>
+      <td><strong>4. 构图语义失控 (Occlusion Risk)</strong></td>
+      <td>不同长宽比商品套用模板时，商品遮挡文字或核心卖点被平台 UI 组件（如价格牌、购物车）覆盖。</td>
+      <td><strong>Vision-LLM 空间感知</strong>：自动识别人眼视觉焦点、商品边界包围盒（Bounding Box），计算黄金留白区域自动放置文案。</td>
+    </tr>
+    <tr>
+      <td><strong>5. 审计与分层无法回溯</strong></td>
+      <td>输出扁平 JPG/PNG 死像素文件，法务合规无法审计，美工无法在 PS 中二次微调。</td>
+      <td><strong>工业级 PSD/Figma 分层导出</strong>：图层分为 [背景层、阴影层、商品本体层、矢量文字层、合规水印层]。</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2><span class="n">03</span> 竞品生态位拆解：错位竞争：极睿科技/万相实验室 vs 稿定/美图设计室</h2>
+
+<div class="card">
+  <h4>竞品全景实测对比</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>对比维度</th>
+        <th>电商ISV与平台原生 (极睿科技/阿里万相实验室)</th>
+        <th>在线平面工具 (稿定设计 / 美图设计室 / Canva)</th>
+        <th>AI 出图自动化平台 (本产品定位)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>核心用户</strong></td>
+        <td>单一平台生态内商家、服饰类目卖家</td>
+        <td>个人设计师、小白运营、C店店主</td>
+        <td><strong>全域多渠道大品牌方、视觉总监、大促操盘手</strong></td>
+      </tr>
+      <tr>
+        <td><strong>交互形态</strong></td>
+        <td>基于平台围墙的流水线 / 偏传统的规则拼接</td>
+        <td>在线画布（拖拉拽 Canvas）+ 单点 AI 抠图换背景</td>
+        <td><strong>无头自动化批处理管线 (Batch Headless Pipeline)</strong></td>
+      </tr>
+      <tr>
+        <td><strong>数据源连接</strong></td>
+        <td>深度绑定单一平台 (如仅限淘系天猫商品库)</td>
+        <td>无（用户手动上传或传简单静态 CSV）</td>
+        <td><strong>直连品牌私有 ERP/PIM + 动态促销公式计算引擎</strong></td>
+      </tr>
+      <tr>
+        <td><strong>跨平台分发</strong></td>
+        <td>生态壁垒：基于淘系生态，难以直接生成竞对平台（如抖音）特有规范的物料</td>
+        <td>需人工逐个选择平台尺寸并手动调整元素位置</td>
+        <td><strong>一键矩阵化自适应重构</strong>（天猫 1:1, 抖音 3:4, 京东标签）</td>
+      </tr>
+      <tr>
+        <td><strong>光影质感</strong></td>
+        <td>系统相对闭环，难以灵活接入最新开源光影控制模型（如 Depth/Normal 控制）</td>
+        <td>主打单图人工操作，在纯自动化批处理时难以保持一致的物理接触阴影</td>
+        <td><strong>Diffusion 氛围生成 + 深度法线物理接触阴影渲染</strong></td>
+      </tr>
+      <tr>
+        <td><strong>合规拦截</strong></td>
+        <td>平台内部滞后报错或强行下架</td>
+        <td>侧重通用视觉设计，对垂直电商平台的专属合规规则缺乏自动化校验</td>
+        <td><strong>内置跨平台合规防火墙与极限词自动化 Critic 节点</strong></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h2><span class="n">04</span> 核心架构与 4 大 Agent 子系统</h2>
+
+<p>AI 出图自动化平台 将原本由几十个美工与运营协作的复杂链路，抽象为四个协同运转的智能子系统：</p>
+
+<div class="q">
+  <b>1. Marketing Planner Agent (大促策略与公式引擎)</b>
+  <span>解析品牌大促活动方案，抓取 ERP 商品 SKU 规格，根据营销阶段（预售/爆发/返场）自动计算各 SKU 实际到手价，并生成差异化核心卖点文案（Hook）。</span>
+</div>
+
+<div class="q">
+  <b>2. Staging & Lighting Engine (高保真场景融合与物理光影引擎)</b>
+  <span>保持商品主体 100% 像素隔离，基于商品品类智能匹配质感场景（大理石台面、晨光窗边、户外露营），并通过深度法线图计算自然接触阴影与环境反光。</span>
+</div>
+
+<div class="q">
+  <b>3. Autonomous Layout Engine (空间自适应矢量排版引擎)</b>
+  <span>结合多模态空间感知，精准识别商品轮廓与视觉留白，按照黄金分割动态锚定利益点标签，确保全渠道（1:1, 3:4, 16:9）无遮挡且留白均衡。</span>
+</div>
+
+<div class="q">
+  <b>4. Quality & Compliance Critic (全域规则与保真质检护栏)</b>
+  <span>内置双重打靶系统：像素级 SSIM 商品保真校验 + 平台规则合规引擎（自动拦截广告法违禁词、平台遮挡死区、RGB 溢出），不合规自动触发回滚重排。</span>
+</div>
+
+<h2><span class="n">05</span> 北极星指标与业务价值验证</h2>
+
+<ul>
+  <li><strong>生产效率指标</strong>：万级 SKU 营销切版交付时间从 <strong>7 天 (168 小时) ➔ 2 小时以内</strong>（提效 80x 以上）。</li>
+  <li><strong>准确度指标</strong>：到手价与促销利益点标错率降低至 <strong>0%</strong>。</li>
+  <li><strong>合规通过率</strong>：天猫、京东、抖音平台上传质检一次性通过率 <strong>≥ 99.5%</strong>。</li>
+  <li><strong>商业转化 (CTR/CVR)</strong>：相比老旧死板切片模板，AIGC 高保真光影场景主图点击率（CTR）平均提升 <strong>18% ~ 26%</strong>。</li>
+</ul>
+
+
+
+</div></body></html>

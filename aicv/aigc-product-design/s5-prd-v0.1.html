@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S5 PRD v0.1 · AI生图分层与商用交稿插件系统控制</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#b4531f;--ok:#2f6b45;--bad:#a12a2a;--warn:#a8761f;--code:#f2f2ef}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#e08a52;--ok:#7ab88f;--bad:#e08585;--warn:#d6a75a;--code:#202020}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:16px/1.72 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:20px 24px 120px}
+h1{font-size:25px;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 8px}
+h2{font-size:15px;margin:58px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--line);letter-spacing:.02em}
+h2 .n{color:var(--muted);font-weight:400;margin-right:10px;font-variant-numeric:tabular-nums}
+h3{font-size:14.5px;margin:26px 0 8px;color:var(--fg)}
+p{margin:0 0 14px}ul,ol{margin:0 0 14px;padding-left:20px}li{margin:6px 0}
+em{font-style:normal;color:var(--accent);font-weight:600}
+.lead{font-size:17px;line-height:1.62;border-left:2px solid var(--accent);padding:2px 0 2px 18px;margin:26px 0 34px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 16px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:12.5px;color:var(--muted);letter-spacing:.03em}
+td.c,th.c{text-align:center}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.wn{color:var(--warn);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin:0 0 16px}
+.card h4{margin:0 0 8px;font-size:13.5px;letter-spacing:.03em;color:var(--muted);text-transform:uppercase}
+.card.hot{border-color:var(--accent);border-width:1.5px}
+.flow{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;background:var(--code);padding:14px;border-radius:8px;line-height:1.6;margin-bottom:16px;color:var(--fg)}
+.flow b{color:var(--accent)}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border:1px solid var(--line);border-radius:20px;color:var(--muted);margin-right:6px}
+.tag.a{border-color:var(--accent);color:var(--accent)}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+hr{border:0;border-top:1px solid var(--line);margin:52px 0}
+.foot{color:var(--muted);font-size:12.5px;line-height:1.7}
+</style></head><body><div class="wrap">
+
+<p><a href="index.html" style="color:var(--muted);text-decoration:none;font-size:13px">← 返回文档导航</a></p>
+
+<h1>S5 PRD v0.1 · AI生图分层与商用交稿插件系统控制</h1>
+<p class="sub">2026-09-17 · 载体：Photoshop UXP 原生扩展面板 · 附加维度：控制力与经济学</p>
+<p><span class="tag a">MVP 三步流敲定</span><span class="tag a">降级路由 Fallback 覆盖</span><span class="tag a">毛利模型测算完成</span></p>
+
+<p class="lead"><strong>工业级生成式系统的核心壁垒，在于构建一张能够在恶劣非确定性环境中存活的异常降级网（Fallback Routing）。</strong><br>本篇 PRD 不设想理想化的“一键全自动”，而是定义了严格的系统状态机、熔断边界与人工接管触发器。将高并发识别交由云端大模型处理，将最终的编辑确定性平滑交还至设计师的手工图层。</p>
+
+<h2><span class="n">00</span>业务系统全景 (Business Panorama)</h2>
+<p>在进入具体功能交互前，需明确本产品（Handoff 管线）在整个插画商业化生命周期中的生态位与上下游边界：</p>
+<div style="background:var(--card); border:1px solid var(--line); border-radius:12px; padding:30px 0; margin-bottom:40px; display:flex; justify-content:center;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 780" width="100%" style="max-width: 800px; font-family: -apple-system, system-ui, sans-serif;">
+  <defs>
+    <!-- 箭头标识 -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" />
+    </marker>
+    <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#fb923c" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#fca5a5" />
+    </marker>
+    <!-- 极简阴影 -->
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.04" />
+    </filter>
+  </defs>
+
+  <!-- P3 背景框 (Handoff 生态位) -->
+  <rect x="150" y="270" width="500" height="360" rx="16" fill="#fff7ed" stroke="#fed7aa" stroke-width="2" stroke-dasharray="8,4" />
+  <text x="400" y="305" text-anchor="middle" font-size="14" font-weight="700" fill="#c2410c" letter-spacing="1">💡 三、 Handoff 商业交付与改图管线 (本产品卡位环节)</text>
+
+  <!-- Phase 1 -->
+  <rect x="240" y="40" width="320" height="64" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" filter="url(#shadow)" />
+  <text x="400" y="68" text-anchor="middle" font-size="15" font-weight="700" fill="#334155">一、 需求确认阶段 (Client Brief)</text>
+  <text x="400" y="88" text-anchor="middle" font-size="12" fill="#64748b">🎨 客户下达商业视觉需求 (尺寸、题材、文案)</text>
+
+  <line x1="400" y1="104" x2="400" y2="132" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Phase 2 -->
+  <rect x="240" y="140" width="320" height="64" rx="10" fill="#eef2ff" stroke="#a5b4fc" stroke-width="2" filter="url(#shadow)" />
+  <text x="400" y="168" text-anchor="middle" font-size="15" font-weight="700" fill="#3730a3">二、 AIGC 抽卡生成 (Generation)</text>
+  <text x="400" y="188" text-anchor="middle" font-size="12" fill="#4f46e5">🤖 获得 L0 级视觉初稿（无法直接商用交付）</text>
+
+  <!-- 痛点气泡 (指向 Phase 2) -->
+  <rect x="45" y="147" width="160" height="50" rx="25" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5" />
+  <text x="125" y="171" text-anchor="middle" font-size="13" font-weight="700" fill="#991b1b">死图陷阱</text>
+  <text x="125" y="187" text-anchor="middle" font-size="11" fill="#b91c1c">文字与背景死死黏合</text>
+  <line x1="205" y1="172" x2="230" y2="172" stroke="#fca5a5" stroke-width="2" marker-end="url(#arrow-red)" />
+
+  <rect x="595" y="147" width="160" height="50" rx="25" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5" />
+  <text x="675" y="171" text-anchor="middle" font-size="13" font-weight="700" fill="#991b1b">色域断层</text>
+  <text x="675" y="187" text-anchor="middle" font-size="11" fill="#b91c1c">RGB 荧光色，印刷发灰</text>
+  <line x1="595" y1="172" x2="570" y2="172" stroke="#fca5a5" stroke-width="2" marker-end="url(#arrow-red)" />
+
+  <!-- 进入管线的箭头 -->
+  <line x1="400" y1="204" x2="400" y2="265" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- P3 Steps -->
+  <!-- Step 1 -->
+  <rect x="240" y="330" width="320" height="64" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2" filter="url(#shadow)" />
+  <text x="400" y="358" text-anchor="middle" font-size="15" font-weight="700" fill="#9a3412">Step 1: AI 资产智能解耦 (Decoupling)</text>
+  <text x="400" y="378" text-anchor="middle" font-size="12" fill="#c2410c">✂️ 调用 SAM2 抠除错字，Inpaint 瞬间修补背景</text>
+
+  <line x1="400" y1="394" x2="400" y2="422" stroke="#fdba74" stroke-width="2" marker-end="url(#arrow-accent)" />
+
+  <!-- Step 2 (人类接管) -->
+  <rect x="240" y="430" width="320" height="64" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4,2" filter="url(#shadow)" />
+  <text x="400" y="458" text-anchor="middle" font-size="15" font-weight="700" fill="#334155">Step 2: 人工降级精修 (Overpainting)</text>
+  <text x="400" y="478" text-anchor="middle" font-size="12" fill="#64748b">🖌️ 画师在极净底图上，利用数位板纯手工重绘</text>
+
+  <line x1="400" y1="494" x2="400" y2="522" stroke="#fdba74" stroke-width="2" marker-end="url(#arrow-accent)" />
+
+  <!-- Step 3 & 4 -->
+  <rect x="240" y="530" width="320" height="64" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2" filter="url(#shadow)" />
+  <text x="400" y="558" text-anchor="middle" font-size="15" font-weight="700" fill="#9a3412">Step 3: 自动化印前体检 &amp; 确权打包</text>
+  <text x="400" y="578" text-anchor="middle" font-size="12" fill="#c2410c">🩺 压制 CMYK 溢出 / 生成履约时间戳上链</text>
+
+  <!-- 离开管线的箭头 -->
+  <line x1="400" y1="594" x2="400" y2="672" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Phase 4 -->
+  <rect x="240" y="680" width="320" height="64" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="2" filter="url(#shadow)" />
+  <text x="400" y="708" text-anchor="middle" font-size="15" font-weight="700" fill="#166534">四、 商业验收交付 (Delivery)</text>
+  <text x="400" y="728" text-anchor="middle" font-size="12" fill="#15803d">📄 输出合规分层 PDF，验收通过无痛结清尾款</text>
+</svg>
+</div>
+
+<h2><span class="n">01</span>核心交互链路：Handoff 三步流</h2>
+<p>画师在 Photoshop 中完成 AI 草图导入或手绘绘制后，打开右侧 <code>Handoff 面板</code>：</p>
+<div class="flow">
+<b>Step 1：一键图文解耦（Text & Object Decoupling）</b><br>
+└─ 框选含文字/主体的区域 → 点击【智能解耦】<br>
+└─ 结果：原图层被静默分为 [独立文字层 (可双击编辑)] + [主体层] + [底纹修补层]。<br><br>
+<b>Step 2：印前工业体检（Pre-flight Check）</b><br>
+└─ 点击【体检】 → 视口叠加红色热力图，暴露出血位缺失、RGB 荧光色在 CMYK 域内的死区。<br>
+└─ 点击【智能修复】 → 一键延伸 3mm 边缘出血，高饱和色做基于人眼感知的 ICC 色域映射压缩。<br><br>
+<b>Step 3：一键闭环打包（Delivery Packaging）</b><br>
+└─ 勾选目标（印厂 PDF / 站酷 EPS / 网页 PNG），点击【导出并存证】。<br>
+└─ 结果：桌面生成规范 ZIP，内含格式完全对标工业要求的文件，外加 PDF 版本《原创履约存证链》。
+</div>
+
+<h2><span class="n">02</span>非确定性控制：状态机与 Fallback 降级路由（🔥 核心亮点）</h2>
+
+<p>生成式 AI（如 Inpainting 补底）天生具有不确定性。我们不强求算法 100% 完美，而是用工程手段兜底。以下是 <b>图文解耦管线</b> 的严密状态转移控制：</p>
+
+<table>
+<tr><th style="width:20%">系统状态 / 输入特征</th><th>置信度探测</th><th class="win">路由动作 (Happy Path)</th><th class="lose">Fallback 降级与兜底</th></tr>
+<tr>
+<td><b>常规场景</b><br>纯色或简单重复纹理底图上的文字框</td>
+<td>Confidence > 85%</td>
+<td><b>全自动隐式修补</b>：分离文字后，自动调用 Inpainting 生成背景替换缺失处，图层静默合并。</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><b>复杂边缘场景</b><br>文字压在半透明烟雾、发丝或极复杂纹理之上</td>
+<td>Confidence 60%–85%</td>
+<td>分离文字成功，但 <b>Inpainting 预测接缝可能存在瑕疵</b>。</td>
+<td><b>半自动挂起</b>：生成「修复图层蒙版」，但不在画布直接合并；高亮面板红点，提示画师检查并用 PS 画笔手动修缮边缘。</td>
+</tr>
+<tr>
+<td><b>灾难性遮挡场景</b><br>文字面积超过画面 60% 或覆盖核心人脸</td>
+<td>Confidence < 60%<br>或识别模型耗时超 5s</td>
+<td>放弃自动修补，触发<b>熔断保护</b>机制。</td>
+<td><b>人工接管 (Manual Handover)</b>：仅提取文字，将底图选区用闪烁虚线框出，系统弹窗提示“背景过于复杂，AI 补底可能造成画面崩坏，请用套索手动处理”。<b>绝不自作主张弄脏画师原图</b>。</td>
+</tr>
+<tr>
+<td><b>网络/显存 OOM</b><br>设备性能不足或 API 离线</td>
+<td>抛出 Error / Timeout</td>
+<td>N/A</td>
+<td><b>彻底退化为传统切图脚本</b>：屏蔽 AI 解耦功能，仅保留本地导出打包和出血线绘制等免算力功能，确保交付动作不断档。</td>
+</tr>
+</table>
+
+<h2><span class="n">03</span>单位经济学模型 (Unit Economics)</h2>
+
+<div class="card hot">
+<h4>定价模式：次卡结算</h4>
+<p>画师的痛点是“交稿拿尾款”，因此收费模式应锚定<b>“单次成功交付”</b>，而非宽泛的月租包。定价策略：<b>19 元 / 单次交付项目包</b>（打包 10 个以内文件+ 1 份版权存证）。</p>
+</div>
+
+<table>
+<tr><th>算力与存储成本项 (COGS)</th><th>单次项目消耗预估</th><th>成本费用测算</th></tr>
+<tr>
+<td><b>1. 图层分割模型 (SAM 2 / BiRefNet)</b></td>
+<td>调用云端 GPU 推理，平均 3 次抠图解耦</td>
+<td>~¥ 0.04 (基于 T4 GPU 租赁均价)</td>
+</tr>
+<tr>
+<td><b>2. Inpainting 智能补底模型</b></td>
+<td>调用云端生图修复 API，平均 2~3 处补底</td>
+<td>~¥ 0.08 (按 Token / 调用次数估算)</td>
+</tr>
+<tr>
+<td><b>3. 色域映射与印前转换算子</b></td>
+<td>纯本地 C++ 算子 (利用 PS SDK) + WASM</td>
+<td>¥ 0.00 (无云端成本)</td>
+</tr>
+<tr>
+<td><b>4. 哈希上链与存证存储</b></td>
+<td>存储时间戳哈希值，轻量上链</td>
+<td>~¥ 0.02</td>
+</tr>
+<tr style="background-color:var(--code);font-weight:600">
+<td>总可变边际成本 (单次项目)</td>
+<td>包含所有 API 与存证消耗</td>
+<td>总计约 ¥ 0.14</td>
+</tr>
+</table>
+
+<p><b>毛利护城河验证：</b> 单次定价 19 元，单次边际成本 0.14 元，<b>毛利率高达 99.2%</b>。这意味着该产品在单位经济学上极度健康，核心成本是早期研发固定投入（PS UXP 开发与 C++ 算子封装），而非生成式大模型那种每调一次都在流血亏本的结构。</p>
+
+<h2><span class="n">04</span>概率式验收门槛 (MVQ - Minimum Viable Quality)</h2>
+
+<p>不要设定 100% 完美的玄学指标，设立研发在测试环境可以打靶计数的硬规约：</p>
+<ol>
+<li><b>解耦补底不闪退率（可用性）</b>：大文件 (2GB+ / 300图层) 下解耦执行崩溃率需低于 <b>0.5%</b>，一旦 OOM 必须 3 秒内进入纯本地 Fallback。</li>
+<li><b>人工介入容忍度（拦截率）</b>：对 50 张标准商业用图测试，要求 Confidence < 60% 触发人工接管的比例控制在 <b>15% 以内</b>（允许 15% 的极端长尾图交给画师自己搞，不追求完美算法）。</li>
+<li><b>交付合规率（准确性）</b>：用 100 张导出好的 CMYK PDF 丢入 Adobe Acrobat 工业预检脚本跑查，色标错误、出血缺失与未转曲的拦截报错率必须为 <b>0%</b>。</li>
+</ol>
+
+</div></body></html>

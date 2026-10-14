@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教辅与绘本文稿的审稿流程 — 深度调研报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style id="enterprise-standard-style">
+:root{
+  --bg:#fafaf9; --ink:#1c1917; --mute:#78716c; --line:#e7e5e4; --soft:#f5f5f4;
+  --accent:#2563eb; --accent-hover:#1d4ed8; --warn:#b45309; --bad:#b91c1c; --ok:#15803d;
+  --side: 280px;
+  --unified-nav-width: 300px;
+
+  /* 兼容映射变量 */
+  --bg-soft: var(--soft);
+  --bg-sunk: #eeedea;
+  --ink-2: #292524;
+  --ink-3: var(--mute);
+  --line-2: #d6d3d1;
+  --accent-soft: rgba(37, 99, 235, 0.08);
+  --green: var(--ok);
+  --green-soft: rgba(21, 128, 61, 0.1);
+  --amber: var(--warn);
+  --amber-soft: rgba(180, 83, 9, 0.1);
+  --red: var(--bad);
+  --red-soft: rgba(185, 28, 28, 0.1);
+  --blue: var(--accent);
+  --blue-soft: rgba(37, 99, 235, 0.1);
+  --grey: var(--mute);
+  --grey-soft: var(--soft);
+}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f172a; --ink:#f8fafc; --mute:#94a3b8; --line:#1e293b; --soft:#1e293b;
+    --accent:#38bdf8; --accent-hover:#0ea5e9; --warn:#f59e0b; --bad:#ef4444; --ok:#10b981;
+    --bg-soft: #1e293b;
+    --bg-sunk: #0b1120;
+    --ink-2: #cbd5e1;
+    --ink-3: #94a3b8;
+    --line-2: #334155;
+    --accent-soft: rgba(56, 189, 248, 0.12);
+    --green: #10b981;
+    --green-soft: rgba(16, 185, 129, 0.12);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245, 158, 11, 0.12);
+    --red: #ef4444;
+    --red-soft: rgba(239, 68, 68, 0.12);
+    --blue: #38bdf8;
+    --blue-soft: rgba(56, 189, 248, 0.12);
+    --grey: #94a3b8;
+    --grey-soft: #1e293b;
+  }
+}
+
+*{box-sizing:border-box;}
+html{scroll-padding-top:24px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%;}
+body{
+  margin:0; background:var(--bg); color:var(--ink); line-height:1.75;
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14.5px; transition:background .2s,color .2s; overflow-x: hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+.container, .wrap{
+  max-width:980px; margin:0 auto; padding:40px 24px 96px;
+}
+@media (max-width:768px){
+  .container, .wrap{ padding:24px 16px 64px; }
+}
+
+header.report-header{ padding-bottom: 24px; border-bottom: 2px solid var(--line); margin-bottom: 32px; }
+.header-badge{ display: inline-block; font-size: 11.5px; font-weight: 700; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+h1{ font-size:28px; line-height:1.35; margin:0 0 12px; color:var(--ink); font-weight:800; letter-spacing:-0.02em; }
+.subtitle{ font-size: 15.5px; color: var(--mute); line-height: 1.6; margin: 0 0 20px; }
+h2{ font-size:21px; margin:44px 0 18px; padding-bottom:10px; border-bottom:1.5px solid var(--line); color:var(--ink); font-weight:750; letter-spacing:-0.01em; scroll-margin-top:24px; }
+h3{ font-size:16.5px; margin:26px 0 12px; color:var(--ink); font-weight:700; }
+h4{ font-size:15px; margin:20px 0 8px; color:var(--ink); font-weight:650; }
+p, li{ font-size:14.5px; color:var(--ink); line-height:1.8; }
+ul, ol{ padding-left:22px; margin:12px 0; }
+li{ margin:6px 0; }
+strong{ color:var(--ink); font-weight:650; }
+a{ color:var(--accent); text-decoration:none; transition: color .15s; }
+a:hover{ color:var(--accent-hover); text-decoration:underline; }
+hr{ border:0; border-top:1px solid var(--line); margin:36px 0; }
+
+code{
+  background:var(--soft); color:var(--accent); padding:2px 6px; border-radius:4px;
+  font-size:13px; font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+pre{
+  background:var(--soft); border:1px solid var(--line); padding:16px; border-radius:8px;
+  overflow-x:auto; font-size:13px; line-height:1.6; margin:18px 0;
+  font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+pre code{ background:transparent; padding:0; color:var(--ink); }
+
+.architecture-diagram{
+  background: var(--soft); border: 1px solid var(--line); padding: 18px 20px;
+  border-radius: 8px; overflow-x: auto; font-size: 12.5px; line-height: 1.32;
+  font-family: 'JetBrains Mono', monospace; margin: 20px 0;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+}
+
+table{
+  width:100%; border-collapse:collapse; margin:18px 0; font-size:13px;
+  border:1px solid var(--line); border-radius:8px; overflow:hidden;
+}
+th, td{
+  border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; color:var(--ink);
+}
+th{
+  background:var(--soft); font-weight:650; color:var(--ink); position:sticky; top:0;
+}
+tr:nth-child(even){ background:rgba(0,0,0,0.015); }
+@media (prefers-color-scheme:dark){
+  tr:nth-child(even){ background:rgba(255,255,255,0.02); }
+}
+.tablewrap{ overflow-x:auto; margin:20px 0; border:1px solid var(--line); border-radius:8px; }
+.tablewrap table{ margin:0; border:none; }
+
+.badge, .b{ display:inline-block; padding:2px 9px; border-radius:6px; font-size:12px; font-weight:600; line-height:1.5; }
+.badge-pass, .bA{ background:var(--green-soft); color:var(--ok); border:1px solid rgba(21,128,61,0.25); }
+.badge-pending, .bB{ background:var(--accent-soft); color:var(--accent); border:1px solid rgba(37,99,235,0.25); }
+.badge-gray, .bC{ background:var(--soft); color:var(--mute); border:1px solid var(--line); }
+.badge-fail{ background:var(--red-soft); color:var(--bad); border:1px solid rgba(185,28,28,0.25); }
+.badge-amber{ background:var(--amber-soft); color:var(--warn); border:1px solid rgba(180,83,9,0.25); }
+.badge-blue{ background:var(--accent-soft); color:var(--accent); border:1px solid rgba(37,99,235,0.25); }
+.badge-green{ background:var(--green-soft); color:var(--ok); border:1px solid rgba(21,128,61,0.25); }
+.badge-purple{ background:rgba(147, 51, 234, 0.1); color:#9333ea; border:1px solid rgba(147, 51, 234, 0.25); }
+
+.thesis-box{
+  background:#eff6ff; border:1.5px solid #bfdbfe; border-left:5px solid var(--accent);
+  border-radius:8px; padding:20px 22px; margin:20px 0 24px;
+}
+.thesis-box strong.title{ display:block; font-size:15.5px; color:#1e40af; margin-bottom:8px; letter-spacing:0.5px; }
+.thesis-box p{ color:#1e3a8a; margin:0; font-size:14.5px; line-height:1.75; }
+@media (prefers-color-scheme:dark){
+  .thesis-box{ background:rgba(56, 189, 248, 0.08); border-color:rgba(56, 189, 248, 0.25); }
+  .thesis-box strong.title{ color:#38bdf8; }
+  .thesis-box p{ color:#e2e8f0; }
+}
+
+.grid-3{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin:20px 0; }
+.card{ background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,0.02); }
+.card .k{ font-size:12px; color:var(--mute); font-weight:600; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px; }
+.card .v{ font-size:24px; font-weight:750; color:var(--accent); line-height:1.2; margin-bottom:6px; }
+.card .d{ font-size:13px; color:var(--mute); line-height:1.5; }
+
+.callout{ border-left:4px solid var(--accent); background:var(--soft); padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; }
+.callout.warn, .note{ border-left:4px solid var(--warn); background:#fffbeb; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.warn strong, .note strong{ color:var(--warn); }
+.callout.danger, .bad{ border-left:4px solid var(--bad); background:#fef2f2; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.danger strong, .bad strong{ color:var(--bad); }
+.callout.good, .good{ border-left:4px solid var(--ok); background:#f0fdf4; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.good strong, .good strong{ color:var(--ok); }
+@media (prefers-color-scheme:dark){
+  .callout.warn, .note{ background:rgba(245, 158, 11, 0.1); }
+  .callout.danger, .bad{ background:rgba(239, 68, 68, 0.1); }
+  .callout.good, .good{ background:rgba(16, 185, 129, 0.1); }
+}
+
+blockquote{ margin:16px 0; padding:12px 18px; background:var(--soft); border-left:4px solid var(--accent); color:var(--ink); border-radius:0 8px 8px 0; }
+blockquote p{ margin:4px 0; }
+
+.meta-box{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px 20px; margin:20px 0 32px; }
+.meta-box .item{ display:inline-block; margin-right:24px; font-size:13px; color:var(--mute); }
+.meta-box .item strong{ color:var(--ink); font-weight:600; }
+.source-tag{ font-size: 12px; color: var(--mute); display: block; margin-top: 6px; }
+
+/* 业务特有组件适配 */
+.stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:18px 0; }
+.stat-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+.stat-val{ font-size:20px; font-weight:750; color:var(--accent); }
+.stat-lbl{ font-size:12px; color:var(--mute); margin-top:4px; }
+
+.prod-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin:16px 0; }
+.prod-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.prod-title{ font-size:16px; font-weight:700; color:var(--ink); margin:0; }
+.prod-tag{ font-size:12px; padding:2px 8px; border-radius:4px; background:var(--accent-soft); color:var(--accent); }
+.pros-cons{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px; }
+@media (max-width:640px){ .pros-cons{ grid-template-columns:1fr; } }
+.pros-box{ background:rgba(21,128,61,0.06); border:1px solid rgba(21,128,61,0.2); border-radius:6px; padding:12px; }
+.cons-box{ background:rgba(185,28,28,0.06); border:1px solid rgba(185,28,28,0.2); border-radius:6px; padding:12px; }
+.box-title{ font-weight:700; font-size:13px; margin-bottom:6px; }
+.pros-box .box-title{ color:var(--ok); }
+.cons-box .box-title{ color:var(--bad); }
+
+.formula-box{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px; margin:16px 0; }
+.formula-header{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.formula-badge{ font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px; background:var(--accent-soft); color:var(--accent); }
+.formula-sub{ font-size:12px; color:var(--mute); }
+.formula-content{ overflow-x:auto; padding:8px 0; }
+
+.scenario-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:20px 0; }
+.scenario-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px; }
+
+.meta-header{ background:var(--soft); border-radius:8px; margin:16px 0 28px; overflow:hidden; border:1px solid var(--line); }
+.meta-header summary{ padding:10px 16px; cursor:pointer; font-weight:600; font-size:13.5px; color:var(--mute); list-style:none; }
+.meta-header summary::-webkit-details-marker{ display:none; }
+.meta-header summary::before{ content:"▸ "; }
+.meta-header[open] summary::before{ content:"▾ "; }
+.meta-header dl{ padding:0 16px 14px; margin:0; font-size:13px; }
+.meta-header dt{ font-weight:600; color:var(--mute); margin-top:8px; }
+.meta-header dd{ margin:2px 0 0 16px; color:var(--ink); }
+.ai-disclaimer{ font-size:12px; color:var(--mute); padding:8px 16px; border-top:1px solid var(--line); }
+
+footer, .footer{ margin-top:60px; padding-top:20px; border-top:1px solid var(--line); font-size:13px; color:var(--mute); text-align:center; }
+
+/* ==================== 抽屉侧边栏统一标准导航 ==================== */
+.unified-nav-btn{
+  position:fixed; top:16px; left:16px; z-index:9999;
+  width:40px; height:40px; border-radius:8px;
+  border:1px solid var(--line); background:var(--bg); color:var(--ink);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:20px; box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  transition:all .2s cubic-bezier(0.4,0,0.2,1);
+}
+.unified-nav-btn:hover{
+  background:var(--soft); color:var(--accent); border-color:var(--accent);
+  transform:scale(1.05); box-shadow:0 4px 14px rgba(37,99,235,0.15);
+}
+body.unified-nav-open .unified-nav-btn{ opacity:0; pointer-events:none; }
+.unified-nav-overlay{ display:none !important; }
+
+aside.unified-nav-drawer{
+  position:fixed; left:0; top:0; bottom:0;
+  width:var(--unified-nav-width); max-width:86vw;
+  background:var(--soft); border-right:1px solid var(--line);
+  padding:24px 16px 20px; overflow-y:auto; display:flex; flex-direction:column;
+  z-index:10001; box-shadow:4px 0 24px rgba(0,0,0,0.08);
+  transform:translateX(-100%);
+  transition:transform .25s ease-in-out;
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme:dark){
+  aside.unified-nav-drawer{ box-shadow:4px 0 24px rgba(0,0,0,0.4); }
+}
+body.unified-nav-open aside.unified-nav-drawer{ transform:translateX(0); }
+
+.unified-nav-drawer .drawer-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding-bottom:14px; border-bottom:1px solid var(--line); margin-bottom:14px;
+}
+.unified-nav-drawer .drawer-brand{
+  font-size:14.5px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:6px;
+}
+.unified-nav-drawer .drawer-brand span{ color:var(--accent); }
+.unified-nav-drawer .drawer-close-btn{
+  background:transparent; border:none; font-size:18px; color:var(--mute);
+  cursor:pointer; padding:6px; border-radius:6px; line-height:1; transition:all .15s;
+}
+.unified-nav-drawer .drawer-close-btn:hover{ background:var(--bg); color:var(--ink); }
+
+.unified-nav-drawer .drawer-shortcuts{
+  display:flex; flex-direction:column; gap:6px; margin-bottom:14px;
+  padding-bottom:14px; border-bottom:1px dashed var(--line);
+}
+.unified-nav-drawer .shortcut-btn{
+  display:flex; align-items:center; gap:8px; padding:7px 12px;
+  border-radius:6px; font-size:13px; font-weight:500; color:var(--ink);
+  text-decoration:none; background:var(--bg); border:1px solid var(--line);
+  transition:all .15s ease;
+}
+.unified-nav-drawer .shortcut-btn:hover{
+  background:var(--line); color:var(--accent); border-color:var(--accent);
+}
+
+.unified-nav-drawer .toc-section-title{
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--mute); margin:6px 0 8px; padding:0 4px;
+}
+.unified-nav-drawer .drawer-toc{
+  display:flex; flex-direction:column; gap:3px; flex:1;
+}
+.unified-nav-drawer .drawer-toc a{
+  display:block; padding:7px 10px; border-radius:6px;
+  font-size:13px; color:var(--mute); text-decoration:none;
+  line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  transition:background .15s, color .15s;
+}
+.unified-nav-drawer .drawer-toc a:hover{
+  color:var(--ink); background:var(--line);
+}
+.unified-nav-drawer .drawer-toc a.active{
+  color:var(--accent); background:var(--bg); font-weight:600;
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== Unified Sidebar Drawer HTML ==================== -->
+<button class="unified-nav-btn" id="unifiedNavBtn" title="展开目录导航">☰</button>
+<div class="unified-nav-overlay" id="unifiedNavOverlay"></div>
+<aside class="unified-nav-drawer" id="unifiedNavDrawer">
+  <div class="drawer-header">
+    <div class="drawer-brand">作品集研报 · <span>出版教育 AI PM</span></div>
+    <button class="drawer-close-btn" id="unifiedNavClose" title="收起导航">✕</button>
+  </div>
+  <div class="drawer-shortcuts">
+    <a href="../../index.html" class="shortcut-btn">🏠 返回作品集总览</a>
+
+  </div>
+  <div class="toc-section-title">报告目录 (Contents)</div>
+  <nav class="drawer-toc" id="unifiedNavToc">
+    <a href="#sec-1" title="核心 Thesis 判断系统">核心 Thesis 判断系统</a>
+<a href="#sec-2" title="一、核心结论（5 条决策级研判）">一、核心结论（5 条决策级研判）</a>
+<a href="#sec-3" title="二、关键工作流程全景拆解">二、关键工作流程全景拆解</a>
+<a href="#sec-4" title="三、成本结构：一个被魔鬼代言人推翻、又被重新校准的结论">三、成本结构：一个被魔鬼代言人推翻、又被重新校准的结论</a>
+<a href="#sec-5" title="四、厂商格局与产品机会">四、厂商格局与产品机会</a>
+<a href="#sec-6" title="五、对手对比表">五、对手对比表</a>
+<a href="#sec-7" title="六、PM 面试可用判断（talk-track）">六、PM 面试可用判断（talk-track）</a>
+<a href="#sec-8" title="七、局限、失败模式与未知项">七、局限、失败模式与未知项</a>
+<a href="#sec-9" title="附录 A：参考来源与证据链">附录 A：参考来源与证据链</a>
+<a href="#sec-10" title="附录 B：举一反三维度执行情况">附录 B：举一反三维度执行情况</a>
+
+  </nav>
+</aside>
+
+
+<div class="container">
+<h1>教辅与绘本文稿的审稿流程 · 深度调研报告</h1>
+<hr />
+<h2 id="sec-1">核心 Thesis 判断系统</h2>
+<p><strong>审稿流程不是「编辑把稿子读三遍」的软性行业惯例，而是一套由行政法规钉死角色、资质、互斥关系与计分口径的合规机器；其 2023 年后的监管转向，把可售卖的价值从「找错字」整体挪到了「生产流程证据」。</strong></p>
+<ol>
+<li><strong>制度层是硬编码，不是最佳实践。</strong> 三审三校的角色分工、资质门槛、"任何两个环节不能由同一人担任"的互斥约束、终校须本社中级以上专职校对、书号申领以完成三审为前置——全部来自 1997 年新闻出版署令第 8 号《图书质量保障体系》现行条文。任何产品若把流程建模成"一个人一键过审"，在制度层面即不成立。</li>
+<li><strong>教辅走「评议推荐」，不是「审定」。</strong> 教材才是国家/省级审定（教材〔2019〕3 号）；教辅是出版社内三审三校 + 省级（及部分地市级）教育行政部门组织评议委员会评议 → 推荐目录 → 学校选用。这是产品最容易建错的环节。</li>
+<li><strong>监管已从「查成品」转向「查制度执行」。</strong> 国新出发〔2023〕8 号把检查对象扩展到"出版单位执行选题论证、三审三校、责任设计编辑和设计方案三级审核等制度的情况"，并新设 0.9‱–1‱ 的约谈灰区。价值锚点随之从"降低差错数"变为"可证明流程被执行过"。</li>
+<li><strong>绘本的流程结构与文字书不同构。</strong> 三审三校的启动点被推迟到图文合样之后，其上叠加了分镜/人设/线稿/合样/印前看样五道图画评审，其中印前看样是纯物理环节（纸张+油墨+机台三点校准），软件不可替代。</li>
+<li><strong>责任不可转移，因此 AI 的商业天花板是「人的前道工序」而非「人的替代品」。</strong> 全部可检索到的正式采购与制度文件均定位为"人机协同/责编辅助"，无一例外。</li>
+</ol>
+<hr />
+<h2 id="sec-2">一、核心结论（5 条决策级研判）</h2>
+<h3>结论 1：审稿流程的底层是法规，不是效率工具——产品必须先过"角色-资质-互斥"建模这一关</h3>
+<p><strong>事实依据</strong>：《图书质量保障体系》（1997 年新闻出版署令第 8 号，现行有效）第八条规定三审"三个环节缺一不可""任何两个环节的审稿工作不能同时由一人担任"；初审一般由责任编辑担任并"写出初审报告"，复审由"具有正、副编审职称的编辑室主任一级的人员"担任，终审由社长/总编辑或其指定的正副编审担任。第十一条规定"一般图书的专业校对应不低于三个校次……终校必须由本社有中级以上专业技术职称的专职校对人员担任"。《书号实名申领管理办法（试行）》第八条：出版单位"在按规定完成书稿'三审'程序后，方可进行书号实名申领"——<strong>书号是被三审卡住的硬闸门</strong>。〔证据 E-01、E-05，等级 A，已逐字复核原文〕</p>
+<p><strong>业务洞察</strong>：这不是流程最佳实践，是合规硬约束。产品的流程引擎必须支持"角色 → 职称资质 → 环节互斥"三元校验，并输出可归档的书面意见（归档制度的法定依据是同规章第二十条）。做不到这一点的协同工具，出版社的总编室/质管办不会签字。</p>
+<hr />
+<h3>结论 2：差错率是一套加权计分公式，不是错误计数——产品若按"检出数量"卖价值，就卖错了对象</h3>
+<p><strong>事实依据</strong>：《图书质量管理规定》（2005-03-01 施行）第五条：差错率 ≤1/10000 为合格。其附件的计分口径极不对称〔E-02，等级 A〕：</p>
+<table>
+<thead>
+<tr>
+<th>差错类型</th>
+<th>每处计差错数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>知识性、逻辑性、语法性差错</td>
+<td><strong>2</strong></td>
+</tr>
+<tr>
+<td>图表内容与说明文字不符</td>
+<td><strong>2</strong></td>
+</tr>
+<tr>
+<td>封一、扉页文字差错</td>
+<td>2</td>
+</tr>
+<tr>
+<td>一般性错字</td>
+<td>1</td>
+</tr>
+<tr>
+<td>图表位置错</td>
+<td>1</td>
+</tr>
+<tr>
+<td>标点符号错用</td>
+<td>0.1</td>
+</tr>
+<tr>
+<td>数字用法</td>
+<td>0.1（全书最多计 1 个）</td>
+</tr>
+</tbody>
+</table>
+<p>分母同样不是实际字数：<strong>总字数 = 每行字数 × 每面行数 × 总面数</strong>（版面字数）；「以图片为主的图书，有文字说明的版面，按满版字数的 50% 计算；没有文字说明的版面，按满版字数的 20% 计算」。抽查规则：正文连续抽查不少于 10 万字，全书不足 10 万字则检查全书。</p>
+<p><strong>业务洞察</strong>：知识性差错与图文不符的权重是标点的 <strong>20 倍</strong>。一个能找出 500 个标点但漏掉 30 处知识性差错的工具，在监管口径下是净负分。产品的评分引擎必须直接对齐这张权重表，输出"预估加权差错率"，并针对 2023 年新增的 <strong>0.9‱–1‱ 约谈区</strong>做分级预警，而非二元合格/不合格判定。绘本领域尤其关键——图片为主的分母折算与"图文不符计 2"两项叠加，使绘本的计分逻辑与文字书完全不同。</p>
+<hr />
+<h3>结论 3：教辅的审稿比一般图书多出一条"人肉四道验算"链路，这是最贵、最难、也最值钱的位置</h3>
+<p><strong>事实依据</strong>：教辅在法定三审三校之上叠加了独立环节——华东师大出版社《一课一练》公开自述："先要经过项目编辑预审……进入审校部后……即使审读小学一年级的教辅，编辑也要专业对口，要验算每一道题目"，"书稿付梓之前还有最后一道质量检查，验算答案的正确性……整个过程中，每道题目起码验算三遍"；该社配备十多位专职审读编辑 + 一二百位兼职审读编辑。广西师大出版社则"请一线教师就书稿的实用性、针对性和科学性进行外审，并核对题目的答案是否正确……作者给出的解答是否是最优的"，质检部门"对每本书进行两次质检"。〔E-11、E-12、E-13，等级 B〕</p>
+<p>归纳出的四道人审链路（<strong>inference</strong>，链条：预审由项目编辑 → 逐题验算由学科对口审读编辑 → 答案最优性由外聘一线教师/教研员 → 终闸为社内印前质检）：</p>
+<pre><code>项目编辑预审 → 学科对口逐题验算（≥3 遍）→ 外聘教师/教研员外审 → 印前质检
+</code></pre>
+<p><strong>业务洞察</strong>：这是教辅独有、成本最高、且机器最难啃的一段。它之所以难，是因为需要同时满足四重校验：学科知识 + 外部权威知识库 + 计算/推导正确性 + 与课标教材版本一致。更关键的是<strong>责任结构</strong>：错一题即质量事故，责任不可转移给机器（见结论 5）。因此机器在这里的正确定位是"减少人审的重复劳动"（例如先自动筛出答案与题干矛盾的题、自动比对课标知识点覆盖），而不是"替人验算并签字"。</p>
+<hr />
+<h3>结论 4：绘本的审稿流程与文字书不同构——三审三校是被"推迟启动"的，且有一道软件无法替代的物理环节</h3>
+<p><strong>事实依据</strong>：接力出版社编辑徐超给出原创图画书 10 个必备步骤，其中第 7 步明确："（前 6 步：整理文本结构与语言 → 物色画家 → 请画家试画分镜和人设 → 讨论修改分镜稿 → 讨论修改线稿 → 画稿电分调色修图排版）<strong>以上环节全部完成后，才开始正式进入审稿和校对流程</strong>"；第 9 步为"去印厂监印……在印厂通宵监印也是家常便饭，有时甚至还会连续监印 2 天 2 夜"。〔E-21，等级 B〕</p>
+<p>另一条独立证据（解放日报署名编辑手记）：一本不到 100 页的绘本，"差不多一审一个月时间"；彩图为主的绘本下厂调色，"从早晨十点一直调到晚上八点多，也仅仅调好了两本书"。〔E-22，等级 B〕</p>
+<p><strong>业务洞察</strong>：把文字书的"收稿 → 三审三校 → 设计排版 → 印制"套到绘本上是结构性错位。绘本的三审三校之前存在分镜、人设、线稿三道独立评审节点，之后存在合样（做"假书"按真实翻页动作再审一遍）与印前看样两道。其中<strong>印前看样依赖纸张+油墨+机台三点物理校准，数字化审稿无法验证呈色，必须现场签样</strong>——这是流程中唯一无法用软件替代、且人力成本最高的环节（<strong>inference</strong>：由调色一天仅完成两本、通宵监印 2 天 2 夜两条 B 级证据推出）。产品的边界应画在这里：可以做到"合样前"，做不到"签样"。</p>
+<p><strong>限定</strong>：该 10 步流程为接力出版社一家口径（B 级单源），中小社与童书策划机构很可能没有完整的分镜评审环节。</p>
+<hr />
+<h3>结论 5：责任不可转移——AI 审校的商业天花板是「人的前道工序」，这是制度决定的，不是技术决定的</h3>
+<p><strong>事实依据</strong>：<br />
+- 制度端：终审须由正副编审担任、终校须由本社中级以上专职校对担任、责任编辑通读付印样后签字付印（E-01、E-05，A 级）。责任主体是人。<br />
+- 采购端：可检索到的全部正式采购与机构表述均为辅助定位。读者出版传媒采购公示将现有工具短板写为"文件自动检查、版本管控、印前预检、终稿归档、版权保护等安全出版环节仍存在不足"；陕师大出版总社 2026 年图书质量工作会明确"坚持人机协同原则"。西安地图出版社 2025 年培训明确"AI 校对仅可作为辅助工具，绝不能替代人工开展价值研判与事实核验"。〔E-31、E-33、E-34〕<br />
+- 接受度侧：果麦文化称基础文本校对人工复核率 20%–30%、重要任务 50%；上海辞书称对 AI 信任度 60%、复核 30%。〔E-35、E-36，B 级〕</p>
+<p><strong>业务洞察</strong>：这意味着产品的价值主张不该是"替代外校"（没有任何一份正式文件这样定位，魔鬼代言人已专门检索确认无反证），而应是"把编辑从低价值重复劳动里抽出来，同时把流程证据自动沉淀下来"。<strong>留痕、可追溯、可回滚、权限分级</strong>是合规刚需而非加分项——陕师大"首阳文正"实现的一校/二校/三校系统记录存档"可追溯、可复盘"并做权限分级（初审/复审/终审），就是这个判断的产品侧印证。〔E-32〕</p>
+<p><strong>风险窗口</strong>：国家新闻出版署已于 2025 年 7 月立项《出版业人工智能应用指南》《应用安全要求》《语料加工要求》三项行业标准，计划 2026 年 12 月前完成。目前三项均为安全/语料/应用指南，<strong>不涉及审校流程定位</strong>，但标准落地后可能松动本结论的边界。〔E-37，B 级〕</p>
+<hr />
+<h2 id="sec-3">二、关键工作流程全景拆解</h2>
+<h3>2.1 教辅审稿全链路（进校教辅）</h3>
+<pre><code>① 选题论证 / 立项
+       ↓
+② 组稿 → 项目编辑预审（抽查题目是否符合组稿要求、教学大纲、答案是否正确、体例统一）
+       ↓   ↖ 退作者修改
+③ 出版社内部三审三校（法定底座）
+   初审（责编，写初审报告）→ 复审（编辑室主任级，正副编审）→ 终审（社长/总编辑级）
+   初校 → 二校 → 三校（终校须本社中级以上专职校对）→ 核红 → 通读 → 付印清样
+       ↓
+④ 教辅加码层
+   · 学科对口审读编辑逐题验算（≥3 遍）
+   · 外聘一线教师 / 教研员外审（答案正确性 + 是否最优解 + 难度适宜性）
+   · 课标对照（2022 版）+ 教材版本核对（人教/北师大/苏教/…）
+   · 政治性审查：地图审图号、台港澳表述、民族宗教、国界
+   · 社内质检（部分社两次质检）→ 印前质检
+       ↓
+⑤ 省级（及部分地市级）教辅评议委员会评议  ← 这是教辅独有闸门
+   · 白皮样书盲评：封面扉页纯白，不得出现书名/编写者/出版单位信息
+   · 内文黑白、无角标书眉页脚装饰
+   · 硬门槛：送评数 &lt;5 种则该版本该学科不予评议；相互重复率 ≥30% 取消资格；
+             同步练习类印张数 ≤ 对应教材印张数 1.5 倍
+   · 插附地图须取得审图号
+       ↓
+⑥ 评议结果公示 → 进入省级推荐目录
+       ↓
+⑦ 学校选用（学科组 ≥5 人、公示 ≥5 工作日）→ 征订 → 课前到书
+</code></pre>
+<p><strong>关键时间锚点</strong>〔E-14，A 级，已逐字复核〕：黑龙江 2026 年小学阶段同步类教辅评议，3-31 发布公告、4-21—4-25 集中报送（窗口仅 5 天，不接受邮寄）、新评议教辅 2026 年秋季学期投入使用。四川 2026-06-02 印发 2026—2027 学年目录。<strong>即：省级评议集中在春季、目录 6 月前落地，服务于秋季学期。</strong></p>
+<p><strong>制度纠正（魔鬼代言人打脸后修正）</strong>：教辅评议<strong>不止省级一层</strong>。盐城市教育局（地市级）2025 年自行组织高中教辅评议；河南省分"新送评"与"已入目录送审"双轨。法规依据为新广出发〔2015〕45 号，而非教材〔2019〕3 号。产品设计若只建"省级评议"一个环节，会漏掉地市级评议与年度送审（后者批量通常更大）。〔E-15、E-16，A 级〕</p>
+<hr />
+<h3>2.2 绘本审稿全链路</h3>
+<pre><code>① 文本结构整理 → ② 物色画家
+       ↓
+③ 试画分镜（dummy）+ 人设（character sheet）   ← 独立评审节点 1
+       ↓   ↖ 反复讨论修订
+④ 线稿（roughs）                                ← 独立评审节点 2
+       ↓
+⑤ 正稿 → 电分 / 调色 / 修图 / 排版
+       ↓
+⑥ ★ 正式进入法定三审三校（与文字书同构，但启动点在此）
+       ↓
+⑦ 制作&quot;假书/合样&quot;按真实翻页动作再审一遍       ← 独立评审节点 3
+       ↓
+⑧ 打样 → 色彩调校 → 印前看样签样               ← 独立评审节点 4（软件不可达）
+</code></pre>
+<p><strong>各环节的检查项</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>检查项</th>
+<th>证据等级</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分镜/人设</td>
+<td>角色跨页可识别性（character studies / model sheet）；翻页节奏；跨页构图</td>
+<td>B/C</td>
+</tr>
+<tr>
+<td>线稿</td>
+<td>事实性核查：动物脚趾数、手脚方向、朝代服饰车马规格</td>
+<td>B</td>
+</tr>
+<tr>
+<td>合样</td>
+<td>在真实翻页动作中发现单幅查看忽视的问题</td>
+<td>B/C</td>
+</tr>
+<tr>
+<td>图文关系</td>
+<td>松居直"文×图"而非"文+图"；第三个故事（图文结合产生的）与前两者不同调即为失败</td>
+<td>B/学术</td>
+</tr>
+<tr>
+<td>中缝</td>
+<td>胶装靠书脊内侧约 8–10mm 无法完全摊开；人脸/重要标题不得压在左右页交界中线</td>
+<td>C（印刷行业站）</td>
+</tr>
+<tr>
+<td>装订约束</td>
+<td>骑马钉可 180° 平摊但限 8–64 页；无线胶装约 150° 不宜跨页图；锁线胶装约 170° 跨页不断缝、成本高 30%–60%；蝴蝶装 180° 无死角，明确适用儿童绘本</td>
+<td>C（单源）</td>
+</tr>
+<tr>
+<td>儿童适宜性</td>
+<td>《出版管理条例》第二十六条：以未成年人为对象的出版物不得含有诱发模仿违反社会公德/违法犯罪的内容，不得含有恐怖、残酷等妨害身心健康的内容</td>
+<td>A</td>
+</tr>
+<tr>
+<td>字号行空</td>
+<td>GB 40070—2021（强制性国标，2022-03-01 实施）：学龄前儿童学习读物正文 ≥3 号字、楷体为主；教科书行空 5.0/4.0/3.0 mm</td>
+<td>A</td>
+</tr>
+</tbody>
+</table>
+<p><strong>引进版的额外链路</strong>：翻译稿审稿（"核对原文，斟酌字词，理顺段落，反复诵读故事……还邀请小朋友试读"，译稿"历经十几次甚至几十次的修改"）→ 图文本地化（更换封面、重制环衬、丛书名/导读等辅文增加）→ 原版审查与删改。<strong>inference</strong>：中文译文字数通常与原文字数不等，直接改变跨页文字块体积与留白，因此图文关系必须在中文版重新审一遍，不能沿用原版分镜。〔E-23、E-24〕</p>
+<p><strong>监管对插图的加严轨迹</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>事件/文件</th>
+<th>关键内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2022-05-28</td>
+<td>教育部回应人教社教材插图问题</td>
+<td>责成重绘，部署全国教材全面排查"重点是教材内容、插图等"</td>
+</tr>
+<tr>
+<td>2022-08-22</td>
+<td>教育部调查处理通报</td>
+<td>认定插图"不美观向上、不严肃规范、不细致准确"；<strong>27 人追责问责</strong>；点名"教材三审三校制度落实不严格，内部纠错制度不完善"</td>
+</tr>
+<tr>
+<td>2023</td>
+<td>《义务教育国家课程教材编写修订规范（试行）》</td>
+<td>单列"插图绘制和选用"六条：方向导向／形象展现／艺术风格／图文关系／地图绘制和使用规范／技术标准；明确"教材插图不是越多越好"</td>
+</tr>
+<tr>
+<td>2023-04-13</td>
+<td>国新出发〔2023〕8 号</td>
+<td>"加大对封面、插图、图文匹配等的检查力度"</td>
+</tr>
+<tr>
+<td>2023-04-20</td>
+<td>鲁教办发〔2023〕2 号</td>
+<td>"强化对地图、插图、图示、封面的政治审核和专业审核"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>重要限定</strong>：检索范围内<strong>未找到</strong>专门针对儿童绘本/童书的独立审查规章。《3—8 岁儿童分级阅读指导》是<strong>团体标准</strong>（2023-02 发布，中国书刊发行业协会牵头），非强制、非审查依据。儿童读物的法定依据仍是《出版管理条例》第 25/26 条 + 三审三校 + 《图书质量管理规定》。从业者亦印证："国家颁布了很多针对图书编校的法律法规，但多集中在文字审核方面，对插图的审核虽然有所规范，但并不系统"。〔E-25，B 级单源〕</p>
+<hr />
+<h3>2.3 通用底座：角色分工与签字节点</h3>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>法定职责</th>
+<th>出处</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>责任编辑</td>
+<td>一般由初审者担任；除初审外负责编辑加工整理和付印样通读；"负责对编辑、设计、排版、校对、印刷等出版环节的质量进行监督"——<strong>全流程唯一贯穿角色</strong></td>
+<td>署令第 8 号第九条</td>
+</tr>
+<tr>
+<td>初审</td>
+<td>具有编辑职称或具备一定条件的助理编辑；审读全部稿件，"把好政治关、知识关、文字关"，写出初审报告</td>
+<td>第八条</td>
+</tr>
+<tr>
+<td>复审</td>
+<td>正、副编审职称的编辑室主任一级；审读全部稿件，对初审报告提出复审意见</td>
+<td>第八条</td>
+</tr>
+<tr>
+<td>终审</td>
+<td>正、副编审职称的社长/总编辑或其指定人员；对稿件能否采用作出决定</td>
+<td>第八条</td>
+</tr>
+<tr>
+<td>责任设计编辑（美术编辑）</td>
+<td>提出整体设计方案或对委托设计的成品质量把关；设计方案同样三级审核</td>
+<td>第十条</td>
+</tr>
+<tr>
+<td>责任校对</td>
+<td>具有专业技术职称的专职校对；负责校样文字技术整理、监督各校次质量、付印样通读</td>
+<td>第十一条</td>
+</tr>
+<tr>
+<td>终校</td>
+<td><strong>必须由本社有中级以上专业技术职称的专职校对人员担任</strong></td>
+<td>第十一条</td>
+</tr>
+</tbody>
+</table>
+<p><strong>校次与灭错率</strong>（《图书校对工作基本规程》，中国版协 2004-10-12，A 级）：<br />
+- 校对定额：一个工作日 <strong>2 万字</strong>为宜，月 40 万字（20 工作日）；增减幅度日 1.5 万–2.5 万字<br />
+- 灭错率：一校 <strong>75%</strong>；二校灭一校留错的 75%；三校留错率最低标准 ≤1/10000<br />
+- 编校人员配备比例：编辑:校对 <strong>3:1</strong>，"不应少于 5:1"<br />
+- 增校次触发条件：初校样差错率 &gt;15/10000，或发稿不齐清定导致校样修改页码 &gt;1/3，或终校差错 &gt;3/10000<br />
+- 作者校对、编辑校对是"副样"，<strong>不能顶替校次</strong><br />
+- 外校计酬：每千字 1–5 元（2004 年口径，已过时）</p>
+<p><strong>其他口径对照</strong>（conflict 已标注）：中国版协校对研究委员会另一口径为日定额 <strong>2.4 万字</strong>（难度大不低于 1.8 万，条件好不高于 3 万）；少年儿童出版社（上海）2018 年起实测 <strong>2 万–2.5 万字/天</strong>。三者时间点分别为 2004 / 未标注 / 2018，不可混用。</p>
+<p><strong>产能与工时</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>数值</th>
+<th>性质与出处</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>责编年均（职称门槛）</td>
+<td>5 种 / 120 万字；复审 13 种 / 270 万字；终审 18 种 / 420 万字</td>
+<td>hard_fact，河南省人社厅 2022 高级职称评价标准（<strong>是评审门槛，不等同于实际负荷</strong>）</td>
+</tr>
+<tr>
+<td>责任校对年均</td>
+<td>600 万字</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>质检年均</td>
+<td>150 万字（120 小时）</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>责编实际负荷</td>
+<td>200 万–400 万字（审校一遍）→ 按三审三校通看 2–4 遍 = <strong>400 万–1600 万字</strong></td>
+<td>estimate，北师大出版科学研究院《出版人职业生存现状调查 2019—2020》，样本自报</td>
+</tr>
+<tr>
+<td>教材周期</td>
+<td>立项到出版 <strong>至少 8–10 个月</strong></td>
+<td>B，新疆教育出版社总编室，2026-08</td>
+</tr>
+<tr>
+<td>教辅极端压缩</td>
+<td>天津教育社 2020 年秋某三册书稿"从编写到付印仅用了 15 天"</td>
+<td>B，天津出版传媒集团官网</td>
+</tr>
+<tr>
+<td>教辅极端压缩</td>
+<td>广东教育社 2022 年秋"满负荷生产时间由原来三个多月压缩至 45 天"</td>
+<td>B，广东省出版集团官网</td>
+</tr>
+<tr>
+<td>教辅忙季</td>
+<td>每年 <strong>6–8 月和 11–1 月</strong>，"编辑手中同时轮转十几本稿子是常态"</td>
+<td>B，百道网署名文章</td>
+</tr>
+<tr>
+<td>退改循环</td>
+<td>四川教育社 2025 年秋"个别品种前后共产生了四版稿件，最终导致定稿时间延迟"</td>
+<td>B，中国新闻出版广电报 2025-09-01</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"齐清定"的出处与本质</strong>：1978 年人民出版社调研组《出版周期长，原因何在？》提出——"齐"= 正文 + 封面、插图、出版说明、前言、后记、索引等零件齐全；"清"= 原稿清楚；"定"= 定稿而非未定稿，发稿后除特殊情况不再作大的修改。背景数据："每本书从发稿到真正出书，平均就需要八九个月"。本质是一条<strong>防返工规则</strong>。〔E-17，B 级〕</p>
+<hr />
+<h2 id="sec-4">三、成本结构：一个被魔鬼代言人推翻、又被重新校准的结论</h2>
+<p><strong>原始判断</strong>：排版与校对费只占营业成本 0.38%，编辑经费占 13.89%，所以"省排版校对费"没价值，只能撬动编辑人力工时。</p>
+<p><strong>复核结果（我已下载年报 PDF 逐字提取，非二手转述）</strong>：中信出版 2024 年年度报告第 13 页「营业成本构成」表，图书出版与发行业务：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>2024 年金额（元）</th>
+<th>占营业成本比重</th>
+<th>2023 年占比</th>
+<th>同比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>印装费</td>
+<td>157,526,876.27</td>
+<td>15.29%</td>
+<td>15.75%</td>
+<td>-10.57%</td>
+</tr>
+<tr>
+<td>纸张材料费</td>
+<td>151,096,047.78</td>
+<td>14.67%</td>
+<td>14.42%</td>
+<td>-6.27%</td>
+</tr>
+<tr>
+<td>版税及稿酬</td>
+<td>307,698,246.21</td>
+<td>29.87%</td>
+<td>33.06%</td>
+<td>-16.77%</td>
+</tr>
+<tr>
+<td><strong>编辑经费</strong></td>
+<td><strong>143,067,405.53</strong></td>
+<td><strong>13.89%</strong></td>
+<td>12.51%</td>
+<td>+2.28%</td>
+</tr>
+<tr>
+<td>运输费</td>
+<td>25,933,707.95</td>
+<td>2.52%</td>
+<td>3.91%</td>
+<td>-40.64%</td>
+</tr>
+<tr>
+<td><strong>排版与校对费</strong></td>
+<td><strong>3,929,413.06</strong></td>
+<td><strong>0.38%</strong></td>
+<td>0.29%</td>
+<td>+22.28%</td>
+</tr>
+</tbody>
+</table>
+<p>数字本身<strong>完全属实</strong>（A 级，上市公司年报原文）。但魔鬼代言人找到了两条致命限定：</p>
+<ol>
+<li><strong>口径已被公司自己废弃</strong>：中信出版 2025 年报已取消"排版与校对费"单列科目，2024 年的"其他"8,147,504.05 元 + 排版校对费 3,929,413.06 元 = 12,076,917.11 元，正是 2025 年报中列示的 2024 年"其他"金额（1.17%）。</li>
+<li><strong>无可比公司披露该口径</strong>：中南传媒 2025 年报出版成本只有"稿费租型费用/原材料及辅助材料/印装制作费用/制造费用及其他"；凤凰传媒 2024 年报只有"租型费用/版权费稿酬/印刷成本/物流成本/推广促销费"。<strong>"排版与校对费"是中信独有科目，不是行业口径。</strong></li>
+<li><strong>科目性质存疑</strong>：它实为<strong>外包采购费</strong>（外排版厂 + 外校），社内专职校对人力极可能计入"编辑经费"13.89% 里。若如此，"省排版校对费没价值"的推论作废——外校费是现金外包支出，恰恰是最容易做采购比价、最容易算清 ROI 的一块。</li>
+</ol>
+<p><strong>修正后的结论</strong>：方向（真正的成本大头在人，不在外包排版校对）<strong>大概率成立</strong>，但"0.38% vs 13.89%"这组数字<strong>不能作为对外论证的判据</strong>——它是单一公司、单一年度、且已被废弃的口径。可以引用的硬判据是外校市场价格：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>单价</th>
+<th>时间/出处</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>行业规程口径</td>
+<td>1–5 元/千字</td>
+<td>2004，中国版协（已过时）</td>
+</tr>
+<tr>
+<td>云南大学出版社审校服务框架协议最高限价</td>
+<td>通读校对 <strong>2.0 元/千字</strong>；书稿审读加工（特邀编辑）<strong>6.0 元/千字</strong></td>
+<td>2025-11 招标公告，B 级</td>
+</tr>
+<tr>
+<td>中国铁道出版社校对生产服务商中标报价</td>
+<td><strong>1 元/千字</strong>（含税，统一工价）</td>
+<td>2025-12 中标公示，B 级</td>
+</tr>
+</tbody>
+</table>
+<p>〔来源：E-18、E-19、E-20〕</p>
+<hr />
+<h2 id="sec-5">四、厂商格局与产品机会</h2>
+<h3>4.1 传统智能审校厂商（已纠两个常见误传）</h3>
+<table>
+<thead>
+<tr>
+<th>厂商/产品</th>
+<th>归属纠正</th>
+<th>能力边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>黑马校对</td>
+<td>原属北京黑马飞腾科技有限公司，2021 年被金山办公全资收购 → 金山黑马校对。方正自 2005 年起是合作/代理方，<strong>不是所有者</strong></td>
+<td>规则/词库型：错别字、多字少字、政治性差错（领导人职务排序、台港澳表述）、地名人名、标点、异形词</td>
+</tr>
+<tr>
+<td>方正智能辅助审校 / 方正智能审校</td>
+<td>北京北大方正电子有限公司。<strong>「方正智思」是北大方正技术研究院的知识管理/舆情平台，不是审校产品</strong>，两者常被混为一谈</td>
+<td>同上 + 版面/印前</td>
+</tr>
+<tr>
+<td>蜜度</td>
+<td>上海蜜度，校对通 / 文修大模型</td>
+<td>教辅差错已定义 2 大类 13 小类（题目差错 + 解答差错，语数英理化生）——<strong>厂商自报，未经第三方验证</strong></td>
+</tr>
+<tr>
+<td>爱校对</td>
+<td><strong>交互未来（北京）科技有限公司</strong>（源自清华人机交互实验室），<strong>不是秘塔</strong>；秘塔写作猫属上海秘塔网络科技，与出版审校无关</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>存疑</strong>：金山办公 2021 年收购黑马飞腾，仅找到百度百科与科技媒体（B/C 级），<strong>未找到上市公司公告或年报原文</strong>；天眼查显示北京黑马飞腾仍存续。结论标记为存疑。〔E-26〕</p>
+<h3>4.2 大模型时代的新玩家</h3>
+<ul>
+<li><strong>百度</strong>：上海辞书「辞文」=《大辞海》30 余万词条 + 文心</li>
+<li><strong>讯飞</strong>：人卫社医学出版大模型、智能审校；<strong>浙版传媒"出版行业大模型应用（AI+编辑平台）"中标方</strong></li>
+<li><strong>智谱 GLM-130B + 中国新闻出版研究院</strong>：「版阅」</li>
+<li><strong>果麦文化 AI 校对王</strong>（301052）：2024 年底商业化，至 2025-02 超 50 家单位使用；DeepSeek 助力数理化；<strong>只做校对不做润色</strong></li>
+<li><strong>中南传媒</strong>「中南智校平台」；<strong>凤凰</strong>「凤凰智灵」（称 2025 年审校 2100 万字、节约 10 万工时，发布方口径）；<strong>人教社</strong>（智能审校 + 人教数字 AIGC 实验室）；<strong>高教社</strong>「智校云雠 + 编辑大模型」（2026-01 已对外输出）；<strong>陕师大</strong>「首阳文正 / 文正 AI」</li>
+<li>行业渗透：2025 年<strong>已接入或应用生成式 AI 的出版单位达 54%</strong>，使用最多的是 DeepSeek〔E-30，中国新闻出版研究院系调研，2026-01〕</li>
+</ul>
+<h3>4.3 教育出版数字化厂商（与你的面试直接相关）</h3>
+<p><strong>云梯科技——原判断"没有审校产品"已被推翻。</strong> 我已直接打开官网核实：书链 AI 出版室以多智能体协同体系运行，包含<strong>视频生成/音频生成/绘画生成/互动播客/爆款选题/AI 写稿/AI 校对/AI 排版</strong>八个智能体。其中「AI 校对智能体」原文描述：</p>
+<blockquote>
+<p>"基于系统内大量真实编辑校对手稿与历史修改样本学习，具备上下文理解与质量判断能力，可在通读文本的基础上识别错别字、语义偏差、各类非标准问题及潜在敏感词，高效完成校对初筛，帮助编辑专注于更高价值的内容判断与创作。"</p>
+</blockquote>
+<p>〔E-28，A 级，官网在售页，2026-10-12 核实〕<strong>面试时不要说"云梯没有审校产品"，会被当场证伪。</strong></p>
+<p><strong>数传集团</strong>：AI 编辑工作室（读者传媒 40 万元单一来源采购）、BOOKSGPT、AI 审校团队。RAYS/现代纸书在<strong>出版后运营</strong>环节，不在审稿环节。值得注意的是：在浙版传媒 1857 万项目中，<strong>武汉理工数字传播工程有限公司（数传集团）是第二中标候选人</strong>〔E-29〕。</p>
+<h3>4.4 采购现实：预算分布 3 万 – 1857 万</h3>
+<p>原判断"单社 10 万–70 万"被魔鬼代言人击穿上下限。真实分布：</p>
+<table>
+<thead>
+<tr>
+<th>金额</th>
+<th>项目</th>
+<th>模式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>3 万元/年</strong></td>
+<td>湖北省委党校 方正智能辅助审校云服务</td>
+<td>SaaS 年费（下限）</td>
+</tr>
+<tr>
+<td>9.41 万元</td>
+<td>山东社会科学杂志社 智能审校系统（2025-12-16 中标）</td>
+<td>单社采购</td>
+</tr>
+<tr>
+<td>40 万元</td>
+<td>读者传媒 数传「AI 编辑工作室」</td>
+<td><strong>单一来源</strong></td>
+</tr>
+<tr>
+<td>61.70 万元</td>
+<td>读者传媒 方正云舒 + 方正智能审校旗舰版</td>
+<td><strong>单一来源</strong></td>
+</tr>
+<tr>
+<td>68 万限价 / 66.8 万中标</td>
+<td>湖南日报智能校对系统（联通中标，方正 45 万第二）</td>
+<td>公开招标</td>
+</tr>
+<tr>
+<td>210.58 万元</td>
+<td>时代出版 AI 应用平台（含 AI 审编校模块，本地化+云端混合）</td>
+<td>集团级</td>
+</tr>
+<tr>
+<td><strong>1857.3333 万元</strong></td>
+<td>浙版传媒"出版行业大模型应用（AI+编辑平台）"（硬件 600.3333 万 + 软件 1257 万），讯飞智元中标</td>
+<td><strong>共同合作开发、联合运营、共建共享、按约定比例收益分成</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键洞察</strong>：中标金额 ≠ 软件采购额。浙版是分成制联合运营，不是买软件。按 10–70 万定价，既打不过 3 万的 SaaS 年费，也进不了 1857 万的联合运营盘子。<strong>这是一个哑铃型市场：一端是 3 万/年的轻量 SaaS，另一端是千万级的集团联合运营，中间的项目制反而是最难规模化的地带。</strong></p>
+<p><strong>决策链</strong>（inference，依据采购归口部门 + 质量会参与部门）：集团/信息化口发起立项与预算，<strong>总编室 + 质量管理办公室</strong>掌握标准、试用与质量会话语权（陕师大 2026 图书质量工作会 40 余人参会，含总编室、质管办、制作部；高教社来访方为法律出版社总编室、数字部、编校部）。单一来源理由多为"与现有编校流程深度融合 / 唯一供应商 / 数据安全"。招标文件<strong>未明示最终拍板人</strong>。</p>
+<h3>4.5 产品机会与卡点</h3>
+<p><strong>最难啃的</strong>：知识性差错与逻辑矛盾（跨段落事实一致性、学科专业判断）；其次是教辅答案校验。</p>
+<p><strong>教辅答案校验为何是硬骨头</strong>：需要「学科知识 + 外部权威知识库 + 计算/推导正确性 + 与课标教材一致性」四重校验，且<strong>错一题即质量事故、责任不可转移给机器</strong>。</p>
+<p><strong>绘本图文一致性——原判断"空白位"已被推翻，收缩为窄缝。</strong></p>
+<p>魔鬼代言人找到两条反证，我已逐条核实：</p>
+<ol>
+<li><strong>WPS 黑马校对「儿童读物适龄审读解决方案」</strong>（页面发布 2026-09-17，<strong>距今不到一个月</strong>）：内置 3–14 岁分级词库，融《儿童图画书内容审读指引》，"OCR 图文识别功能可提取插画、封面中的嵌入文字，确保图文内容同步经过适龄筛查"，支持公有云/私有云/单机版，自动生成结构化报告"便于三审三校流程留痕与编审责任追溯"。〔E-27，B 级，厂商自述〕</li>
+<li><strong>云梯书链 AI 校对智能体</strong>（见 4.3）。</li>
+</ol>
+<p><strong>修正后的判断</strong>：绘本的<strong>插画情节与科学事实一致性</strong>（例如插图中动物脚趾数、朝代服饰、图文叙事是否同调）尚无出版级专用产品；但相邻位——适龄审读、图文排版逻辑、OCR 图中文字——<strong>已被黑马校对在上月占位</strong>，云梯已提供通用 AI 校对智能体。<strong>这是窄缝，不是无人区。</strong> 若拿"没有出版级成熟专用产品"去做面试话术，面试官打开 yunti.ren 就能当场证伪。</p>
+<h3>4.6 技术天花板：数字要成对使用，单引一个会被反驳</h3>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>结论</th>
+<th>等级</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>《中国科技期刊研究》2025,36(9):1280-1287</td>
+<td>人工校出 <strong>1718</strong> 处；DeepSeek 505（<strong>29.39%</strong>）、豆包 287（16.71%）、Kimi 127（7.39%）</td>
+<td>A</td>
+</tr>
+<tr>
+<td>《编辑学报》（4 款 GenAI 对比）</td>
+<td>Kimi <strong>45.6%</strong>、豆包 <strong>42.7%</strong> —— 与上表排序<strong>完全反转</strong></td>
+<td>A</td>
+</tr>
+<tr>
+<td>同刊 2025,36(11)</td>
+<td>DeepSeek 深度思考 + 文献参考/术语提示，诊断统计学错误敏感度 47.6%–100%、准确率 71.4%–90.5%</td>
+<td>A</td>
+</tr>
+<tr>
+<td>《科技与出版》2025(6)</td>
+<td>DeepSeek-R1 医学摘要语法修正 95%、速度 20 倍</td>
+<td>B</td>
+</tr>
+</tbody>
+</table>
+<p><strong>修正后判断</strong>：「通用大模型直接校对远不如人」这一结论<strong>成立</strong>，但只适用于 2025 年、特定文本类型、零提示工程条件下的文字/格式类错误。<strong>单引 29.39% 会被同行用 45.6% 当场反驳。</strong> 正确表述是：检出率高度依赖提示工程与任务类型，区间跨度 7%–100%，因此必须走"规则库 + 领域化"混合路线，且必须公布测试条件。</p>
+<p><strong>厂商自报数字（全部未经第三方验证，不得当事实引用）</strong>：蜜度校对通"准确率 98% 以上、F1 85% 以上"；文修 V5.0"整体差错检出率提升 10%、知识类 +25.3%、误报率 -8.67%"；WPS 黑马"语序检查召回率超 90%""教辅编校差错率下降 60% 以上""书稿批量处理效率提升 75% 以上"；辞文"10 分钟 40 万字""样品测试错误识别准确率 80%"；方正"日均审校字数超 10 亿字"。</p>
+<p><strong>准第三方实测</strong>：北师大出版科学研究院王海英（2026-07-24）实测黑马、方正、爱校对、蜜度四款，结论"<strong>无法完全取代人工</strong>"，传统工具难识别同音与逻辑错误，新一代工具出现误判。〔E-38〕</p>
+<hr />
+<h2 id="sec-6">五、对手对比表</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>黑马校对（金山）</th>
+<th>方正智能审校</th>
+<th>蜜度</th>
+<th>云梯·书链 AI 出版室</th>
+<th>数传集团</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>定位</td>
+<td>通用校对工具 + 儿童适龄专项</td>
+<td>编校 + 印前一体化</td>
+<td>校对通 / 文修大模型</td>
+<td>出版内容生产多智能体平台</td>
+<td>AI 编辑工作室 / BOOKSGPT</td>
+</tr>
+<tr>
+<td>教辅专项</td>
+<td>教辅编校（自称差错率下降 60%+，自报）</td>
+<td>已纳入部分社标准生产流程</td>
+<td>教辅差错 2 大类 13 小类（自报）</td>
+<td>AI 校对智能体（错别字/语义偏差/敏感词初筛）</td>
+<td>AI 审校团队</td>
+</tr>
+<tr>
+<td>绘本/儿童</td>
+<td><strong>适龄审读专项（2026-09 上线）</strong>，OCR 图中文字</td>
+<td>中南智校含黑白图片校验、人脸识别</td>
+<td>多模态校"图中文字/字幕"</td>
+<td>绘画生成智能体（生图侧）+ 通用校对</td>
+<td>—</td>
+</tr>
+<tr>
+<td>留痕/合规</td>
+<td>结构化报告 + 私有云多级授权</td>
+<td>云舒含版本管控/印前预检/终稿归档</td>
+<td>—</td>
+<td>—</td>
+<td>读者传媒 40 万单一来源</td>
+</tr>
+<tr>
+<td>部署</td>
+<td>公有云/私有云/单机版，信创适配</td>
+<td>本地化 + 云端</td>
+<td>云 + 本地</td>
+<td>SaaS</td>
+<td>—</td>
+</tr>
+<tr>
+<td>商业模式</td>
+<td>SaaS 年费（低至 3 万/年）起 + 项目制</td>
+<td>项目制（60 万级）</td>
+<td>—</td>
+<td>平台</td>
+<td>项目制（40 万级）+ 联合运营（千万级）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sec-7">六、PM 面试可用判断（talk-track）</h2>
+<blockquote>
+<p>面向云梯 / 数传这类教育出版数字化公司，以下三条是可以开口就讲、且经得起追问的判断。</p>
+</blockquote>
+<p><strong>判断 A：教辅是"评议推荐"制，不是"审定"制——很多产品在这里建错环节。</strong><br />
+- 支撑：教材走国家/省级审定（教材〔2019〕3 号第五条"未经审定的教材，不得出版、选用"）；教辅走出版社内三审三校 + 省级评议委员会评议 → 推荐目录 → 学校选用，法规依据是新广出发〔2015〕45 号。<br />
+- 追问防线：不止省级一层——盐城（地市级）2025 年自行组织高中教辅评议；河南分"新送评/已入目录送审"双轨。</p>
+<p><strong>判断 B：产品的价值锚点应该从"降低差错数"移到"生产合规证据"。</strong><br />
+- 支撑：国新出发〔2023〕8 号把检查对象扩展到"出版单位执行选题论证、三审三校、责任设计编辑和设计方案三级审核等制度的情况"，并新设 0.9‱–1‱ 约谈区；读者出版传媒采购公示把短板写为"文件自动检查、版本管控、印前预检、终稿归档、版权保护"。<br />
+- 追问防线：该专项工作有明确截止时间（2023 年 8 月底报送），2024/2025 年国家级同类文件未检索到；同期 CY/T 266—2023《图书编校质量差错判定和计算方法》发布，说明成品差错率口径是<strong>细化而非弱化</strong>。所以是"两条腿"，不是"替换"。</p>
+<p><strong>判断 C：AI 的商业天花板是"人的前道工序"，因为责任不可转移。</strong><br />
+- 支撑：终审须正副编审、终校须本社中级以上专职校对、责编通读付印样签字付印；可检索到的全部正式采购均定位为"人机协同/责编辅助"，无一例外。<br />
+- 追问防线：风险窗口在 2026 年底——国家新闻出版署 2025-07 已立项《出版业人工智能应用指南》等三项行业标准，2026 年 12 月前完成。目前不涉及审校流程定位，但落地后可能松动。</p>
+<p><strong>不要说的话</strong>：<br />
+- ❌ "云梯没有审校产品"（官网在售 AI 校对智能体）<br />
+- ❌ "绘本图文一致性是无人区"（黑马校对上月已上适龄审读专项）<br />
+- ❌ "编校成本里可自动化的只占 0.38%"（中信独有科目，2025 年报已废弃，无可比公司）<br />
+- ❌ "大模型校对只能做到 29.39%"（《编辑学报》测得 Kimi 45.6%）</p>
+<hr />
+<h2 id="sec-8">七、局限、失败模式与未知项</h2>
+<h3>7.1 产品侧失败模式</h3>
+<ol>
+<li><strong>把流程建模成"一键过审"</strong> → 违反"三审任何两个环节不能由同一人担任"与资质约束，总编室不会签字。</li>
+<li><strong>按"检出错误数"卖价值</strong> → 与监管加权计分口径背离（知识性 2 vs 标点 0.1），客户无法用它预判合格/不合格。</li>
+<li><strong>把文字书流程套到绘本</strong> → 漏掉合样前的分镜/人设/线稿三道评审，也接不住印前看样这个物理环节。</li>
+<li><strong>误报率失控</strong> → 误报代价是编辑不信任导致弃用，漏报代价是召回 + 公开通报 + 问责。两者不对称：宁可误报不可漏报，但误报率过高产品即死。果麦自述人工复核率 20%–30%、重要任务 50%，说明当前行业仍处在高复核区间。</li>
+<li><strong>定价落在哑铃中间</strong> → 3 万/年 SaaS 与千万级联合运营之间，项目制最难规模化。</li>
+</ol>
+<h3>7.2 制度侧失败模式</h3>
+<ol>
+<li><strong>监管抽查不合格的连锁成本</strong>：1‱–5‱ 须 30 日内全部收回、改正重印后方可发行；&gt;5‱ 须 30 日内全部收回（无"重印后发行"）；不合格图书的责任编辑 <strong>2 年内不得晋升出版职称</strong>；1 年内 3 种以上或连续 2 年不合格的直接责任者<strong>注销职业资格，3 年内不得从事编辑出版工作</strong>；中小学教辅等需特定资质的图书，<strong>连续 2 年不合格可撤销该项出版资质</strong>。</li>
+<li><strong>已通过省级评议仍会漏出</strong>：2023 年知识出版社《初中总复习手册·地理》台湾省处误加字母 A，该书为 2020 年山东省中小学教辅材料评议通过品种，事后启动图书回收并公开致歉。说明"评议通过"不等于"永久免责"。</li>
+<li><strong>复审终审流于形式</strong>：山东省委宣传部 2024 年刊文承认"明确规定书稿必须经过三审才能付印，但在实际工作中，复审、终审往往流于形式"。这是产品切入的真实痛点，但也意味着流程工具会遭遇"填表式合规"的消极使用。</li>
+</ol>
+<h3>7.3 不可知项（[待确认]）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>未知项</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>教材厅〔2026〕2 号原文（6 个省级文件援引，教育部官网未检索到原文页）</td>
+<td>教辅进校园新规的核心要点只能通过省级转述确认</td>
+</tr>
+<tr>
+<td>2</td>
+<td>教辅送评的一次通过率、退回修改轮次、平均周期</td>
+<td>完全无公开数据，无法测算送评环节的时间成本</td>
+</tr>
+<tr>
+<td>3</td>
+<td>退修率 / 退稿率 / 一审通过率的行业统计值</td>
+<td>完全无公开来源；可用代理指标是质检不合格率（内蒙古 2024 年 75%、2025 年 89%；江苏 2024 年 98.92%——地区差异极大）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>"做题验证"的行业渗透率</td>
+<td>仅华东师大社、广西师大社两家公开自述，"每道题验算三遍"是单社内部标准，<strong>不应外推为行业基准</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>绘本"改图成本 vs 改字成本"的量化倍数</td>
+<td>中文公开来源未找到；仅有海外自由职业平台口径（每加一轮大改 +15%–25%，C 级，不可套用中国出版社稿酬/外包结算制度）</td>
+</tr>
+<tr>
+<td>6</td>
+<td>绘本审次的统一标准</td>
+<td>无官方规定；分镜/线稿/合样/看样四道图画评审各社自成流程</td>
+</tr>
+<tr>
+<td>7</td>
+<td>三审三校各环节耗时占比的量化拆解</td>
+<td>未找到，只有总周期与极端个案</td>
+</tr>
+<tr>
+<td>8</td>
+<td>2024/2025 年全国层面图书编校质量不合格通报名单</td>
+<td>未找到国家新闻出版署层面的公开通报，公开频率不明</td>
+</tr>
+<tr>
+<td>9</td>
+<td>金山办公收购黑马飞腾</td>
+<td>仅 B/C 级来源，未找到上市公司公告原文</td>
+</tr>
+<tr>
+<td>10</td>
+<td>GB 40070—2021 对"绘本"的独立条款</td>
+<td>未找到；图画书是否被认定为"学习用品"而落入"学龄前儿童学习读物"范畴，适用边界模糊（inference，非官方解释）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sec-9">附录 A：参考来源与证据链</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>来源</th>
+<th>类型</th>
+<th>等级</th>
+<th>URL</th>
+<th>直接引文 / 关键内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E-01</td>
+<td>《图书质量保障体系》（1997 新闻出版署令第 8 号）</td>
+<td>部门规章</td>
+<td>A</td>
+<td>https://www.nppa.gov.cn/xxgk/fdzdgknr/zcfg_210/bmgz_213/202112/t20211202_442143.html</td>
+<td>"三个环节缺一不可。三审环节中，任何两个环节的审稿工作不能同时由一人担任"（<strong>已逐字复核</strong>）</td>
+</tr>
+<tr>
+<td>E-02</td>
+<td>《图书质量管理规定》（2005-03-01 施行）</td>
+<td>部门规章</td>
+<td>A</td>
+<td>https://www.gov.cn/zhengce/2021-12/08/content_5724645.htm</td>
+<td>"差错率不超过 1/10000 的图书，其编校质量属合格"；附件计错权重表</td>
+</tr>
+<tr>
+<td>E-03</td>
+<td>国新出发〔2023〕8 号 图书"质量管理 2023"</td>
+<td>规范性文件</td>
+<td>A</td>
+<td>https://www.nppa.gov.cn/xxfb/tzgs/202305/t20230530_716536.html</td>
+<td>"加大对封面、插图、图文匹配等的检查力度。检查出版单位执行选题论证、三审三校、责任设计编辑和设计方案三级审核等制度的情况"（<strong>已逐字复核</strong>）</td>
+</tr>
+<tr>
+<td>E-04</td>
+<td>国新出发〔2022〕8 号 质量管理 2021 通报</td>
+<td>官方通报</td>
+<td>A</td>
+<td>https://www.nppa.gov.cn/xxfb/tzgs/202203/t20220323_666324.html</td>
+<td>"共组织抽查了 100 家出版单位的 300 种图书……认定其中 62 种图书差错率超过万分之一"</td>
+</tr>
+<tr>
+<td>E-05</td>
+<td>《书号实名申领管理办法（试行）》</td>
+<td>规范性文件</td>
+<td>A</td>
+<td>https://www.gd.gov.cn/zwgk/wjk/zcfgk/content/post_2521167.html</td>
+<td>"出版单位在按规定完成书稿'三审'程序后，方可进行书号实名申领"</td>
+</tr>
+<tr>
+<td>E-06</td>
+<td>教育部关于人教社小学数学教材插图问题的调查处理通报</td>
+<td>官方通报</td>
+<td>A</td>
+<td>https://www.moe.gov.cn/jyb_xwfb/gzdt_gzdt/s5987/202208/t20220822_654438.html</td>
+<td>"教材三审三校制度落实不严格，内部纠错制度不完善"；27 人追责问责</td>
+</tr>
+<tr>
+<td>E-07</td>
+<td>《中小学教材管理办法》教材〔2019〕3 号</td>
+<td>规范性文件</td>
+<td>A</td>
+<td>https://www.moe.gov.cn/srcsite/A26/moe_714/202001/t20200107_414578.html</td>
+<td>"国家实行中小学教材审定制度，未经审定的教材，不得出版、选用"</td>
+</tr>
+<tr>
+<td>E-08</td>
+<td>《中小学教辅材料管理办法》新广出发〔2015〕45 号</td>
+<td>规范性文件</td>
+<td>A</td>
+<td>https://www.moe.gov.cn/jyb_xxgk/moe_1777/moe_1779/201509/t20150928_211121.html</td>
+<td>"本办法自 2015 年 10 月 1 日起施行"</td>
+</tr>
+<tr>
+<td>E-09</td>
+<td>黑龙江省教育厅 2026 年义务教育小学阶段同步类教辅材料评议公告</td>
+<td>省级官方文件</td>
+<td>A</td>
+<td>https://jyt.hlj.gov.cn/jyt/c110481/202603/c00_31929200.shtml</td>
+<td>"同一类型送评教辅相互内容重复率 30% 及以上的，取消评议资格""同步练习类各学科各册印张数不得超过对应教材印张数的 1.5 倍"（<strong>已逐字复核</strong>）</td>
+</tr>
+<tr>
+<td>E-10</td>
+<td>自然资源部《公开地图内容表示规范》自然资规〔2023〕2 号</td>
+<td>法规原文</td>
+<td>A</td>
+<td>https://www.gov.cn/gongbao/content/2023/content_5752310.htm</td>
+<td>"台湾省在地图上应当按省级行政单位表示"</td>
+</tr>
+<tr>
+<td>E-11</td>
+<td>《新民周刊》：《金牌教辅一课一练是怎样炼成的》</td>
+<td>行业媒体</td>
+<td>B</td>
+<td>http://www.duozhi.com/industry/insight/20140504708.shtml</td>
+<td>"即使审读小学一年级的教辅，编辑也要专业对口，要验算每一道题目""整个过程中，每道题目起码验算三遍"</td>
+</tr>
+<tr>
+<td>E-12</td>
+<td>新民晚报：出版社负责人呼吁编写出版教辅书来不得半点马虎</td>
+<td>主流媒体</td>
+<td>B</td>
+<td>https://wap.xinmin.cn/content/31503225.html</td>
+<td>"对学科类教辅，编辑必须是本专业本科及以上学历，还要安排一个本专业的人来做每道题"</td>
+</tr>
+<tr>
+<td>E-13</td>
+<td>《专业社这样打造优质教辅图书》（广西师大社质检室主任）</td>
+<td>行业文章</td>
+<td>C</td>
+<td>https://blog.sina.com.cn/s/blog_5035407101009iln.html</td>
+<td>"还请一线教师就书稿的实用性、针对性和科学性进行外审，并核对题目的答案是否正确"</td>
+</tr>
+<tr>
+<td>E-14</td>
+<td>四川省教育厅 川教函〔2026〕200 号</td>
+<td>省级官方文件</td>
+<td>A</td>
+<td>https://edu.sc.gov.cn/scedu/cjhfwjk/2026/6/2/9b703aa81ddb4e39be150bcd974995bf.shtml</td>
+<td>印发《四川省 2026—2027 学年中小学教辅材料评议推荐目录》</td>
+</tr>
+<tr>
+<td>E-15</td>
+<td>盐城市教育局：2025 年高中教辅评议（地市级）</td>
+<td>市级官方文件</td>
+<td>A</td>
+<td>https://ycedu.yancheng.gov.cn/art/2025/8/6/art_714_4345116.html</td>
+<td>地市级自行组织教辅评议</td>
+</tr>
+<tr>
+<td>E-16</td>
+<td>河南省教育厅 2025 年教辅评议</td>
+<td>省级官方文件</td>
+<td>A</td>
+<td>https://jyt.henan.gov.cn/2025/08-05/3187778.html</td>
+<td>依据新广出发〔2015〕45 号；分"新送评"与"已入目录送审"双轨</td>
+</tr>
+<tr>
+<td>E-17</td>
+<td>中国新闻出版广电报《人民出版社的六大创新》</td>
+<td>行业官媒</td>
+<td>B</td>
+<td>https://epaper.chinaxwcb.com/epaper/2021-10/25/content_99801900.html</td>
+<td>"'齐'，就是要原稿'齐全''完整'……'定'就是'定稿'……发稿后除特殊情况外不再作大的修改"</td>
+</tr>
+<tr>
+<td>E-18</td>
+<td>《图书校对工作基本规程》（中国版协 2004-10-12）</td>
+<td>行业规程</td>
+<td>A</td>
+<td>https://www.hljszw.org.cn/news/2028.html</td>
+<td>"一个工作日的校对定额以 20000 字为宜……一校灭错率为 75%……终校……最低标准为留错率不超过 1/10000"</td>
+</tr>
+<tr>
+<td>E-19</td>
+<td>云南大学出版社 2025—2028 年审校服务框架协议采购公告</td>
+<td>招标公告</td>
+<td>B</td>
+<td>https://www.ggzyjypt.cn/zbggao/108383.html</td>
+<td>"书稿通读校对 2.0；书稿审读加工（特邀编辑）6.0"（元/千字最高限价）</td>
+</tr>
+<tr>
+<td>E-20</td>
+<td>中国铁道出版社校对生产服务商中标公示</td>
+<td>中标公示</td>
+<td>B</td>
+<td>https://www.cntcitc.com.cn/more.html?chanType=3&amp;contentId=b1b9511971ae46978aa35a1efec9fb6e</td>
+<td>"投标报价: 1 元/千字（含税）作为统一工价执行"</td>
+</tr>
+<tr>
+<td>E-21</td>
+<td>中国出版传媒商报 专访接力出版社编辑徐超</td>
+<td>行业媒体署名访谈</td>
+<td>B</td>
+<td>https://www.cbbr.com.cn/article/128251.html</td>
+<td>"以上环节全部完成后，才开始正式进入审稿和校对流程""在印厂通宵监印也是家常便饭，有时甚至还会连续监印 2 天 2 夜"</td>
+</tr>
+<tr>
+<td>E-22</td>
+<td>解放日报/上观 编辑手记《古诗带你去探秘》</td>
+<td>署名编辑手记</td>
+<td>B</td>
+<td>https://sghexport.shobserver.com/html/toutiao/2020/08/11/241352.html</td>
+<td>"一本不到 100 页的绘本，差不多一审一个月时间""从早晨十点一直调到晚上八点多，也仅仅调好了两本书"</td>
+</tr>
+<tr>
+<td>E-23</td>
+<td>光明日报《"小妖怪童话系列"的跨文化编辑之旅》</td>
+<td>党媒署名手记</td>
+<td>B</td>
+<td>https://epaper.gmw.cn/zhdsb/html/2025-06/18/nw.D110000zhdsb_20250618_4-11.htm</td>
+<td>"编辑整理文稿，核对原文……还邀请小朋友试读，历经十几次甚至几十次的修改"</td>
+</tr>
+<tr>
+<td>E-24</td>
+<td>长江出版传媒：海燕出版社绘本编辑访谈</td>
+<td>出版社官方</td>
+<td>B</td>
+<td>https://www.600757.com.cn/contents/150/22959.html</td>
+<td>"引进不是简单的'拿来'，它需要编辑二次加工和创造，如丛书名的设定，封面、环衬、书脊的设计"</td>
+</tr>
+<tr>
+<td>E-25</td>
+<td>北京商报《小学教材插画引热议，童书审核过程究竟如何？》</td>
+<td>行业媒体</td>
+<td>B</td>
+<td>https://www.163.com/dy/article/H8RJ38N00519DFFO.html</td>
+<td>"国家颁布了很多针对图书编校的法律法规，但多集中在文字审核方面，对插图的审核虽然有所规范，但并不系统"</td>
+</tr>
+<tr>
+<td>E-26</td>
+<td>百度百科·金山黑马校对</td>
+<td>百科</td>
+<td>C</td>
+<td>https://baike.baidu.com/item/金山黑马校对/63149896</td>
+<td>"黑马校对原属北京黑马飞腾科技有限公司，2021 年被金山办公全资收购"（<strong>存疑，未找到公告原文</strong>）</td>
+</tr>
+<tr>
+<td>E-27</td>
+<td>WPS 黑马校对：儿童读物适龄审读解决方案（2026-09-17）</td>
+<td>厂商方案页</td>
+<td>B</td>
+<td>https://365.wps.cn/content/acbb6444372f4952a47bc3f2a9874920.html</td>
+<td>"OCR 图文识别功能可提取插画、封面中的嵌入文字，确保图文内容同步经过适龄筛查"（<strong>已核实</strong>）</td>
+</tr>
+<tr>
+<td>E-28</td>
+<td>云梯科技 · 书链 AI 出版室</td>
+<td>厂商官网</td>
+<td>A</td>
+<td>https://www.yunti.ren/product/ai-publisher</td>
+<td>"AI 校对智能体……识别错别字、语义偏差、各类非标准问题及潜在敏感词，高效完成校对初筛"（<strong>已核实</strong>）</td>
+</tr>
+<tr>
+<td>E-29</td>
+<td>浙版传媒"出版行业大模型应用（AI+编辑平台）"中标结果公告</td>
+<td>招标公告</td>
+<td>A</td>
+<td>https://www.zjcbcm.com/index.php?newsID=8606&amp;process=news</td>
+<td>中标人：讯飞智元信息科技有限公司；第二候选人：武汉理工数字传播工程有限公司</td>
+</tr>
+<tr>
+<td>E-30</td>
+<td>中国编辑出版人才网·毛芳/张泽/文娟（中国新闻出版研究院系）</td>
+<td>研究院系调研</td>
+<td>A/B</td>
+<td>http://www.chuban.org.cn/h-nd-3661.html</td>
+<td>"已接入或应用生成式人工智能服务的出版单位达 54%"；"模态编校，支持图文、公式、表格、音视频等复合内容的一致性校验"</td>
+</tr>
+<tr>
+<td>E-31</td>
+<td>读者出版传媒 方正云舒 + 方正智能审校旗舰版 单一来源公示</td>
+<td>采购公示</td>
+<td>A</td>
+<td>https://gsei.com.cn/html/1664/2026-08-06/content-692036.html</td>
+<td>"现有内容生产工具……在文件自动检查、版本管控、印前预检、终稿归档、版权保护等安全出版环节仍存在不足"；预算 61.70 万元</td>
+</tr>
+<tr>
+<td>E-32</td>
+<td>陕西师大出版总社 首阳文正</td>
+<td>机构官网</td>
+<td>A/B</td>
+<td>https://www.snupg.com/default/detail/25101608Bs8Sg.html</td>
+<td>一校/二校/三校系统记录存档"可追溯、可复盘"；权限分级（初审/复审/终审）</td>
+</tr>
+<tr>
+<td>E-33</td>
+<td>陕西师大出版总社 2026 图书质量工作会</td>
+<td>机构官网</td>
+<td>A</td>
+<td>https://www.snupg.com/default/detail/26041711B300q.html</td>
+<td>总编室、质量管理办公室、制作部负责人参会；"坚持人机协同原则"</td>
+</tr>
+<tr>
+<td>E-34</td>
+<td>西安地图出版社 2025 年培训（陕西省测绘地理信息局）</td>
+<td>机构官网</td>
+<td>B</td>
+<td>https://snsm.mnr.gov.cn/Information/news/82174</td>
+<td>"AI 校对仅可作为辅助工具，绝不能替代人工开展价值研判与事实核验"</td>
+</tr>
+<tr>
+<td>E-35</td>
+<td>果麦文化投资者关系记录表</td>
+<td>上市公司披露转载</td>
+<td>A/B</td>
+<td>https://www.cnfin.com/announ/detail/index.html?dannoun=lcdetail&amp;id=792615822274</td>
+<td>AI 校对王 2024 年底商业化，截至 2025-02 超 50 家单位使用</td>
+</tr>
+<tr>
+<td>E-36</td>
+<td>2025 出版机构自主 AI 平台一线测评</td>
+<td>媒体转载</td>
+<td>B/C</td>
+<td>https://www.sohu.com/a/956596367_121418230</td>
+<td>果麦：基础文本校对人工复核 20%~30%、重要任务 50%；上海辞书：信任度 60%、复核 30%</td>
+</tr>
+<tr>
+<td>E-37</td>
+<td>广东省出版集团：出版业人工智能三项行业标准立项</td>
+<td>行业机构</td>
+<td>B</td>
+<td>https://www.gdpg.com.cn/index.php?cid=8&amp;id=17190077&amp;m=article</td>
+<td>《出版业人工智能应用指南》《应用安全要求》《语料加工要求》2025-07 立项，2026 年 12 月前完成</td>
+</tr>
+<tr>
+<td>E-38</td>
+<td>北师大出版科学研究院·王海英 智能审校实测</td>
+<td>研究文章</td>
+<td>A/B</td>
+<td>https://pub.bnu.edu.cn/jzyg1/25ce937225cc43cfa89e53b6c82bad91.html</td>
+<td>实测黑马/方正/爱校对/蜜度四款："无法完全取代人工"</td>
+</tr>
+<tr>
+<td>E-39</td>
+<td>《中国科技期刊研究》2025,36(9):1280-1287</td>
+<td>学术</td>
+<td>A</td>
+<td>http://cjstp.ijournals.cn/cjstp/ch/reader/view_abstract.aspx?file_no=202507300919</td>
+<td>人工 1718 处；DeepSeek 505（29.39%）、豆包 287（16.71%）、Kimi 127（7.39%）</td>
+</tr>
+<tr>
+<td>E-40</td>
+<td>《编辑学报》4 款 GenAI 校对对比</td>
+<td>学术</td>
+<td>A</td>
+<td>http://bjxb.cessp.org.cn/ch/reader/view_abstract.aspx?file_no=202601290000002</td>
+<td>Kimi 45.6%、豆包 42.7%（与 E-39 排序反转）</td>
+</tr>
+<tr>
+<td>E-41</td>
+<td>中信出版 2024 年年度报告（第 13 页营业成本构成）</td>
+<td>上市公司披露</td>
+<td>A</td>
+<td>https://notice.10jqka.com.cn/api/pdf/d4a6a751b9e7837e.pdf</td>
+<td>"排版与校对费 3,929,413.06 0.38%""编辑经费 143,067,405.53 13.89%"（<strong>已下载 PDF 逐字提取核对</strong>）</td>
+</tr>
+<tr>
+<td>E-42</td>
+<td>中信出版 2025 年年度报告（科目取消）</td>
+<td>上市公司披露</td>
+<td>A</td>
+<td>https://www.hkexnews.hk/listedco/listconews/sehk/2026/0316/2026031601940_c.pdf</td>
+<td>2024 年"其他"12,076,917.11 元（1.17%）= 上年"其他"+ 排版校对费</td>
+</tr>
+<tr>
+<td>E-43</td>
+<td>河南省人社厅《河南省出版专业技术人员高级职称评价标准》（2022）</td>
+<td>政府文件</td>
+<td>A</td>
+<td>https://hrss.henan.gov.cn/2022/07-05/2481094.html</td>
+<td>"责编稿件年均 5 种(120 万字)以上，复审者年均 13 种(270 万字)以上，终审者年均 18 种(420 万字)以上"</td>
+</tr>
+<tr>
+<td>E-44</td>
+<td>北师大出版科学研究院《出版人职业生存现状调查 2019—2020》</td>
+<td>学术调研</td>
+<td>B</td>
+<td>https://pub.bnu.edu.cn/xydt1/121974.html</td>
+<td>"图书编辑任务量占比最多的是 200 万~400 万字……责编需要通看稿件 2~4 遍，即需要完成 400 万~1600 万字"</td>
+</tr>
+<tr>
+<td>E-45</td>
+<td>中国新闻出版广电报《战高温迎高峰 全力攻坚开学季》</td>
+<td>行业官媒</td>
+<td>B</td>
+<td>https://epaper.chinaxwcb.com/epaper/2025-09/01/content_99864888.html</td>
+<td>"个别品种前后共产生了四版稿件，最终导致定稿时间延迟"；四川教育社 2025 秋 751 种（教材 30 + 教辅 721）</td>
+</tr>
+<tr>
+<td>E-46</td>
+<td>内蒙古新闻出版局 图书"质量管理 2025"通报</td>
+<td>政府通报</td>
+<td>A</td>
+<td>http://nmg.wenming.cn/2022xbwz/tzgg_54227/202508/t20250808_6913965.html</td>
+<td>"被抽查图书编校质量合格率为 89%"（2024 年为 75%）</td>
+</tr>
+<tr>
+<td>E-47</td>
+<td>GB 40070—2021《儿童青少年学习用品近视防控卫生要求》</td>
+<td>强制性国标</td>
+<td>A</td>
+<td>https://openstd.samr.gov.cn/bzgk/gb/newGbInfo?hcno=3F367939DB5EBBCE6FEF657173DB7618</td>
+<td>"小学一、二年级用字应不小于 16P（3 号）字，汉字以楷体为主"</td>
+</tr>
+<tr>
+<td>E-48</td>
+<td>湖北省委党校 方正智能辅助审校云服务</td>
+<td>采购公示</td>
+<td>A</td>
+<td>https://www.hbdx.gov.cn/c/2025/12/12/39933.shtml</td>
+<td>3 万元/年（市场下限证据）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sec-10">附录 B：举一反三维度执行情况</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>状态</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ 三审三校与合规制度</td>
+<td>已覆盖</td>
+<td>署令第 8 号 + 质量管理规定 + 2023 专项，三条法规原文已逐字复核</td>
+</tr>
+<tr>
+<td>✅ 教辅专项审定</td>
+<td>已覆盖</td>
+<td>法规框架 + 省级评议硬指标 + 四道验算链路；经魔鬼代言人修正为"省/地市两级 + 双轨"</td>
+</tr>
+<tr>
+<td>✅ 绘本图文审稿</td>
+<td>已覆盖</td>
+<td>双线流程 + 五道图画评审 + 插图监管轨迹；经魔鬼代言人修正"空白位"为窄缝</td>
+</tr>
+<tr>
+<td>✅ 角色分工、工时、成本、瓶颈</td>
+<td>已覆盖</td>
+<td>角色表 + 定额/灭错率 + 采购预算分布；成本口径经魔鬼代言人推翻后重新校准</td>
+</tr>
+<tr>
+<td>✅ 智能审校工具与厂商</td>
+<td>已覆盖</td>
+<td>传统厂商 + 大模型新玩家 + 云梯/数传；纠正两个误传（方正智思、爱校对≠秘塔）</td>
+</tr>
+<tr>
+<td>✅ 数字化改造与产品机会</td>
+<td>已覆盖</td>
+<td>采购现实 + 决策链 + 卡点 + 面试 talk-track</td>
+</tr>
+</tbody>
+</table>
+<p><strong>魔鬼代言人战绩</strong>：8 条核心判断中，<strong>推翻 2 条</strong>（成本口径、绘本空白位）、<strong>数字区间推翻 1 条</strong>（采购预算）、<strong>限定适用范围 5 条</strong>、<strong>成立 1 条</strong>（责任不可转移）。全部修正已回写正文。</p>
+</div>
+
+<!-- ==================== Unified Sidebar Drawer Script ==================== -->
+<script id="unified-sidebar-script">
+(function() {
+  const btn = document.getElementById('unifiedNavBtn');
+  const overlay = document.getElementById('unifiedNavOverlay');
+  const closeBtn = document.getElementById('unifiedNavClose');
+  const tocContainer = document.getElementById('unifiedNavToc');
+  if (!btn || !overlay || !closeBtn || !tocContainer) return;
+
+  function openNav() { document.body.classList.add('unified-nav-open'); }
+  function closeNav() { document.body.classList.remove('unified-nav-open'); }
+
+  btn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('unified-nav-open')) closeNav();
+  });
+
+  const links = Array.from(tocContainer.querySelectorAll('a'));
+  links.forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth < 1200) closeNav();
+    });
+  });
+
+  // ScrollSpy
+  const targets = links.map(a => {
+    const id = a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  }).filter(Boolean);
+
+  if (targets.length > 0 && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const cur = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+          if (cur) cur.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0.1 });
+    targets.forEach(t => observer.observe(t));
+  }
+})();
+</script>
+
+</body>
+</html>

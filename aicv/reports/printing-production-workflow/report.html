@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>教辅与绘本文稿的印制流程 · 深度调研报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style id="enterprise-standard-style">
+:root{
+  --bg:#fafaf9; --ink:#1c1917; --mute:#78716c; --line:#e7e5e4; --soft:#f5f5f4;
+  --accent:#2563eb; --accent-hover:#1d4ed8; --warn:#b45309; --bad:#b91c1c; --ok:#15803d;
+  --side: 280px;
+  --unified-nav-width: 300px;
+
+  /* 兼容映射变量 */
+  --bg-soft: var(--soft);
+  --bg-sunk: #eeedea;
+  --ink-2: #292524;
+  --ink-3: var(--mute);
+  --line-2: #d6d3d1;
+  --accent-soft: rgba(37, 99, 235, 0.08);
+  --green: var(--ok);
+  --green-soft: rgba(21, 128, 61, 0.1);
+  --amber: var(--warn);
+  --amber-soft: rgba(180, 83, 9, 0.1);
+  --red: var(--bad);
+  --red-soft: rgba(185, 28, 28, 0.1);
+  --blue: var(--accent);
+  --blue-soft: rgba(37, 99, 235, 0.1);
+  --grey: var(--mute);
+  --grey-soft: var(--soft);
+}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f172a; --ink:#f8fafc; --mute:#94a3b8; --line:#1e293b; --soft:#1e293b;
+    --accent:#38bdf8; --accent-hover:#0ea5e9; --warn:#f59e0b; --bad:#ef4444; --ok:#10b981;
+    --bg-soft: #1e293b;
+    --bg-sunk: #0b1120;
+    --ink-2: #cbd5e1;
+    --ink-3: #94a3b8;
+    --line-2: #334155;
+    --accent-soft: rgba(56, 189, 248, 0.12);
+    --green: #10b981;
+    --green-soft: rgba(16, 185, 129, 0.12);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245, 158, 11, 0.12);
+    --red: #ef4444;
+    --red-soft: rgba(239, 68, 68, 0.12);
+    --blue: #38bdf8;
+    --blue-soft: rgba(56, 189, 248, 0.12);
+    --grey: #94a3b8;
+    --grey-soft: #1e293b;
+  }
+}
+
+*{box-sizing:border-box;}
+html{scroll-padding-top:24px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%;}
+body{
+  margin:0; background:var(--bg); color:var(--ink); line-height:1.75;
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14.5px; transition:background .2s,color .2s; overflow-x: hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+.container, .wrap{
+  max-width:980px; margin:0 auto; padding:40px 24px 96px;
+}
+@media (max-width:768px){
+  .container, .wrap{ padding:24px 16px 64px; }
+}
+
+header.report-header{ padding-bottom: 24px; border-bottom: 2px solid var(--line); margin-bottom: 32px; }
+.header-badge{ display: inline-block; font-size: 11.5px; font-weight: 700; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+h1{ font-size:28px; line-height:1.35; margin:0 0 12px; color:var(--ink); font-weight:800; letter-spacing:-0.02em; }
+.subtitle{ font-size: 15.5px; color: var(--mute); line-height: 1.6; margin: 0 0 20px; }
+h2{ font-size:21px; margin:44px 0 18px; padding-bottom:10px; border-bottom:1.5px solid var(--line); color:var(--ink); font-weight:750; letter-spacing:-0.01em; scroll-margin-top:24px; }
+h3{ font-size:16.5px; margin:26px 0 12px; color:var(--ink); font-weight:700; }
+h4{ font-size:15px; margin:20px 0 8px; color:var(--ink); font-weight:650; }
+p, li{ font-size:14.5px; color:var(--ink); line-height:1.8; }
+ul, ol{ padding-left:22px; margin:12px 0; }
+li{ margin:6px 0; }
+strong{ color:var(--ink); font-weight:650; }
+a{ color:var(--accent); text-decoration:none; transition: color .15s; }
+a:hover{ color:var(--accent-hover); text-decoration:underline; }
+hr{ border:0; border-top:1px solid var(--line); margin:36px 0; }
+
+code{
+  background:var(--soft); color:var(--accent); padding:2px 6px; border-radius:4px;
+  font-size:13px; font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+pre{
+  background:var(--soft); border:1px solid var(--line); padding:16px; border-radius:8px;
+  overflow-x:auto; font-size:13px; line-height:1.6; margin:18px 0;
+  font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+pre code{ background:transparent; padding:0; color:var(--ink); }
+
+.architecture-diagram{
+  background: var(--soft); border: 1px solid var(--line); padding: 18px 20px;
+  border-radius: 8px; overflow-x: auto; font-size: 12.5px; line-height: 1.32;
+  font-family: 'JetBrains Mono', monospace; margin: 20px 0;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+}
+
+table{
+  width:100%; border-collapse:collapse; margin:18px 0; font-size:13px;
+  border:1px solid var(--line); border-radius:8px; overflow:hidden;
+}
+th, td{
+  border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; color:var(--ink);
+}
+th{
+  background:var(--soft); font-weight:650; color:var(--ink); position:sticky; top:0;
+}
+tr:nth-child(even){ background:rgba(0,0,0,0.015); }
+@media (prefers-color-scheme:dark){
+  tr:nth-child(even){ background:rgba(255,255,255,0.02); }
+}
+.tablewrap{ overflow-x:auto; margin:20px 0; border:1px solid var(--line); border-radius:8px; }
+.tablewrap table{ margin:0; border:none; }
+
+.badge, .b{ display:inline-block; padding:2px 9px; border-radius:6px; font-size:12px; font-weight:600; line-height:1.5; }
+.badge-pass, .bA{ background:var(--green-soft); color:var(--ok); border:1px solid rgba(21,128,61,0.25); }
+.badge-pending, .bB{ background:var(--accent-soft); color:var(--accent); border:1px solid rgba(37,99,235,0.25); }
+.badge-gray, .bC{ background:var(--soft); color:var(--mute); border:1px solid var(--line); }
+.badge-fail{ background:var(--red-soft); color:var(--bad); border:1px solid rgba(185,28,28,0.25); }
+.badge-amber{ background:var(--amber-soft); color:var(--warn); border:1px solid rgba(180,83,9,0.25); }
+.badge-blue{ background:var(--accent-soft); color:var(--accent); border:1px solid rgba(37,99,235,0.25); }
+.badge-green{ background:var(--green-soft); color:var(--ok); border:1px solid rgba(21,128,61,0.25); }
+.badge-purple{ background:rgba(147, 51, 234, 0.1); color:#9333ea; border:1px solid rgba(147, 51, 234, 0.25); }
+
+.thesis-box{
+  background:#eff6ff; border:1.5px solid #bfdbfe; border-left:5px solid var(--accent);
+  border-radius:8px; padding:20px 22px; margin:20px 0 24px;
+}
+.thesis-box strong.title{ display:block; font-size:15.5px; color:#1e40af; margin-bottom:8px; letter-spacing:0.5px; }
+.thesis-box p{ color:#1e3a8a; margin:0; font-size:14.5px; line-height:1.75; }
+@media (prefers-color-scheme:dark){
+  .thesis-box{ background:rgba(56, 189, 248, 0.08); border-color:rgba(56, 189, 248, 0.25); }
+  .thesis-box strong.title{ color:#38bdf8; }
+  .thesis-box p{ color:#e2e8f0; }
+}
+
+.grid-3{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin:20px 0; }
+.card{ background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,0.02); }
+.card .k{ font-size:12px; color:var(--mute); font-weight:600; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px; }
+.card .v{ font-size:24px; font-weight:750; color:var(--accent); line-height:1.2; margin-bottom:6px; }
+.card .d{ font-size:13px; color:var(--mute); line-height:1.5; }
+
+.callout{ border-left:4px solid var(--accent); background:var(--soft); padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; }
+.callout.warn, .note{ border-left:4px solid var(--warn); background:#fffbeb; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.warn strong, .note strong{ color:var(--warn); }
+.callout.danger, .bad{ border-left:4px solid var(--bad); background:#fef2f2; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.danger strong, .bad strong{ color:var(--bad); }
+.callout.good, .good{ border-left:4px solid var(--ok); background:#f0fdf4; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.good strong, .good strong{ color:var(--ok); }
+@media (prefers-color-scheme:dark){
+  .callout.warn, .note{ background:rgba(245, 158, 11, 0.1); }
+  .callout.danger, .bad{ background:rgba(239, 68, 68, 0.1); }
+  .callout.good, .good{ background:rgba(16, 185, 129, 0.1); }
+}
+
+blockquote{ margin:16px 0; padding:12px 18px; background:var(--soft); border-left:4px solid var(--accent); color:var(--ink); border-radius:0 8px 8px 0; }
+blockquote p{ margin:4px 0; }
+
+.meta-box{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px 20px; margin:20px 0 32px; }
+.meta-box .item{ display:inline-block; margin-right:24px; font-size:13px; color:var(--mute); }
+.meta-box .item strong{ color:var(--ink); font-weight:600; }
+.source-tag{ font-size: 12px; color: var(--mute); display: block; margin-top: 6px; }
+
+/* 业务特有组件适配 */
+.stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:18px 0; }
+.stat-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+.stat-val{ font-size:20px; font-weight:750; color:var(--accent); }
+.stat-lbl{ font-size:12px; color:var(--mute); margin-top:4px; }
+
+.prod-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin:16px 0; }
+.prod-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.prod-title{ font-size:16px; font-weight:700; color:var(--ink); margin:0; }
+.prod-tag{ font-size:12px; padding:2px 8px; border-radius:4px; background:var(--accent-soft); color:var(--accent); }
+.pros-cons{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px; }
+@media (max-width:640px){ .pros-cons{ grid-template-columns:1fr; } }
+.pros-box{ background:rgba(21,128,61,0.06); border:1px solid rgba(21,128,61,0.2); border-radius:6px; padding:12px; }
+.cons-box{ background:rgba(185,28,28,0.06); border:1px solid rgba(185,28,28,0.2); border-radius:6px; padding:12px; }
+.box-title{ font-weight:700; font-size:13px; margin-bottom:6px; }
+.pros-box .box-title{ color:var(--ok); }
+.cons-box .box-title{ color:var(--bad); }
+
+.formula-box{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px; margin:16px 0; }
+.formula-header{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.formula-badge{ font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px; background:var(--accent-soft); color:var(--accent); }
+.formula-sub{ font-size:12px; color:var(--mute); }
+.formula-content{ overflow-x:auto; padding:8px 0; }
+
+.scenario-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:20px 0; }
+.scenario-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px; }
+
+.meta-header{ background:var(--soft); border-radius:8px; margin:16px 0 28px; overflow:hidden; border:1px solid var(--line); }
+.meta-header summary{ padding:10px 16px; cursor:pointer; font-weight:600; font-size:13.5px; color:var(--mute); list-style:none; }
+.meta-header summary::-webkit-details-marker{ display:none; }
+.meta-header summary::before{ content:"▸ "; }
+.meta-header[open] summary::before{ content:"▾ "; }
+.meta-header dl{ padding:0 16px 14px; margin:0; font-size:13px; }
+.meta-header dt{ font-weight:600; color:var(--mute); margin-top:8px; }
+.meta-header dd{ margin:2px 0 0 16px; color:var(--ink); }
+.ai-disclaimer{ font-size:12px; color:var(--mute); padding:8px 16px; border-top:1px solid var(--line); }
+
+footer, .footer{ margin-top:60px; padding-top:20px; border-top:1px solid var(--line); font-size:13px; color:var(--mute); text-align:center; }
+
+/* ==================== 抽屉侧边栏统一标准导航 ==================== */
+.unified-nav-btn{
+  position:fixed; top:16px; left:16px; z-index:9999;
+  width:40px; height:40px; border-radius:8px;
+  border:1px solid var(--line); background:var(--bg); color:var(--ink);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:20px; box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  transition:all .2s cubic-bezier(0.4,0,0.2,1);
+}
+.unified-nav-btn:hover{
+  background:var(--soft); color:var(--accent); border-color:var(--accent);
+  transform:scale(1.05); box-shadow:0 4px 14px rgba(37,99,235,0.15);
+}
+body.unified-nav-open .unified-nav-btn{ opacity:0; pointer-events:none; }
+.unified-nav-overlay{ display:none !important; }
+
+aside.unified-nav-drawer{
+  position:fixed; left:0; top:0; bottom:0;
+  width:var(--unified-nav-width); max-width:86vw;
+  background:var(--soft); border-right:1px solid var(--line);
+  padding:24px 16px 20px; overflow-y:auto; display:flex; flex-direction:column;
+  z-index:10001; box-shadow:4px 0 24px rgba(0,0,0,0.08);
+  transform:translateX(-100%);
+  transition:transform .25s ease-in-out;
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme:dark){
+  aside.unified-nav-drawer{ box-shadow:4px 0 24px rgba(0,0,0,0.4); }
+}
+body.unified-nav-open aside.unified-nav-drawer{ transform:translateX(0); }
+
+.unified-nav-drawer .drawer-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding-bottom:14px; border-bottom:1px solid var(--line); margin-bottom:14px;
+}
+.unified-nav-drawer .drawer-brand{
+  font-size:14.5px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:6px;
+}
+.unified-nav-drawer .drawer-brand span{ color:var(--accent); }
+.unified-nav-drawer .drawer-close-btn{
+  background:transparent; border:none; font-size:18px; color:var(--mute);
+  cursor:pointer; padding:6px; border-radius:6px; line-height:1; transition:all .15s;
+}
+.unified-nav-drawer .drawer-close-btn:hover{ background:var(--bg); color:var(--ink); }
+
+.unified-nav-drawer .drawer-shortcuts{
+  display:flex; flex-direction:column; gap:6px; margin-bottom:14px;
+  padding-bottom:14px; border-bottom:1px dashed var(--line);
+}
+.unified-nav-drawer .shortcut-btn{
+  display:flex; align-items:center; gap:8px; padding:7px 12px;
+  border-radius:6px; font-size:13px; font-weight:500; color:var(--ink);
+  text-decoration:none; background:var(--bg); border:1px solid var(--line);
+  transition:all .15s ease;
+}
+.unified-nav-drawer .shortcut-btn:hover{
+  background:var(--line); color:var(--accent); border-color:var(--accent);
+}
+
+.unified-nav-drawer .toc-section-title{
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--mute); margin:6px 0 8px; padding:0 4px;
+}
+.unified-nav-drawer .drawer-toc{
+  display:flex; flex-direction:column; gap:3px; flex:1;
+}
+.unified-nav-drawer .drawer-toc a{
+  display:block; padding:7px 10px; border-radius:6px;
+  font-size:13px; color:var(--mute); text-decoration:none;
+  line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  transition:background .15s, color .15s;
+}
+.unified-nav-drawer .drawer-toc a:hover{
+  color:var(--ink); background:var(--line);
+}
+.unified-nav-drawer .drawer-toc a.active{
+  color:var(--accent); background:var(--bg); font-weight:600;
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== Unified Sidebar Drawer HTML ==================== -->
+<button class="unified-nav-btn" id="unifiedNavBtn" title="展开目录导航">☰</button>
+<div class="unified-nav-overlay" id="unifiedNavOverlay"></div>
+<aside class="unified-nav-drawer" id="unifiedNavDrawer">
+  <div class="drawer-header">
+    <div class="drawer-brand">作品集研报 · <span>出版教育 AI PM</span></div>
+    <button class="drawer-close-btn" id="unifiedNavClose" title="收起导航">✕</button>
+  </div>
+  <div class="drawer-shortcuts">
+    <a href="../../index.html" class="shortcut-btn">🏠 返回作品集总览</a>
+
+  </div>
+  <div class="toc-section-title">报告目录 (Contents)</div>
+  <nav class="drawer-toc" id="unifiedNavToc">
+    <a href="#s-1" title="核心 Thesis 判断系统">核心 Thesis 判断系统</a>
+<a href="#s-2" title="一、核心结论（5 条）">一、核心结论（5 条）</a>
+<a href="#s-8" title="二、印制全流程拆解（工艺层）">二、印制全流程拆解（工艺层）</a>
+<a href="#s-12" title="三、教辅 vs 绘本 印制对照表">三、教辅 vs 绘本 印制对照表</a>
+<a href="#s-13" title="四、成本结构与工价体系（经济层）">四、成本结构与工价体系（经济层）</a>
+<a href="#s-19" title="五、POD / 数码印刷的替代边界">五、POD / 数码印刷的替代边界</a>
+<a href="#s-20" title="六、合规与政策约束（逐条现行有效）">六、合规与政策约束（逐条现行有效）</a>
+<a href="#s-21" title="七、数字化与纸数融合结合点（产品切口）">七、数字化与纸数融合结合点（产品切口）</a>
+<a href="#s-26" title="八、行业格局">八、行业格局</a>
+<a href="#s-27" title="九、局限、失败模式与未知项">九、局限、失败模式与未知项</a>
+<a href="#s-31" title="十、附录 A：参考来源与证据链">十、附录 A：参考来源与证据链</a>
+<a href="#s-32" title="十一、附录 B：维度执行情况">十一、附录 B：维度执行情况</a>
+<a href="#s-33" title="十二、附录 C：面试可用的一句话判断">十二、附录 C：面试可用的一句话判断</a>
+
+  </nav>
+</aside>
+
+
+<div class="wrap">
+<h1 id="s-0">教辅与绘本文稿的印制流程 · 深度调研报告</h1>
+<h2 id="s-1">核心 Thesis 判断系统</h2>
+<table>
+<thead><tr><th>环节</th><th>内容</th></tr></thead><tbody>
+<tr><td><strong>旧共识</strong></td><td>印制是出版链条里最落后、最脏最累的环节，信息化程度低 → 谁改造它谁吃下巨大机会</td></tr>
+<tr><td><strong>真正变量</strong></td><td>① 真实客群不是「10.9 万家印刷企业」而是 <strong>9541 家出版物印刷机构</strong>，且利润率 6.61%、亏损面 23.73%；② 政策措辞是「支持/引导/<strong>试点</strong>」，无强制、无资金；③ <strong>码的商业价值被证伪</strong>（RAYS 摊薄仅 0.82 元/册，转化不足千分之一）</td></tr>
+<tr><td><strong>第一性约束</strong></td><td>政策：教科书明令不得夹带二维码（教育部 2023，A 级）；经济：教材政府指导价把 12.5 印张教科书的全成本压到 ~5.55 元/册；物理：跨页接版受胶装铣背 1.5mm 硬约束</td></tr>
+<tr><td><strong>换维绕行</strong></td><td>不要「卖软件给印厂」→ 改为「给出版社做<strong>印前合规校验与质量前置</strong>」（出版社有钱、有合规压力、有印张上限考核）；不要「印后赋码」→ 改为「印前<strong>结构化排版接口</strong>」（XML → 方正自动排版，直接接上一轮的文稿解读产物）</td></tr>
+<tr><td><strong>二阶受益方</strong></td><td>出版社印务部门（省合规风险）、排版外包公司（省返工）、监管侧（备案系统对接）——都比印厂更早兑现价值</td></tr>
+<tr><td><strong>Bear / Base / Bull</strong></td><td>Bear 60%：印制软件化维持「项目制外包」形态，无 SaaS 化市场；Base 30%：出现出版社侧的规则校验/签样工具，客单价 10-50 万；Bull 10%：政策强制 + 备案系统打通，形成行业级协同平台</td></tr>
+<tr><td><strong>我们错了的信号</strong></td><td>① 2026-2027 出现印厂<strong>主动</strong>付费买 SaaS 且客单价 >3 万/年的可核案例；② 图书二维码扫码率出现权威公开数据且 >5%；③ 三年行动计划的「应用场景指引」落地为强制标准</td></tr>
+<tr><td><strong>行动清单</strong></td><td>立刻做：向 2-3 家出版社印务问清「印张核算 / 委托书流转 / 签样」三步怎么走；3 个月内：跟踪《印刷业数字化应用场景指引》是否发布；不要做：把印厂当付费方建销售模型</td></tr>
+</tbody>
+</table>
+<hr>
+<h2 id="s-2">一、核心结论（5 条）</h2>
+<h3 id="s-3">结论 1：印制不是「发个 PDF 给印厂」，它是一条被<strong>法规 + 工价 + 物理</strong>三重硬约束锁死的流水线</h3>
+<p>三重约束各自独立且都不可绕过：</p>
+<ul>
+<li><strong>法规</strong>：《印刷业管理条例》第 19 条——印厂必须验证并收存出版单位盖章的印刷委托书，印刷前报出版单位所在地省级备案；<strong>跨省委托还须先报印厂所在地省级备案</strong> [A，中国政府网公报刊载版]。2025-06-10 起《全国印刷委托书备案系统》开通，各省原则上统一网上办理 [A，国新出发〔2025〕7 号]。</li>
+<li><strong>工价</strong>：一套地区工价把制版、开机、印张、装订、覆膜逐项钉死（深圳 2017 工价：平张机 25 元/色令、封面开机价 500 元、胶订 0.07 元/贴、精装方脊 16 开 5 元/本）[A，2017，⚠️ 已 9 年未更新]。</li>
+<li><strong>物理</strong>：跨页接版偏差是官方认定的印制质量<strong>首要问题</strong>——2024 年抽检 63 册不合格图书中 <strong>51 册</strong>是跨页接版 [A，国家新闻出版署 2025-01-10]。</li>
+</ul>
+<p><strong>判断</strong>：任何想插进这条流水线的产品，都必须先成为某一条约束的「合规出口」或「成本出口」，而不是「提效工具」。提效在这条链上是<strong>弱需求</strong>——因为瓶颈不在效率，在合规与返工。</p>
+<h3 id="s-4">结论 2：教辅印制是被<strong>行政规范逐项钉死</strong>的品种，创新空间不在工艺、在「合规校验自动化」</h3>
+<p>重庆市教委 2026 年教辅评议公告（A 级，已亲自复核原文）把印制参数写到了可直接做校验规则的程度：</p>
+<table>
+<thead><tr><th>参数</th><th>规定值</th><th>原文</th></tr></thead><tbody>
+<tr><td>印刷色数</td><td><strong>双色</strong></td><td>「教辅材料采用双色印刷」</td></tr>
+<tr><td>正文纸张</td><td><strong>70 克胶版纸</strong>，同一本规格一致</td><td>「正文印刷纸张用70克胶版纸」</td></tr>
+<tr><td>封面</td><td><strong>120 克以上、175 克以下铜版纸，不覆膜</strong></td><td>同上</td></tr>
+<tr><td>幅面</td><td><strong>一般为 16 开</strong></td><td>「幅面尺寸一般为16开」</td></tr>
+<tr><td>印张上限</td><td>小学 3-6 年级 <strong>≤7 印张/册</strong>；初中 ≤6（全一册 ≤10）；高中 ≤教材印张数 2 倍且语数外 ≤22、其他 ≤20</td><td>「参考答案计入规定印张」</td></tr>
+<tr><td>加码</td><td><strong>不得夹带任何商业广告的链接网址、二维码等信息</strong></td><td>同上</td></tr>
+</tbody>
+</table>
+<p><strong>判断</strong>：这套规则完全可以被翻译成一个<strong>规则引擎</strong>（开本 / 色数 / 克重 / 印张 / 亮度 ≤85% / 封面克重区间 / 印张上限），在送评前自动体检。这比「AI 帮你排版」这类故事扎实得多，因为出版社<strong>有合规刚需、有明确失败代价（不予评议）</strong>。</p>
+<p>⚠️ 限定：渝黔两省口径互证，但<strong>不是全国统一标准</strong>，各省教辅评议公告参数可能不同。⚠️ 山东教材印张价文件为<strong>征求意见稿</strong>（2026-01-12 公示），非已生效文件。</p>
+<h3 id="s-5">结论 3：印制成本的结构性事实——<strong>规模经济不来自纸张</strong></h3>
+<p>这是 UE 模型最容易算错的一处。代入算例（正度 16 开、200 页、70g 双胶）：</p>
+<table>
+<thead><tr><th>印数</th><th>单本纸张成本</th><th>备注</th></tr></thead><tbody>
+<tr><td>1,000 册</td><td>3.63 元</td><td>纸价 4642.9 元/吨（2025-12，隆众）</td></tr>
+<tr><td>5,000 册</td><td>3.60 元</td><td>换算链：令重→吨令数→令价→加放后令数→单本</td></tr>
+<tr><td>50,000 册</td><td>3.53 元</td><td>下降幅度仅 <strong>2.8%</strong></td></tr>
+</tbody>
+</table>
+<p>纸张换算公式：令价 = 吨价 × 克重 / 2327（787×1092）[A，四川省印刷协会]。</p>
+<p><strong>判断</strong>：印数放大 50 倍，纸张端只省 2.8%。真正的规模经济来自另外三项——<strong>制版费 + 开机费 + 工价档位</strong>，以及魔鬼代言人补充的第四项：<strong>加放率阶梯</strong>（1000-3000 册 40‰ → 40001 册以上 10‰）。做「小批量多品种」策略时，成本天花板由固定成本摊薄决定，不由纸张决定。</p>
+<h3 id="s-6">结论 4：POD 对政府定价教科书基本不适用，但对<strong>补货加印 / 送审样书 / 高校教材 / 培训试卷 / 绝版书</strong>成立——而它的天花板已被跑出来</h3>
+<ul>
+<li><strong>不成立的依据（需修正口径）</strong>：原判据「POD 单本 12 元 > 教材全成本 8.33 元」是<strong>口径混用</strong>。12 元溯源是虎彩自述的「一本起印结算目标价」（2019 年「希望做到」）；8.33 元是政府核定的<strong>零售价</strong>（含 30% 发行折扣 + ≤5% 利润 + 稿费编录）。按省定公式反推，教材出版印制成本约 <strong>5.55 元/册</strong>（含税口径更低，约 4.9 元）[魔鬼代言人反算，推断]。</li>
+<li><strong>成立的场景</strong>：凤凰数码（亚洲首条 POD 产线）业务清单明确含「教材补印 / 教材教辅补数 / 培训教材试卷 / 送审样书」[B]。</li>
+<li><strong>但天花板已现</strong>：凤凰数码 12 年营收只做到 <strong>2638 万元</strong>；数字印刷渗透率 <3%；单品种平均印数 <strong>2.2 万册</strong> [B]。</li>
+<li><strong>反例的正确归因</strong>：虎彩印艺破产重整<strong>不能</strong>归因为「POD 不行」——其核心业务（烟包+彩盒）2017→2023 从 10.25 亿腰斩到 5.62 亿，降幅 4.63 亿 <strong>大于</strong>公司总营收降幅 2.86 亿，说明含 POD 的非核心业务实为<strong>净增长</strong>；引爆点是 2021 年 CMC 6 亿对赌触发 >7.5 亿回购 [魔鬼代言人]。</li>
+</ul>
+<h3 id="s-7">结论 5（最重要）：纸数融合的真实战场在<strong>教辅与大众书</strong>，教科书侧只能走 OID 隐形码</h3>
+<p>教育部办公厅《关于印发 2023 年中小学教学用书目录的通知》原文（已亲自复核）：</p>
+<blockquote><p>「中小学教材中不得夹带任何商业广告或教学辅助资料的链接网址、二维码等信息。」<br>——同文下一句即：「各地可根据本地实际和学生需求购买配套数字音像材料。<strong>鼓励教材出版单位采用互联网下载的方式免费提供。</strong>」</p></blockquote>
+<p><strong>这不是全面禁码，是禁「商业广告 + 教材以外的教学辅助资料链接」。</strong> 三条边界：</p>
+<ol>
+<li><strong>教科书本体</strong>：最严格区域，二维码基本不可行 → 教材侧的历史解法是 <strong>OID 隐形点读码</strong>（CMY 印图文、K 版印含碳码点，红外笔识别；175 线/英寸网点 5%；外研通 2006 年起，2012 年春外研版小学英语教材<strong>全量点读化</strong>）[B/C 混级]。</li>
+<li><strong>教辅</strong>：禁的是「商业广告类」码；重庆、湖南、陕西、浙江丽水的表述一致 [A]。指向本书自身配套资源（听力音频/微课/答案）的码，在多数省份评议实践中被接受——但 <strong>未找到教育部对「本书配套资源码是否属于禁止范围」的正式解释</strong>，⚠️ 属推断，面试/调研时应直接向对方确认合规口径。</li>
+<li><strong>反向加严趋势</strong>：渝黔豫冀已把禁令扩到<strong>评议目录内教辅</strong> [A]。</li>
+</ol>
+<p><strong>码的商业价值需大幅打折</strong>：RAYS 摊薄仅 0.82 元/册、转化「不足千分之一甚至万分之一」[B]。2024-2026 年图书二维码扫码率<strong>无任何权威公开数据</strong>（已排查教育部、新闻出版署、赋码厂商）。→ <strong>赋码收益在 UE 模型里建议按 0 处理</strong>，只计合规与防窜价值。</p>
+<hr>
+<h2 id="s-8">二、印制全流程拆解（工艺层）</h2>
+<h3 id="s-9">2.1 三段式主干</h3>
+<p>印前 → 印刷 → 印后。云南出版印刷集团定义：印后为「折页、配帖、订联、包封、裁切、打捆」[B]。</p>
+<table>
+<thead><tr><th>阶段</th><th>主要工序</th><th>出错点</th></tr></thead><tbody>
+<tr><td><strong>印前</strong></td><td>排版 → 拼版（imposition）→ 出片/CTP 制版 → 打样（数码样 / 传统样 / 蓝纸）→ 核红签样</td><td>拼版错帖、爬移未补偿、签样往返耗时</td></tr>
+<tr><td><strong>印刷</strong></td><td>上机 → 调色追样 → 过版纸损耗 → 正式印刷 → 色彩密度检测</td><td>墨色不匀、套印不准</td></tr>
+<tr><td><strong>印后</strong></td><td>折页 → 配页 → 锁线 → 胶装/骑马订/精装 → 覆膜 → 烫金/UV/模切 → 裁切 → 打捆</td><td><strong>跨页接版偏差</strong>、飘口超标、破头</td></tr>
+<tr><td><strong>质检入库</strong></td><td>批质量抽检、单册抽检、环保质量</td><td>亮度/定量超标</td></tr>
+</tbody>
+</table>
+<h3 id="s-10">2.2 周期量级</h3>
+<table>
+<thead><tr><th>情形</th><th>周期</th><th>来源</th></tr></thead><tbody>
+<tr><td>一般图书</td><td>无国标，各厂经验值（<strong>未获得权威数字</strong>）</td><td>[不可得]</td></tr>
+<tr><td>教材赶「课前到书」</td><td>江苏凤凰由 3-4 个月压缩到 <strong>40 天左右</strong>（2022）；四川 2026「压缩至不足 60 天」</td><td>[B]</td></tr>
+</tbody>
+</table>
+<p>⚠️ 各工序「耗时量级」无国标，全部为 C 级印厂经验值，<strong>已标 [不可得]</strong>。打样术语（数码样/蓝纸/核红签样）仅 C 级源，应表述为「行业通行做法」而非标准术语。</p>
+<h3 id="s-11">2.3 跨页接版：唯一的「物理硬约束」级质量杀手</h3>
+<p>2024 年官方抽检：277 种 12022 册，批合格率 98.5%，<strong>63 册单册不合格</strong>，其中 <strong>51 册跨页接版偏差</strong>（占不合格册数 81%，该占比从 2022 年 29% 升至 2024 年 81%）[A]。</p>
+<p><strong>必须补的分母</strong>：63/12022 = <strong>0.52%</strong>（不是 81%）。且<strong>中小学重点教材印制和环保质量合格率均为 100%</strong> [A]。→ 这是大众/主题出版图书的问题，教材侧已被管住。</p>
+<p>解法本身是参数化规则 [B，科印传媒]：</p>
+<table>
+<thead><tr><th>装订方式</th><th>工艺参数</th><th>需预留</th></tr></thead><tbody>
+<tr><td>无线胶装</td><td>铣背 1.5mm ± 0.5mm（GB/T 30326-2013）</td><td><strong>3mm 重叠量</strong></td></tr>
+<tr><td>锁线胶装</td><td>书帖间渗胶 ≤1.0mm</td><td><strong>1mm 胶粘位</strong></td></tr>
+<tr><td>128g/m² 铜版纸</td><td>爬移</td><td>再 <strong>+1mm</strong></td></tr>
+<tr><td>翻书线分级</td><td>56 页书</td><td>外页 7mm / 次外 6mm / 中部 3mm</td></tr>
+</tbody>
+</table>
+<p>判定线 ≤1.5mm（GB/T 34053.3-2017）。</p>
+<p><strong>→ 这就是一个可直接产品化的规则引擎</strong>：按「页码位置 × 装订方式 × 纸张定量」自动算重叠位。绘本尤其适用。</p>
+<hr>
+<h2 id="s-12">三、教辅 vs 绘本 印制对照表</h2>
+<table>
+<thead><tr><th>维度</th><th>教辅</th><th>绘本</th></tr></thead><tbody>
+<tr><td><strong>开本</strong></td><td>16 开（行政规定「一般为 16 开」）[A]</td><td>常见 16 开，如 184×260 [B]</td></tr>
+<tr><td><strong>色数</strong></td><td><strong>双色</strong>（行政规定）[A]</td><td><strong>四色精印</strong> [B]</td></tr>
+<tr><td><strong>正文纸张</strong></td><td>70g 胶版纸（行政规定，规格一致）[A]</td><td>铜版纸 / 特种纸 / 纯质纸，克重更高</td></tr>
+<tr><td><strong>封面</strong></td><td>120-175g 铜版纸，<strong>不覆膜</strong>（行政规定）[A]</td><td>157g 铜版 + <strong>覆哑光膜</strong> + 烫印；灰板 2.0mm [B]</td></tr>
+<tr><td><strong>装订</strong></td><td>骑马订 / 胶订（批量、低成本）</td><td>精装（方脊/圆脊）、锁线胶装、纸板书的特殊材质</td></tr>
+<tr><td><strong>印量量级</strong></td><td>大（春秋两季集中，教材「课前到书」政治任务）</td><td>小（样本：超 3000 册后单价差别微小，超 10000 册近乎一致）[B]</td></tr>
+<tr><td><strong>核心工艺难点</strong></td><td>套色准确性、答案页套印、<strong>印张上限合规</strong>、亮度 ≤85%（GB 40070-2021）</td><td><strong>跨页中缝</strong>、色彩还原、跨页拼版出血、低龄圆角/撕不烂</td></tr>
+<tr><td><strong>环保约束</strong></td><td>教材<strong>强制</strong>绿色印刷（新出联〔2012〕11 号）；教辅仅「优先」[A]</td><td>无强制</td></tr>
+<tr><td><strong>价格机制</strong></td><td>教材政府指导价；教辅受评议目录约束</td><td>完全市场化</td></tr>
+<tr><td><strong>POD 适用度</strong></td><td>政府定价教科书<strong>不适用</strong>；补货加印/样书送审适用</td><td>短版试销、绝版复活<strong>适用</strong></td></tr>
+</tbody>
+</table>
+<p>2024 抽检细节佐证教辅/教材侧的物理约束：个别中小学教材内文用纸亮度 <strong>84.6%</strong>，逼近 GB 40070—2021 的 ≤85% 限值；个别定量偏差 <strong>-3.25%</strong>，逼近 ±4.0% 限值 [A]。</p>
+<hr>
+<h2 id="s-13">四、成本结构与工价体系（经济层）</h2>
+<h3 id="s-14">4.1 成本项构成</h3>
+<p>制版费（CTP/PS 版）+ 开机费/起印费（上机费）+ 印张工价（按色令或印张）+ 纸张费 + 印后加工费（覆膜/烫金/UV/模切）+ 装订费 + 装订材料 + 包装运输。</p>
+<h3 id="s-15">4.2 深圳 2017 工价（A 级原件，⚠️ 已 9 年未更新）</h3>
+<table>
+<thead><tr><th>项目</th><th>单价</th></tr></thead><tbody>
+<tr><td>平张机印刷</td><td><strong>25 元/色令</strong></td></tr>
+<tr><td>轮转机</td><td>16 / 14 / 12 元（按规格）</td></tr>
+<tr><td>封面开机价</td><td>500 元</td></tr>
+<tr><td>胶订</td><td>0.07 元/贴</td></tr>
+<tr><td>精装方脊 16 开</td><td><strong>5 元/本（含材料）</strong></td></tr>
+<tr><td>覆膜 16 开</td><td>0.1 元/张</td></tr>
+<tr><td>加放率 @5000 册</td><td>30‰</td></tr>
+</tbody>
+</table>
+<p>来源：http://www.szprint.org/Uploads/detail/2017-12-27/5a43035be0f58.pdf</p>
+<h3 id="s-16">4.3 起印量门槛的机制来源</h3>
+<p>行业流传的「3000 册起印」<strong>本轮未能复核到「不足 3000 按 3000 计」原条款</strong> [魔鬼代言人核查失败]——同份工价中可确认的是「不足 500 张按 500 张计」「不足 3 令按 3 令计」这类<strong>最小计费单位条款</strong>。</p>
+<p><strong>修正后的表述</strong>：起印量门槛不是某一条「3000 册规定」，而是<strong>多个最小计费单位条款叠加</strong>的结果（印刷按色令起算、装订按贴起算、加放率按印数档位跳变）。⚠️ 建议向印厂实测而非引用任何二手「3000 册」说法。</p>
+<h3 id="s-17">4.4 教材定价（山东，A 级，⚠️ 征求意见稿）</h3>
+<table>
+<thead><tr><th>纸张规格</th><th>克重</th><th>单色（正反两色）</th><th>双色（正反四色）</th><th>彩色（正反八色）</th></tr></thead><tbody>
+<tr><td>787×1092</td><td>60g</td><td>0.488</td><td>0.563</td><td>0.773</td></tr>
+<tr><td>787×1092</td><td><strong>70g</strong></td><td><strong>0.666</strong></td><td>0.820</td><td>0.933</td></tr>
+<tr><td>890×1240</td><td>70g</td><td>0.802</td><td>0.992</td><td>—</td></tr>
+</tbody>
+</table>
+<p>单位：元/印张（含税）。零售价 = 正文印张单价 × 印张数量 + 封面价格 + 插页单价 × 插页数量。发行费率：黑白/双色 ≤30%，彩色 ≤28%。</p>
+<p>⚠️ 原调研记录中的「教辅发行费率 ≤35%」<strong>未在本文件核实到</strong>，需修正。⚠️ 本文件为 2026-01-12 公示的<strong>征求意见稿</strong>，拟自 2026 年春季起施行至 2029-08-31；「利润率 ≤5%」出自广东粤发改规〔2022〕3 号，<strong>非山东文件</strong>。</p>
+<h3 id="s-18">4.5 口径冲突清单（最高危，UE 测算必读）</h3>
+<table>
+<thead><tr><th>#</th><th>冲突项</th><th>冲突内容</th><th>裁决</th></tr></thead><tbody>
+<tr><td>1</td><td><strong>色令定义</strong></td><td>一派「1000 张对开印 1 色」，另一派隐含「1000 张全开单面」，差 2 倍</td><td><strong>无 2 倍争议</strong>：1 色令 = 500 张全张 = 1000 张对开，定义唯一。真风险在<strong>轮转机「令→色令单位小一半」</strong>，且<strong>加放纸要付费但不计色令</strong></td></tr>
+<tr><td>2</td><td><strong>break-even 册数</strong></td><td>200 / 394 / 1000 / 1500-2000 / 2500-3500</td><td>全部来自画册/彩页/彩盒，<strong>无一是书</strong>。建议建模取中心 <strong>1000 册</strong>、区间 500-2000</td></tr>
+<tr><td>3</td><td><strong>装订单价两套体系</strong></td><td>「0.07 元/贴」（纯装订工价） vs 「胶装 8-15 元/本」（快印含纸含印）</td><td><strong>严禁混用</strong></td></tr>
+<tr><td>4</td><td><strong>工价时效</strong></td><td>深圳工价为 2017 年</td><td>已 9 年，必须向印厂实测或用政府采购中标价替换</td></tr>
+<tr><td>5</td><td><strong>印张单价口径</strong></td><td>山东 0.666 元/印张是<strong>零售价构成项</strong>（含税）</td><td>不可直接当作印制成本</td></tr>
+</tbody>
+</table>
+<p><strong>建议下一步</strong>：找政府采购网「出版物印刷」品目的<strong>中标公告</strong>拿真实单价，这是替换 2017 老化工价的可行路径。</p>
+<hr>
+<h2 id="s-19">五、POD / 数码印刷的替代边界</h2>
+<table>
+<thead><tr><th>维度</th><th>传统胶印</th><th>数码印刷 / POD</th></tr></thead><tbody>
+<tr><td>固定成本</td><td>高（制版 + 开机费）</td><td>近零</td></tr>
+<tr><td>单本变动成本</td><td>低（规模摊薄）</td><td>高（样本：16 开 200 页 ≤12 元/本，虎彩自述；另「5 分钱一页」，两源互证 [B]）</td></tr>
+<tr><td>起印量</td><td>受最小计费单位约束</td><td>一本起印</td></tr>
+<tr><td>色彩稳定性</td><td>高</td><td>较低</td></tr>
+<tr><td>纸张/装订选择</td><td>全</td><td>受限</td></tr>
+<tr><td>库存风险</td><td>高</td><td>归零</td></tr>
+<tr><td>适用</td><td>大批量、教材、教辅正印</td><td>绝版复活、短版试销、补货加印、送审样书、培训教材试卷</td></tr>
+</tbody>
+</table>
+<p><strong>成本交叉点（break-even）</strong>：</p>
+<ul>
+<li>图书口径 [B，中国出版传媒商报 2024]：单黑 大32 开 800-1000 册、正度 16 开 ~1000 册、小 16 开 ~2000 册；<strong>四色 1500-2000 册</strong></li>
+<li>教辅口径 [B，科印传媒 2024，唯一给出双交点]：单色 394/512 册、双色 408/594、彩色 363/604</li>
+</ul>
+<p>⚠️ 其他流传数字（欧美传单 300-500 份、包装盒 2500-3500 件）<strong>标的不是书</strong>，混用误差 5-10 倍。</p>
+<p><strong>行业规模约束</strong>：数字印刷渗透率 <3%，单品种平均印数 2.2 万册 [B]；凤凰数码 12 年营收 2638 万元 [B]。</p>
+<hr>
+<h2 id="s-20">六、合规与政策约束（逐条现行有效）</h2>
+<table>
+<thead><tr><th>#</th><th>制度</th><th>核心要求</th><th>依据</th><th>现行状态</th></tr></thead><tbody>
+<tr><td>1</td><td><strong>印刷委托书</strong></td><td>印厂须验存出版单位盖章的委托书，印刷前报出版单位所在地省级备案；<strong>跨省还须先报印厂所在地省级备案</strong></td><td>《印刷业管理条例》第 19 条 [A]</td><td>现行有效（政府网公报刊载版为 2017 年第二次修订；子代理称 2024-12 国务院令 797 号第四次修订、2025-01-20 施行，⚠️ <strong>本轮未二次复核</strong>）</td></tr>
+<tr><td>2</td><td><strong>全国印刷委托书备案系统</strong></td><td>2025-06-10 开通，各省原则上统一<strong>网上办理</strong>；具即报即备、监测提醒、数据应用功能</td><td>国新出发〔2025〕7 号 [A]</td><td>现行</td></tr>
+<tr><td>3</td><td><strong>内部资料性出版物</strong></td><td>无书号只能走准印证路径</td><td>条例第 20 条 [A]</td><td>现行</td></tr>
+<tr><td>4</td><td><strong>不得印非出版单位出版物</strong></td><td>印厂不得印国家明令禁止或非出版单位出版的出版物</td><td>条例第 17 条 [A]</td><td>现行</td></tr>
+<tr><td>5</td><td><strong>教材印制资质</strong></td><td>⚠️ <strong>现行《出版管理条例》第 30 条只对教材出版、发行设资质，不含印制</strong>〔此为条文比对推断〕。实质门槛 = 出版物印刷许可 + 绿色印刷认证 + 每学期网站公示</td><td>出版管理条例 [A] + 国新出发〔2020〕12 号</td><td>但<strong>实践上有招标</strong>：长江出版传媒连年发布「教材承印厂中标结果公告」（2026 春 6 家、秋 4 家）[A，上市公司公告]</td></tr>
+<tr><td>6</td><td><strong>教辅材料</strong></td><td>省级评议公告目录；地市「一个学科每个版本推荐 1 套」（官方原文无「一科一辅」四字，俗称「一教一辅」）；印制端须<strong>事先核验委托印制手续，不齐一律不得承接</strong>；优先选绿色印刷合格评定企业</td><td>新广出发〔2015〕45 号 [A]</td><td>现行</td></tr>
+<tr><td>7</td><td><strong>教材定价</strong></td><td>定价权已<strong>下放省级</strong>（政府指导价/微利原则），废止 5 个旧文件</td><td>发改价格〔2015〕1199 号 [A]</td><td>现行</td></tr>
+<tr><td>8</td><td><strong>绿色印刷</strong></td><td>教材<strong>强制</strong>（新出联〔2012〕11 号：须委托获绿色印刷环境标志产品认证的企业）；教辅仅「优先」</td><td>[A]</td><td>现行；北京对出版物印刷企业评 A/B/C 级决定重污染预警停产 [B]</td></tr>
+<tr><td>9</td><td><strong>教材禁码</strong></td><td>教材不得夹带任何商业广告或教学辅助资料的链接网址、二维码</td><td>教育部办公厅 2023 年教学用书目录通知 [A，已复核]</td><td>现行，2020-2023 连续出现</td></tr>
+</tbody>
+</table>
+<p><strong>压力传导证据</strong>：广东粤发改规〔2022〕3 号规定教材利润率<strong>不超过印张成本 5%</strong>，且成本含绿色印刷装订费 → 压力传导至印厂。佐证：书刊印刷结算工价近两年<strong>降 20%-30%、部分 50%</strong> [B]。</p>
+<hr>
+<h2 id="s-21">七、数字化与纸数融合结合点（产品切口）</h2>
+<h3 id="s-22">7.1 政策已经点名了方向</h3>
+<p>《印刷业数字化三年行动计划（2025—2027 年）》（<strong>国新出发〔2025〕11 号</strong>，2025-06-06 印发 / 6-10 发布）[A/B 已复核]：</p>
+<p>三大工程：</p>
+<ol>
+<li><strong>数字化能力评估工程</strong>——发布「印刷业数字化能力自评估公益模型」</li>
+<li><strong>数字化创新应用工程</strong>——突破高端喷墨打印头、高精度喷墨印刷控制系统、<strong>新一代印前流程软件系统</strong>、<strong>高速可变数据处理技术</strong>；推广「基于人工智能技术的 ERP、MES、APS、WMS」；<strong>探索推广按需出版印刷</strong></li>
+<li><strong>数字化管理服务工程</strong>——修订发布《数字印刷管理办法》，动态更新《生产型数字印刷机目录》</li>
+</ol>
+<p>2026-01 中国印协补充：将<strong>编制印刷业数字化应用场景指引，梳理在线设计、智能排产、在线检测等典型场景</strong> [B]。</p>
+<p>⚠️ <strong>关键限定</strong>：政策措辞是「支持 / 引导 / <strong>试点</strong>」，<strong>无强制、无专项资金</strong>。</p>
+<h3 id="s-23">7.2 切口候选（按推荐度排序）</h3>
+<table>
+<thead><tr><th>优先级</th><th>切口</th><th>依据</th><th>风险</th></tr></thead><tbody>
+<tr><td><strong>★★★</strong></td><td><strong>印前结构化排版接口</strong>：文稿解读产物（XML）→ 方正自动排版云服务平台，支持「XML 全自动结构化，同步输出符合 docbook5 标准的 XML」，400 页 word 约 5 分钟出 PDF/DOCBOOK/WORD/FFX</td><td>[厂商自报，warn，2018 起，服务教材教辅]</td><td>厂商自报数据；需实测</td></tr>
+<tr><td><strong>★★★</strong></td><td><strong>教辅合规规则引擎</strong>：开本/色数/克重/印张上限/亮度 ≤85%/封面克重区间/印张核算，送评前自动体检</td><td>重庆 2026 公告参数已可翻译为规则 [A]</td><td>各省口径不一</td></tr>
+<tr><td><strong>★★★</strong></td><td><strong>跨页接版设计规则引擎</strong>：按页码位置 × 装订方式 × 纸张定量自动算重叠位</td><td>GB/T 30326-2013 铣背 1.5mm、判定线 ≤1.5mm；51/63 不合格是跨页接版 [A+B]</td><td>需与设计工具集成</td></tr>
+<tr><td><strong>★★</strong></td><td><strong>远程软打样 / 电子签样</strong>：签样 3~5 天 → 4 小时，色彩返工率 20% → 3%，实物打样损耗近零</td><td>[B-C]</td><td>需出版社与印厂双边部署</td></tr>
+<tr><td><strong>★★</strong></td><td><strong>跨厂协同与合规数据流</strong>：出版/印刷单位经营管理系统 ↔ 全国印刷委托书备案系统对接（已被列为试点）</td><td>国新出发〔2025〕7 号 [A]</td><td>支付方不明</td></tr>
+<tr><td><strong>★</strong></td><td><strong>AI 印刷瑕疵检测</strong></td><td>华夏视科累计装机 550+ 台套、出口欧洲东南亚，成书检测 1.2~1.5 万本/小时，误剔率 <0.2%（warn）；凌云光、征图新视在场</td><td><strong>已是红海，不建议进入</strong></td></tr>
+<tr><td><strong>✕</strong></td><td><strong>印后赋码平台</strong></td><td>—</td><td>码的商业价值被证伪（RAYS 摊薄 0.82 元/册、转化 <1‰）</td></tr>
+</tbody>
+</table>
+<h3 id="s-24">7.3 一书一码 / OID / AR 的工艺与成本</h3>
+<table>
+<thead><tr><th>类型</th><th>工艺</th><th>成本</th><th>限制</th></tr></thead><tbody>
+<tr><td><strong>同版印刷码</strong></td><td>所有书同一个码，胶印同版</td><td>近乎为零</td><td>不可防伪——「容易被人复制使用」（上海音乐出版社社长，B）</td></tr>
+<tr><td><strong>一书一码</strong></td><td>必须走可变数据印刷（VDP）/喷码</td><td>包装口径：VDP 附加 0.02-0.08 元/个，设备折旧 0.15-0.3 元/枚（warn，C）；<strong>图书口径 [不可得]</strong></td><td>需喷码设备 + 读码校验 + 剔除装置</td></tr>
+<tr><td><strong>OID 隐形码</strong></td><td>CMY 印图文、K 版留含碳黑墨印码点，红外笔识别；175 线/英寸网点 5%；松翰二代 6 万+码值</td><td>[不可得]</td><td>套印精度要求高（字体须笔画较粗）；黑版除码外不能有其他图文；副作用「点读书上的黑色看起来不那么黑」[C]</td></tr>
+<tr><td><strong>AR 识别</strong></td><td>依赖图片特征点</td><td>北少社《天工开物》建模动画<strong>不下百万元</strong>；浙少社已停更 AR 计划</td><td><strong>覆膜影响识别</strong>：哑膜识别率比亮膜高 15-25%（warn）</td></tr>
+</tbody>
+</table>
+<p><strong>渗透率数据（均为 2018 年，已老化）</strong>：三联书店抽样 100 本，40% 带二维码（大众图书口径）；高教社「印有二维码的图书中新书占 40%」，预计「十三五」后达 60%；北交大出版社一册一码 800 余种、二维码使用量 92.2 万多个。</p>
+<h3 id="s-25">7.4 赋码的三大反向约束（产品必须解决）</h3>
+<ol>
+<li><strong>不可变性</strong>：「出版社鲜有专人定期核验所有二维码」[B]</li>
+<li><strong>在线性</strong>：断链成投诉重灾区 → 活码是行业标准答案</li>
+<li><strong>多源性</strong>：「某出版社因软件开发公司业务调整，配套二维码全部失灵」[B]</li>
+</ol>
+<p><strong>印制周期 vs 数字内容周期的解耦</strong>是刚需——书链官网直接把「线上产品制作时间长也没关系，后台随时改链接」作为卖点 [A，厂商官网]，反证这是高频痛点。</p>
+<hr>
+<h2 id="s-26">八、行业格局</h2>
+<table>
+<thead><tr><th>玩家</th><th>定位</th><th>可查数据</th></tr></thead><tbody>
+<tr><td><strong>盛通股份（002599）</strong></td><td>A 股唯一出版物印刷主业样本</td><td>2025 年报：营收 20.38 亿元，印刷综合服务 17.30 亿元<strong>毛利率仅 11.20%</strong>，出版印刷 14.74 亿元（+5.93%），员工 2457 人（-18.62%）[A]</td></tr>
+<tr><td><strong>虎彩印艺</strong></td><td>押注 POD</td><td>2023 营收 11.64 亿元、净亏 1.53 亿元、资产负债率 90.91%；2024-08-21 摘牌后破产重整（负债 11.3 亿元）[A]</td></tr>
+<tr><td><strong>各省新华印刷 / 出版集团自有印厂</strong></td><td>教材主力</td><td>安徽新华 ≈ 全省 90% [B]</td></tr>
+<tr><td><strong>人教社</strong></td><td>「印刷示范企业」认定（企业侧，非行政许可）</td><td>[B]</td></tr>
+<tr><td><strong>雅昌、中华商务、利丰雅高、当纳利</strong></td><td>艺术精品 / 商业轮转</td><td>本轮未深挖</td></tr>
+</tbody>
+</table>
+<p><strong>规模口径必须分开</strong>（三套口径不可混用）：</p>
+<table>
+<thead><tr><th>口径</th><th>数值</th><th>时间点</th></tr></thead><tbody>
+<tr><td>印刷业<strong>全口径</strong>总产值</td><td>1.5 万亿元（2024）/ 1.52 万亿元（2025）</td><td>中宣部 [A/B]</td></tr>
+<tr><td><strong>出版物印刷</strong>占比</td><td>9.41%（2024）≈ <strong>1400 亿量级</strong>[推算]；2021 年 13.8% → 2025 年 8.9%，<strong>持续下滑</strong></td><td>[B]</td></tr>
+<tr><td>「印刷复制」营收</td><td>13048.2 亿元（2024 新闻出版统计公报）</td><td>⚠️ <strong>第三套口径，不可与前者混用</strong></td></tr>
+</tbody>
+</table>
+<p>2024 年黑白印刷产量 15199.7 万令（<strong>-8.3%</strong>）、彩色 128826.4 万对开色令（+0.6%）。</p>
+<p><strong>极度分散</strong>：10.9 万家印刷企业，百强总营收 1316 亿元仅占全行业 9%，百强前 20 几乎全是包装印刷，出版物印刷为主业者仅盛通（18）、湖南天闻新华印务（32）、上海印刷集团（66）。</p>
+<p>⚠️ <strong>关键修正</strong>：做 TAM 时分母应取<strong>出版物印刷机构 9541 家</strong>，不是 10.9 万家（浙江 13630 家中出版物仅 397 家可交叉验证）。客群利润率 <strong>6.61%</strong>、亏损面 <strong>23.73%</strong>，SaaS 客单价已被压到 3560 元/20 人/年。→ <strong>支付方大概率不该是印厂</strong>。</p>
+<hr>
+<h2 id="s-27">九、局限、失败模式与未知项</h2>
+<h3 id="s-28">9.1 本轮方法论教训</h3>
+<ol>
+<li><strong>用行政/登记动作推断经营实质</strong>（第三次同类错误）：原判「虎彩失败 = POD 不行」被推翻，核心业务腰斩才是主因。</li>
+<li><strong>口径混用</strong>（历史最高危失败模式再现）：POD 12 元（自述目标价） vs 教材 8.33 元（政府核定零售价）——两个不同口径直接做大小比较。</li>
+<li><strong>把「占不合格数的比例」当「占总数的比例」</strong>：81% 实为 51/63，真实发生率是 63/12022 = 0.52%。</li>
+<li><strong>过度解读法规</strong>：教育部禁码条款被读成「全面禁码」，但同文下一句即「鼓励互联网下载免费提供」，且禁的对象限定为「商业广告 + 教材以外的教学辅助资料链接」。</li>
+</ol>
+<h3 id="s-29">9.2 已修正的结论（魔鬼代言人削弱记录）</h3>
+<table>
+<thead><tr><th>原结论</th><th>修正</th></tr></thead><tbody>
+<tr><td>教材 100% 不适用 POD</td><td>改为按「政府定价教科书 / 评议目录教辅 / 高校教材 / 校本教材 / 培训试卷」<strong>五类分说</strong></td></tr>
+<tr><td>切口在跨厂协同调度</td><td>TAM 高估一个数量级（分母 9541 家而非 10.9 万家）；支付方不应是印厂</td></tr>
+<tr><td>虎彩是 POD 反例</td><td>归因站不住，不能用作 POD 失败的证据</td></tr>
+<tr><td>教材印制无定点行政许可</td><td>法律条文对，但实践推论错——长江出版传媒有教材承印厂中标公告</td></tr>
+<tr><td>教材禁码 → 只能走 OID</td><td>过度解读；教辅侧禁的是「商业广告类」码</td></tr>
+<tr><td>「不足 3000 按 3000 计」</td><td><strong>未能复核</strong>，应改为「多个最小计费单位条款叠加」</td></tr>
+<tr><td>教辅发行费率 ≤35%</td><td><strong>未在山东文件核实到</strong>；山东实际为黑白/双色 30%、彩色 28%</td></tr>
+</tbody>
+</table>
+<h3 id="s-30">9.3 [不可得] 项与排查路径</h3>
+<table>
+<thead><tr><th>#</th><th>缺口</th><th>已排查来源</th></tr></thead><tbody>
+<tr><td>1</td><td>各工序标准耗时量级</td><td>无国标；仅 C 级印厂经验值</td></tr>
+<tr><td>2</td><td>图书侧单码成本</td><td>仅包装口径可得（且为 C 级）；图书口径无公开数据</td></tr>
+<tr><td>3</td><td>OID 编码成本</td><td>厂商未公开</td></tr>
+<tr><td>4</td><td>2024-2026 图书二维码扫码率</td><td>教育部、新闻出版署、赋码厂商均无</td></tr>
+<tr><td>5</td><td>2020 年后省市级工价更新版</td><td>深圳工价仍为 2017 版</td></tr>
+<tr><td>6</td><td>印厂公开完整报价单</td><td>无；建议走政府采购中标公告</td></tr>
+<tr><td>7</td><td>POD 市场规模权威数</td><td>5 个咨询报告数字互相冲突（48.6/76/128/160 亿），<strong>全部 C 级，禁止进模型</strong></td></tr>
+<tr><td>8</td><td>JDF/CIP4 中国真实落地率</td><td>中文资料几乎全是同一篇无日期旧文的 SEO 转载，已降权</td></tr>
+<tr><td>9</td><td>教育部对「本书配套资源码」的正式解释</td><td>无</td></tr>
+<tr><td>10</td><td>《印刷业管理条例》2024 年修订版原文</td><td>政府网公报刊载版为 2017 年第二次修订；797 号令未二次复核</td></tr>
+</tbody>
+</table>
+<hr>
+<h2 id="s-31">十、附录 A：参考来源与证据链</h2>
+<blockquote><p>标注 ★ 的为本次 P4 阶段<strong>主代理亲自打开复核</strong>的来源。</p></blockquote>
+<table>
+<thead><tr><th>#</th><th>来源</th><th>类型</th><th>等级</th><th>URL</th><th>直接引文</th></tr></thead><tbody>
+<tr><td>1</td><td>★ 国家新闻出版署《关于公布2024年印刷复制质检活动有关情况的通知》</td><td>政府公文</td><td>A</td><td>https://www.nppa.gov.cn/xxfb/tzgs/202501/t20250110_881173.html</td><td>「有4种图书印制批质量不合格，图书印制批质量合格率为98.5%，有63册图书印制单册质量不合格…在63册不合格图书样本中，有51册图书存在跨页接版偏差问题」</td></tr>
+<tr><td>2</td><td>★ 重庆市教委《关于重庆市普通中小学教辅材料评议工作的公告》</td><td>政府公文</td><td>A</td><td>https://jw.cq.gov.cn/zwxx_209/gggs/202604/t20260415_15613644.html</td><td>「教辅材料采用双色印刷，正文印刷纸张用70克胶版纸…封面使用120克以上、175克以下铜版纸，不覆膜…幅面尺寸一般为16开…参考答案计入规定印张」</td></tr>
+<tr><td>3</td><td>★ 山东省发改委《关于加强中小学教材价格管理的通知（征求意见稿）》</td><td>政府公文（征求意见稿）</td><td>A</td><td>http://fgw.shandong.gov.cn/art/2026/1/12/art_115442_10482445.html</td><td>「教材零售价格=正文印张单价×印张数量+封面价格+插页单价×插页数量」；「黑白版、双色版中小学教材发行费率最高为教材销售码洋的30%，彩色版…28%」</td></tr>
+<tr><td>4</td><td>★ 《印刷业管理条例》</td><td>行政法规</td><td>A</td><td>https://www.gov.cn/gongbao/content/2017/content_5219147.htm</td><td>第19条「必须验证并收存出版单位盖章的印刷委托书，并在印刷前报出版单位所在地…备案；…还必须事先报印刷企业所在地…备案」</td></tr>
+<tr><td>5</td><td>★ 教育部办公厅《关于印发2023年中小学教学用书目录的通知》</td><td>政府公文</td><td>A</td><td>https://www.moe.gov.cn/srcsite/A26/s8001/202305/t20230506_1058493.html</td><td>「中小学教材中不得夹带任何商业广告或教学辅助资料的链接网址、二维码等信息。」「鼓励教材出版单位采用互联网下载的方式免费提供。」</td></tr>
+<tr><td>6</td><td>★ 《印刷业数字化三年行动计划（2025—2027年）》报道</td><td>行业党媒</td><td>B</td><td>https://www.chinaxwcb.com/2025/12/24/99870493.html</td><td>「6月6日，国家新闻出版署印发《印刷业数字化三年行动计划(2025—2027年)》…构建"评估牵引—创新突破—服务护航"三位一体…赋能体系」</td></tr>
+<tr><td>7</td><td>全国印刷委托书备案系统开通</td><td>政府</td><td>A</td><td>https://cpiidc.nppa.gov.cn/xwzx/gzdt/202507/t20250708_920258.html</td><td>「自2025年6月10日起正式开通…原则上统一采取网上办理方式」（国新出发〔2025〕7号）</td></tr>
+<tr><td>8</td><td>深圳印刷工价（2017）</td><td>行业协会</td><td>A</td><td>http://www.szprint.org/Uploads/detail/2017-12-27/5a43035be0f58.pdf</td><td>平张机 25 元/色令；胶订 0.07 元/贴；精装方脊 16 开 5 元/本</td></tr>
+<tr><td>9</td><td>四川省印刷协会·纸张换算</td><td>行业协会</td><td>A</td><td>http://www.scysxh.com/contread.asp?id=58</td><td>令价 = 吨价 × 克重 / 2327（787×1092）</td></tr>
+<tr><td>10</td><td>科印传媒·跨页中缝工艺</td><td>行业媒体</td><td>B</td><td>https://www.keyin.cn/news/6441</td><td>无线胶装铣背 1.5mm±0.5mm → 预留 3mm 重叠量</td></tr>
+<tr><td>11</td><td>科印传媒·教辅 POD 交叉点</td><td>行业媒体</td><td>B</td><td>https://www.keyin.cn/news/2419</td><td>单色 394/512 册、双色 408/594、彩色 363/604</td></tr>
+<tr><td>12</td><td>中国出版传媒商报·图书交叉点</td><td>行业媒体</td><td>B</td><td>http://www.cnpubc.com/manage/2024/0419/41898.shtml</td><td>单黑 大32开 800-1000 册；四色 1500-2000 册</td></tr>
+<tr><td>13</td><td>盛通股份 2025 年报</td><td>上市公司</td><td>A</td><td>巨潮资讯</td><td>营收 20.38 亿元；印刷综合服务毛利率 11.20%</td></tr>
+<tr><td>14</td><td>虎彩印艺 2023 年报</td><td>上市公司</td><td>A</td><td>https://static.cninfo.com.cn/finalpage/2024-04-30/1219982505.PDF</td><td>营收 11.64 亿元；净亏 1.53 亿元</td></tr>
+<tr><td>15</td><td>中小学教辅材料管理办法</td><td>政府公文</td><td>A</td><td>https://www.moe.gov.cn/jyb_xxgk/moe_1777/moe_1779/201509/t20150928_211121.html</td><td>「一个学科每个版本…推荐1套教辅材料供学生选用」</td></tr>
+</tbody>
+</table>
+<h2 id="s-32">十一、附录 B：维度执行情况</h2>
+<ul>
+<li>✅ <strong>A 工艺层</strong>：印制全流程工序拆解 + 教辅/绘本差异（SQ1+SQ2，551 行）</li>
+<li>✅ <strong>B 经济层</strong>：成本结构/工价体系 + POD 替代边界（SQ3+SQ4，807 行）</li>
+<li>✅ <strong>C 政策格局层</strong>：合规政策 + 行业玩家（SQ5+SQ8，391 行）</li>
+<li>✅ <strong>D 数字化层</strong>：印前自动化 + 纸数融合结合点（SQ6+SQ7，399 行）</li>
+<li>✅ <strong>魔鬼代言人</strong>：12 条核心结论逐条攻击，6 条被削弱并已加限定（635 行）</li>
+<li>✅ <strong>P4 引用复核</strong>：6 条承载 headline 判断的 URL 主代理亲自打开，发现 2 处口径修正</li>
+</ul>
+<h2 id="s-33">十二、附录 C：面试可用的一句话判断</h2>
+<blockquote><p>「印制这条链上真正的机会不在印厂——出版物印刷机构只有 9541 家、利润率 6.61%、亏损面 23.73%，付不起钱。机会在出版社的印务侧：教辅的印制参数已经被行政规范逐项钉死（16 开、双色、70g 胶版纸、印张上限、参考答案计入印张），这是一套可以直接翻译成规则引擎的东西；而跨页接版占了 2024 年官方抽检不合格册数的 81%，它的解法本身就是「页码位置 × 装订方式 × 纸张定量」的参数化规则。这两件事出版社有刚需、有失败代价，印厂没有。」</p></blockquote>
+
+</div>
+
+<!-- ==================== Unified Sidebar Drawer Script ==================== -->
+<script id="unified-sidebar-script">
+(function() {
+  const btn = document.getElementById('unifiedNavBtn');
+  const overlay = document.getElementById('unifiedNavOverlay');
+  const closeBtn = document.getElementById('unifiedNavClose');
+  const tocContainer = document.getElementById('unifiedNavToc');
+  if (!btn || !overlay || !closeBtn || !tocContainer) return;
+
+  function openNav() { document.body.classList.add('unified-nav-open'); }
+  function closeNav() { document.body.classList.remove('unified-nav-open'); }
+
+  btn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('unified-nav-open')) closeNav();
+  });
+
+  const links = Array.from(tocContainer.querySelectorAll('a'));
+  links.forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth < 1200) closeNav();
+    });
+  });
+
+  // ScrollSpy
+  const targets = links.map(a => {
+    const id = a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  }).filter(Boolean);
+
+  if (targets.length > 0 && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const cur = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+          if (cur) cur.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0.1 });
+    targets.forEach(t => observer.observe(t));
+  }
+})();
+</script>
+
+</body>
+</html>

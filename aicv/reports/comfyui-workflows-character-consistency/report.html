@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ComfyUI 常用工作流与核心节点深度调研 — 聚焦角色一致性与底模生态</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+
+
+
+
+<!-- KaTeX 数学公式渲染支持 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  function tryRenderKatex() {
+    if (typeof renderMathInElement === 'function') {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '\\[', right: '\\]', display: true},
+          {left: '\\(', right: '\\)', display: false},
+          {left: '$', right: '$', display: false}
+        ],
+        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        throwOnError: false
+      });
+    } else {
+      setTimeout(tryRenderKatex, 100);
+    }
+  }
+  tryRenderKatex();
+  // 离线/网络受限优雅降级：若 1.5s 后 KaTeX 仍未加载，自动清洗 LaTeX 代码为易读格式
+  setTimeout(function() {
+    if (typeof renderMathInElement !== 'function') {
+      var pipelineEl = document.querySelector('.pipeline-formula');
+      if (pipelineEl && pipelineEl.textContent.includes('$$')) {
+        pipelineEl.innerHTML = '<strong>Output</strong> = <strong>Base Checkpoint</strong> + <strong>Char LoRA</strong> (0.4~0.6) + <strong>PuLID / FaceID</strong> (0.5~0.7) + <strong>ControlNet</strong> (Pose/Depth) + <strong>Face Detailer</strong> (局部修缮)';
+        pipelineEl.style.fontSize = '17px';
+        pipelineEl.style.color = '#1e293b';
+      }
+      var attnEl = document.querySelector('.attn-formula');
+      if (attnEl && attnEl.textContent.includes('$$')) {
+        attnEl.innerHTML = '<strong>Z</strong> = Softmax(Q · K<sub>t</sub><sup>T</sup> / √d) · V<sub>t</sub> + λ · Softmax(Q · K<sub>i</sub><sup>T</sup> / √d) · V<sub>i</sub>';
+        attnEl.style.fontSize = '16px';
+        attnEl.style.fontFamily = 'Georgia, serif';
+      }
+    }
+  }, 1500);
+});
+</script>
+<style id="enterprise-standard-style">
+:root{
+  --bg:#fafaf9; --ink:#1c1917; --mute:#78716c; --line:#e7e5e4; --soft:#f5f5f4;
+  --accent:#2563eb; --accent-hover:#1d4ed8; --warn:#b45309; --bad:#b91c1c; --ok:#15803d;
+  --side: 280px;
+  --unified-nav-width: 300px;
+
+  /* 兼容映射变量 */
+  --bg-soft: var(--soft);
+  --bg-sunk: #eeedea;
+  --ink-2: #292524;
+  --ink-3: var(--mute);
+  --line-2: #d6d3d1;
+  --accent-soft: rgba(37, 99, 235, 0.08);
+  --green: var(--ok);
+  --green-soft: rgba(21, 128, 61, 0.1);
+  --amber: var(--warn);
+  --amber-soft: rgba(180, 83, 9, 0.1);
+  --red: var(--bad);
+  --red-soft: rgba(185, 28, 28, 0.1);
+  --blue: var(--accent);
+  --blue-soft: rgba(37, 99, 235, 0.1);
+  --grey: var(--mute);
+  --grey-soft: var(--soft);
+}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f172a; --ink:#f8fafc; --mute:#94a3b8; --line:#1e293b; --soft:#1e293b;
+    --accent:#38bdf8; --accent-hover:#0ea5e9; --warn:#f59e0b; --bad:#ef4444; --ok:#10b981;
+    --bg-soft: #1e293b;
+    --bg-sunk: #0b1120;
+    --ink-2: #cbd5e1;
+    --ink-3: #94a3b8;
+    --line-2: #334155;
+    --accent-soft: rgba(56, 189, 248, 0.12);
+    --green: #10b981;
+    --green-soft: rgba(16, 185, 129, 0.12);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245, 158, 11, 0.12);
+    --red: #ef4444;
+    --red-soft: rgba(239, 68, 68, 0.12);
+    --blue: #38bdf8;
+    --blue-soft: rgba(56, 189, 248, 0.12);
+    --grey: #94a3b8;
+    --grey-soft: #1e293b;
+  }
+}
+
+*{box-sizing:border-box;}
+html{scroll-padding-top:24px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%;}
+body{
+  margin:0; background:var(--bg); color:var(--ink); line-height:1.75;
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14.5px; transition:background .2s,color .2s; overflow-x: hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+.container, .wrap{
+  max-width:980px; margin:0 auto; padding:40px 24px 96px;
+}
+@media (max-width:768px){
+  .container, .wrap{ padding:24px 16px 64px; }
+}
+
+header.report-header{ padding-bottom: 24px; border-bottom: 2px solid var(--line); margin-bottom: 32px; }
+.header-badge{ display: inline-block; font-size: 11.5px; font-weight: 700; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+h1{ font-size:28px; line-height:1.35; margin:0 0 12px; color:var(--ink); font-weight:800; letter-spacing:-0.02em; }
+.subtitle{ font-size: 15.5px; color: var(--mute); line-height: 1.6; margin: 0 0 20px; }
+h2{ font-size:21px; margin:44px 0 18px; padding-bottom:10px; border-bottom:1.5px solid var(--line); color:var(--ink); font-weight:750; letter-spacing:-0.01em; scroll-margin-top:24px; }
+h3{ font-size:16.5px; margin:26px 0 12px; color:var(--ink); font-weight:700; }
+h4{ font-size:15px; margin:20px 0 8px; color:var(--ink); font-weight:650; }
+p, li{ font-size:14.5px; color:var(--ink); line-height:1.8; }
+ul, ol{ padding-left:22px; margin:12px 0; }
+li{ margin:6px 0; }
+strong{ color:var(--ink); font-weight:650; }
+a{ color:var(--accent); text-decoration:none; transition: color .15s; }
+a:hover{ color:var(--accent-hover); text-decoration:underline; }
+hr{ border:0; border-top:1px solid var(--line); margin:36px 0; }
+
+code{
+  background:var(--soft); color:var(--accent); padding:2px 6px; border-radius:4px;
+  font-size:13px; font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+pre{
+  background:var(--soft); border:1px solid var(--line); padding:16px; border-radius:8px;
+  overflow-x:auto; font-size:13px; line-height:1.6; margin:18px 0;
+  font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+pre code{ background:transparent; padding:0; color:var(--ink); }
+
+.architecture-diagram{
+  background: var(--soft); border: 1px solid var(--line); padding: 18px 20px;
+  border-radius: 8px; overflow-x: auto; font-size: 12.5px; line-height: 1.32;
+  font-family: 'JetBrains Mono', monospace; margin: 20px 0;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+}
+
+table{
+  width:100%; border-collapse:collapse; margin:18px 0; font-size:13px;
+  border:1px solid var(--line); border-radius:8px; overflow:hidden;
+}
+th, td{
+  border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; color:var(--ink);
+}
+th{
+  background:var(--soft); font-weight:650; color:var(--ink); position:sticky; top:0;
+}
+tr:nth-child(even){ background:rgba(0,0,0,0.015); }
+@media (prefers-color-scheme:dark){
+  tr:nth-child(even){ background:rgba(255,255,255,0.02); }
+}
+.tablewrap{ overflow-x:auto; margin:20px 0; border:1px solid var(--line); border-radius:8px; }
+.tablewrap table{ margin:0; border:none; }
+
+.badge, .b{ display:inline-block; padding:2px 9px; border-radius:6px; font-size:12px; font-weight:600; line-height:1.5; }
+.badge-pass, .bA{ background:var(--green-soft); color:var(--ok); border:1px solid rgba(21,128,61,0.25); }
+.badge-pending, .bB{ background:var(--accent-soft); color:var(--accent); border:1px solid rgba(37,99,235,0.25); }
+.badge-gray, .bC{ background:var(--soft); color:var(--mute); border:1px solid var(--line); }
+.badge-fail{ background:var(--red-soft); color:var(--bad); border:1px solid rgba(185,28,28,0.25); }
+.badge-amber{ background:var(--amber-soft); color:var(--warn); border:1px solid rgba(180,83,9,0.25); }
+.badge-blue{ background:var(--accent-soft); color:var(--accent); border:1px solid rgba(37,99,235,0.25); }
+.badge-green{ background:var(--green-soft); color:var(--ok); border:1px solid rgba(21,128,61,0.25); }
+.badge-purple{ background:rgba(147, 51, 234, 0.1); color:#9333ea; border:1px solid rgba(147, 51, 234, 0.25); }
+
+.thesis-box{
+  background:#eff6ff; border:1.5px solid #bfdbfe; border-left:5px solid var(--accent);
+  border-radius:8px; padding:20px 22px; margin:20px 0 24px;
+}
+.thesis-box strong.title{ display:block; font-size:15.5px; color:#1e40af; margin-bottom:8px; letter-spacing:0.5px; }
+.thesis-box p{ color:#1e3a8a; margin:0; font-size:14.5px; line-height:1.75; }
+@media (prefers-color-scheme:dark){
+  .thesis-box{ background:rgba(56, 189, 248, 0.08); border-color:rgba(56, 189, 248, 0.25); }
+  .thesis-box strong.title{ color:#38bdf8; }
+  .thesis-box p{ color:#e2e8f0; }
+}
+
+.grid-3{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin:20px 0; }
+.card{ background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,0.02); }
+.card .k{ font-size:12px; color:var(--mute); font-weight:600; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px; }
+.card .v{ font-size:24px; font-weight:750; color:var(--accent); line-height:1.2; margin-bottom:6px; }
+.card .d{ font-size:13px; color:var(--mute); line-height:1.5; }
+
+.callout{ border-left:4px solid var(--accent); background:var(--soft); padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; }
+.callout.warn, .note{ border-left:4px solid var(--warn); background:#fffbeb; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.warn strong, .note strong{ color:var(--warn); }
+.callout.danger, .bad{ border-left:4px solid var(--bad); background:#fef2f2; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.danger strong, .bad strong{ color:var(--bad); }
+.callout.good, .good{ border-left:4px solid var(--ok); background:#f0fdf4; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.good strong, .good strong{ color:var(--ok); }
+@media (prefers-color-scheme:dark){
+  .callout.warn, .note{ background:rgba(245, 158, 11, 0.1); }
+  .callout.danger, .bad{ background:rgba(239, 68, 68, 0.1); }
+  .callout.good, .good{ background:rgba(16, 185, 129, 0.1); }
+}
+
+blockquote{ margin:16px 0; padding:12px 18px; background:var(--soft); border-left:4px solid var(--accent); color:var(--ink); border-radius:0 8px 8px 0; }
+blockquote p{ margin:4px 0; }
+
+.meta-box{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px 20px; margin:20px 0 32px; }
+.meta-box .item{ display:inline-block; margin-right:24px; font-size:13px; color:var(--mute); }
+.meta-box .item strong{ color:var(--ink); font-weight:600; }
+.source-tag{ font-size: 12px; color: var(--mute); display: block; margin-top: 6px; }
+
+/* 业务特有组件适配 */
+.stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:18px 0; }
+.stat-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+.stat-val{ font-size:20px; font-weight:750; color:var(--accent); }
+.stat-lbl{ font-size:12px; color:var(--mute); margin-top:4px; }
+
+.prod-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin:16px 0; }
+.prod-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.prod-title{ font-size:16px; font-weight:700; color:var(--ink); margin:0; }
+.prod-tag{ font-size:12px; padding:2px 8px; border-radius:4px; background:var(--accent-soft); color:var(--accent); }
+.pros-cons{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px; }
+@media (max-width:640px){ .pros-cons{ grid-template-columns:1fr; } }
+.pros-box{ background:rgba(21,128,61,0.06); border:1px solid rgba(21,128,61,0.2); border-radius:6px; padding:12px; }
+.cons-box{ background:rgba(185,28,28,0.06); border:1px solid rgba(185,28,28,0.2); border-radius:6px; padding:12px; }
+.box-title{ font-weight:700; font-size:13px; margin-bottom:6px; }
+.pros-box .box-title{ color:var(--ok); }
+.cons-box .box-title{ color:var(--bad); }
+
+.formula-box{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px; margin:16px 0; }
+.formula-header{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.formula-badge{ font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px; background:var(--accent-soft); color:var(--accent); }
+.formula-sub{ font-size:12px; color:var(--mute); }
+.formula-content{ overflow-x:auto; padding:8px 0; }
+
+.scenario-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:20px 0; }
+.scenario-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px; }
+
+.meta-header{ background:var(--soft); border-radius:8px; margin:16px 0 28px; overflow:hidden; border:1px solid var(--line); }
+.meta-header summary{ padding:10px 16px; cursor:pointer; font-weight:600; font-size:13.5px; color:var(--mute); list-style:none; }
+.meta-header summary::-webkit-details-marker{ display:none; }
+.meta-header summary::before{ content:"▸ "; }
+.meta-header[open] summary::before{ content:"▾ "; }
+.meta-header dl{ padding:0 16px 14px; margin:0; font-size:13px; }
+.meta-header dt{ font-weight:600; color:var(--mute); margin-top:8px; }
+.meta-header dd{ margin:2px 0 0 16px; color:var(--ink); }
+.ai-disclaimer{ font-size:12px; color:var(--mute); padding:8px 16px; border-top:1px solid var(--line); }
+
+footer, .footer{ margin-top:60px; padding-top:20px; border-top:1px solid var(--line); font-size:13px; color:var(--mute); text-align:center; }
+
+/* ==================== 抽屉侧边栏统一标准导航 ==================== */
+.unified-nav-btn{
+  position:fixed; top:16px; left:16px; z-index:9999;
+  width:40px; height:40px; border-radius:8px;
+  border:1px solid var(--line); background:var(--bg); color:var(--ink);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:20px; box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  transition:all .2s cubic-bezier(0.4,0,0.2,1);
+}
+.unified-nav-btn:hover{
+  background:var(--soft); color:var(--accent); border-color:var(--accent);
+  transform:scale(1.05); box-shadow:0 4px 14px rgba(37,99,235,0.15);
+}
+body.unified-nav-open .unified-nav-btn{ opacity:0; pointer-events:none; }
+.unified-nav-overlay{ display:none !important; }
+
+aside.unified-nav-drawer{
+  position:fixed; left:0; top:0; bottom:0;
+  width:var(--unified-nav-width); max-width:86vw;
+  background:var(--soft); border-right:1px solid var(--line);
+  padding:24px 16px 20px; overflow-y:auto; display:flex; flex-direction:column;
+  z-index:10001; box-shadow:4px 0 24px rgba(0,0,0,0.08);
+  transform:translateX(-100%);
+  transition:transform .25s ease-in-out;
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme:dark){
+  aside.unified-nav-drawer{ box-shadow:4px 0 24px rgba(0,0,0,0.4); }
+}
+body.unified-nav-open aside.unified-nav-drawer{ transform:translateX(0); }
+
+.unified-nav-drawer .drawer-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding-bottom:14px; border-bottom:1px solid var(--line); margin-bottom:14px;
+}
+.unified-nav-drawer .drawer-brand{
+  font-size:14.5px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:6px;
+}
+.unified-nav-drawer .drawer-brand span{ color:var(--accent); }
+.unified-nav-drawer .drawer-close-btn{
+  background:transparent; border:none; font-size:18px; color:var(--mute);
+  cursor:pointer; padding:6px; border-radius:6px; line-height:1; transition:all .15s;
+}
+.unified-nav-drawer .drawer-close-btn:hover{ background:var(--bg); color:var(--ink); }
+
+.unified-nav-drawer .drawer-shortcuts{
+  display:flex; flex-direction:column; gap:6px; margin-bottom:14px;
+  padding-bottom:14px; border-bottom:1px dashed var(--line);
+}
+.unified-nav-drawer .shortcut-btn{
+  display:flex; align-items:center; gap:8px; padding:7px 12px;
+  border-radius:6px; font-size:13px; font-weight:500; color:var(--ink);
+  text-decoration:none; background:var(--bg); border:1px solid var(--line);
+  transition:all .15s ease;
+}
+.unified-nav-drawer .shortcut-btn:hover{
+  background:var(--line); color:var(--accent); border-color:var(--accent);
+}
+
+.unified-nav-drawer .toc-section-title{
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--mute); margin:6px 0 8px; padding:0 4px;
+}
+.unified-nav-drawer .drawer-toc{
+  display:flex; flex-direction:column; gap:3px; flex:1;
+}
+.unified-nav-drawer .drawer-toc a{
+  display:block; padding:7px 10px; border-radius:6px;
+  font-size:13px; color:var(--mute); text-decoration:none;
+  line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  transition:background .15s, color .15s;
+}
+.unified-nav-drawer .drawer-toc a:hover{
+  color:var(--ink); background:var(--line);
+}
+.unified-nav-drawer .drawer-toc a.active{
+  color:var(--accent); background:var(--bg); font-weight:600;
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== Unified Sidebar Drawer HTML ==================== -->
+<button class="unified-nav-btn" id="unifiedNavBtn" title="展开目录导航">☰</button>
+<div class="unified-nav-overlay" id="unifiedNavOverlay"></div>
+<aside class="unified-nav-drawer" id="unifiedNavDrawer">
+  <div class="drawer-header">
+    <div class="drawer-brand">作品集研报 · <span>出版教育 AI PM</span></div>
+    <button class="drawer-close-btn" id="unifiedNavClose" title="收起导航">✕</button>
+  </div>
+  <div class="drawer-shortcuts">
+    <a href="../../index.html" class="shortcut-btn">🏠 返回作品集总览</a>
+
+  </div>
+  <div class="toc-section-title">报告目录 (Contents)</div>
+  <nav class="drawer-toc" id="unifiedNavToc">
+    <a href="#sec-1" title="1. 核心判断与执行摘要（Executive Summary）">1. 核心判断与执行摘要（Executive Summary）</a>
+<a href="#sec-2" title="2. 底模生态现状与工业选型横评">2. 底模生态现状与工业选型横评</a>
+<a href="#sec-3" title="3. 角色一致性技术全景矩阵与机制解密">3. 角色一致性技术全景矩阵与机制解密</a>
+<a href="#sec-4" title="4. 工业级核心工作流拓扑架构">4. 工业级核心工作流拓扑架构</a>
+<a href="#sec-5" title="5. 必备节点库与核心插件生态清单">5. 必备节点库与核心插件生态清单</a>
+<a href="#sec-6" title="6. 工程显存优化、API 服务化与商用版权合规">6. 工程显存优化、API 服务化与商用版权合规</a>
+<a href="#sec-7" title="7. 落地决策树与实施 Checklist">7. 落地决策树与实施 Checklist</a>
+
+  </nav>
+</aside>
+
+
+<div class="container">
+<h1>ComfyUI 常用工作流与核心节点深度调研：聚焦角色一致性与底模生态</h1>
+<hr />
+<h2 id="sec-1">1. 核心判断与执行摘要（Executive Summary）</h2>
+<h3>结论 1：角色一致性是“系统级混合管线”，而非单一“魔法插件”</h3>
+<p>工业级跨页绘本与连续分镜的角色一致性，无法依靠单纯堆叠提示词或单一免训练节点（如纯 InstantID 或纯 IP-Adapter）实现闭环。免训练方案受制于特征维度极限：<strong>CLIP 语义粗糙（无法锁死精细五官），InsightFace 生物向量僵化（破坏画风且强行锁死角度）</strong>。当前出版级与高可用生产的最佳落地标准是<strong>“混合管线（Hybrid Pipeline）”</strong>：</p>
+<div class="formula-box">
+  <div class="formula-header">
+    <span class="formula-badge">⚡ 工业级落地标准 · 混合管线公式</span>
+    <span class="formula-sub">Hybrid Pipeline Formulation</span>
+  </div>
+  <div class="formula-content pipeline-formula">
+    $$\text{Output} = \text{Base Checkpoint} + \text{Char LoRA (0.4 \sim 0.6)} + \text{PuLID/FaceID (0.5 \sim 0.7)} + \text{ControlNet (Pose/Depth)} + \text{Face Detailer (局部修缮)}$$
+  </div>
+</div>
+<p>通过在采样前 75%~85% 步数施加空间与生物特征约束，并在最后 15%~25% 步数释放控制（<code>ending_step</code> 动态卸载），使扩散模型自洽融合光影环境。</p>
+<h3>结论 2：底模生态格局分野：SDXL 为生产中坚，FLUX.1 攻坚关键帧，SD 1.5 边缘化</h3>
+<ul>
+<li><strong>SDXL 1.0 (含垂直微调 Illustrious-XL / Pony V6)</strong>：依然是目前儿童绘本、2D 动漫、出版插画与游戏资产量产的<strong>绝对中坚底座</strong>。其 ControlNet 全模态插件高度成熟，IP-Adapter 与 LoRA 资产积累丰厚，在 RTX 4090 上单张出图仅需 3~5 秒，ROI 最高。</li>
+<li><strong>FLUX.1 (dev / schnell)</strong>：作为 12B DiT 架构的标杆，其手部解剖、复杂长句提示词响应与英文排版能力达到次世代天花板，是高精度封面、宣发海报（Hero Shots）的首选。但因显存门槛高（需 GGUF/FP8 量化）、ControlNet 丰富度处于补齐期，且 <strong>FLUX.1 [dev] 严禁商业运营</strong>，无法直接作为全量无脑商用底模。</li>
+<li><strong>SD 1.5</strong>：已彻底退化为边缘轻量化设备快速验证工具，在 1024px 出版印刷场景中因肢体崩溃率高而已被工业流水线淘汰。</li>
+</ul>
+<h3>结论 3：免训练 ID 保持方案横评：PuLID 为目前综合体验与画风抗污染最优解</h3>
+<p>在四大主流免训练方案中：<br />
+- <strong>PuLID</strong> 凭借 <strong>EVA02-CLIP + InsightFace</strong> 双通道及<strong>对比对齐损失（Contrastive Alignment Loss）</strong>，在保持提示词光影、背景与原生画风的前提下锁死面部 ID，几乎彻底消除了传统方案常见的“ID 污染”（ID Pollution），且已率先突破 FLUX.1 的 DiT 架构支持；<br />
+- <strong>InstantID</strong> 面部生物特征相似度极高，但 IdentityNet 空间强约束导致严重的“姿态僵化”与“写实贴皮感”，在非写实绘本中风格割裂严重；<br />
+- <strong>IP-Adapter-Plus</strong> 风格迁移与服装一致性最佳，但人脸几何精度上限不足（65%~70%）；<br />
+- <strong>PhotoMaker v2</strong> 擅长多图堆叠融合，但在二次元和儿童手绘风格下泛化度逊于 PuLID。</p>
+<h3>结论 4：ComfyUI 生产架构红线：必须采用 API JSON 与无状态单卡 Pod 调度</h3>
+<p>从 WebUI (A1111/Forge) 迁移至生产环境，最核心的认知转变是<strong>从“黑盒封装”走向“显式有向无环图 (DAG) 计算”</strong>。<br />
+- <strong>API 接口陷阱</strong>：前端保存的 <code>workflow.json</code>（含画布坐标、排版连线）绝不能提交给后端 <code>/prompt</code> 接口；必须在开发者模式下导出 <strong><code>prompt.json</code> (Save API Format)</strong>。<br />
+- <strong>集群化并发</strong>：由于 PyTorch 上下文互斥与 VRAM 限制，单实例无法直接处理多租户并发。工业标准架构是将 ComfyUI 降级为单卡独占的无头算力 Worker（<code>CUDA_VISIBLE_DEVICES=X --headless</code>），外挂 FastAPI 网关与 Redis/Celery 异步队列。</p>
+<h3>结论 5：法务合规一票否决项：警惕 InsightFace 与 FLUX.1 [dev] 的非商用侵权地雷</h3>
+<ul>
+<li><strong>InsightFace 权重雷区</strong>：InsightFace 开源代码虽为 MIT 许可，但其官方预训练模型权重（<code>buffalo_l</code>, <code>antelopev2</code>）在许可协议中<strong>明确规定严禁商用</strong>。基于其权重构建的 InstantID、IP-Adapter-FaceID、PuLID 在商用 SaaS 或公开出版物中存在侵权风险。企业商用必须采购官方授权，或采用自训合规人脸特征提取器、纯 LoRA 微调方案。</li>
+<li><strong>出版合规规范</strong>：国内出版物必须依照《生成式人工智能服务管理暂行办法》及《深度合成管理规定》在显著位置落实显式 AI 水印，并在 EXIF/隐式元数据中保留全链路提示词与 Seed 存证，以构筑具有“独创性智力投入”的版权合规证据链。</li>
+</ul>
+<hr />
+<h2 id="sec-2">2. 底模生态现状与工业选型横评</h2>
+<h3>2.1 主流底模架构与多维性能矩阵对比</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">评测维度</th>
+<th style="text-align: left;">Stable Diffusion 1.5</th>
+<th style="text-align: left;">Stable Diffusion XL (SDXL 1.0)</th>
+<th style="text-align: left;">FLUX.1 [dev] / [schnell]</th>
+<th style="text-align: left;">Stable Diffusion 3.5 [Large/Medium]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>底层网络架构</strong></td>
+<td style="text-align: left;">UNet (约 860M) + CLIP ViT-L/14</td>
+<td style="text-align: left;">UNet (约 2.6B) + OpenCLIP ViT-bigG + CLIP ViT-L</td>
+<td style="text-align: left;">MMDiT / Rectified Flow (12B) + T5-XXL + CLIP ViT-L</td>
+<td style="text-align: left;">MMDiT (8B Large / 2.5B Medium) + T5-XXL + CLIP-G/L</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>原生训练分辨率</strong></td>
+<td style="text-align: left;">512 × 512</td>
+<td style="text-align: left;">1024 × 1024</td>
+<td style="text-align: left;">1024 × 1024 (原生支持任意比例)</td>
+<td style="text-align: left;">1024 × 1024</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>推理显存占用</strong></td>
+<td style="text-align: left;"><strong>4GB - 8GB</strong> (FP16)</td>
+<td style="text-align: left;"><strong>8GB - 12GB</strong> (FP16/FP8)</td>
+<td style="text-align: left;"><strong>12GB - 24GB</strong> (BF16需24G; FP8需16G; GGUF Q4需12G)</td>
+<td style="text-align: left;"><strong>10GB - 24GB</strong> (Large FP8需12G, FP16需24G)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>生成速度 (RTX 4090)</strong></td>
+<td style="text-align: left;">15~25 it/s (~1-2 秒/张)</td>
+<td style="text-align: left;">6~10 it/s (~3-5 秒/张)</td>
+<td style="text-align: left;">Dev (24 步): ~8-12 秒/张; Schnell (4 步): ~2 秒/张</td>
+<td style="text-align: left;">Large (28 步): ~7-10 秒/张</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ControlNet 生态成熟度</strong></td>
+<td style="text-align: left;">极度成熟（覆盖全模态）</td>
+<td style="text-align: left;"><strong>高度成熟（工业级全模态首选）</strong></td>
+<td style="text-align: left;">发展中（基础 Pose/Depth/Canny，生态持续补齐）</td>
+<td style="text-align: left;">薄弱（社区贡献有限）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>角色一致性工具链支持</strong></td>
+<td style="text-align: left;">IP-Adapter, InstantID 全面支持</td>
+<td style="text-align: left;">IP-Adapter-Plus, FaceID, InstantID, PuLID, PhotoMaker v2 全覆盖</td>
+<td style="text-align: left;"><strong>PuLID-FLUX 成熟</strong>；FLUX IP-Adapter 试验中</td>
+<td style="text-align: left;">处于试验期，生态割裂</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>文字渲染与人体解剖</strong></td>
+<td style="text-align: left;">肢体与手指极易畸变，无排版能力</td>
+<td style="text-align: left;">肢体较好，英文短词弱响应</td>
+<td style="text-align: left;"><strong>天花板级（原生手部自然，长段英文排版精准）</strong></td>
+<td style="text-align: left;">优秀（较 3.0 大幅修正人体结构）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>商用许可协议</strong></td>
+<td style="text-align: left;">CreativeML OpenRAIL-M (自由商用)</td>
+<td style="text-align: left;">OpenRAIL++-M (自由商用)</td>
+<td style="text-align: left;"><strong>Schnell (Apache 2.0 自由商用)</strong><br><strong>Dev (严格非商用协议)</strong></td>
+<td style="text-align: left;">年营收 &lt; 100 万美元免费商用；≥ 100 万美元需采购企业授权</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>出版与工业适用性评级</strong></td>
+<td style="text-align: left;">★★☆☆☆ (淘汰边缘，仅轻量草图)</td>
+<td style="text-align: left;">★★★★★ (<strong>当前出版/绘本/分镜首选底座</strong>)</td>
+<td style="text-align: left;">★★★★☆ (<strong>极具潜力，高端宣发关键帧首选</strong>)</td>
+<td style="text-align: left;">★★☆☆☆ (社区生态滞后)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>2.2 垂直明星微调底模（Fine-tunes）深度解析</h3>
+<p>在动漫、儿童绘本与商业出版场景，原生基模通常难以直接满足审美标准，工业界深度依赖经过精细清洗对齐的开源微调模型：</p>
+<pre><code>                      SDXL 垂直生态主流分支割裂现状
+                                 SDXL 1.0 Base
+                                       │
+                  ┌────────────────────┴────────────────────┐
+                  ▼                                         ▼
+         Illustrious-XL / Animagine XL              Pony Diffusion V6 XL
+         (标准 Danbooru + 自然语言双对齐)             (专有 score_9 体系 + CLIP Skip 2)
+                  │                                         │
+         - 线条通透干净，无蜡质塑料感              - 社区 LoRA 资产极其庞大
+         - 适合日式动漫、绘本插画、儿童出版        - 风格高度专有化，底模泛化被锁死
+         - LoRA 与通用 SDXL 完全兼容               - LoRA 与通用 SDXL 强行隔离互斥
+</code></pre>
+<ol>
+<li><strong>Illustrious-XL (OnomaAI 出品)</strong>：<br />
+   - <strong>设计定位</strong>：二次元与精品商业插画事实上的新黄金标准。<br />
+   - <strong>技术特性</strong>：对 Danbooru 规范标签与自然语言长句做了双重语义对齐。线条锐利干净（Clean Linework）、五官立体、眼部高光细腻，彻底解决了 SDXL 原生动漫模型的“过度涂抹塑料感”。<br />
+   - <strong>落地适配</strong>：日系插画、青少年科普读物及水彩风儿童绘本的首选用模，与通用 SDXL LoRA 和 ControlNet 保持高度兼容。</li>
+<li><strong>Pony Diffusion V6 XL (AstraliteHeart 出品)</strong>：<br />
+   - <strong>设计定位</strong>：Civitai 社区下载量第一的巨型二次元/卡通生态体系。<br />
+   - <strong>技术特性</strong>：高度定制化（Opinionated）。强制要求在 Prompt 开头输入特定质量分级词链（如 <code>score_9, score_8_up, score_7_up, source_anime</code>），并强制使用 <code>CLIP Skip = 2</code>。<br />
+   - <strong>落地约束</strong>：虽然社区拥有最全的角色与服装 LoRA，但<strong>其衍生 LoRA 与通用 SDXL 生态完全互斥</strong>。若选用 Pony 作为底模，整个管线将被锁定在其私有语法和画风下，制作温馨柔和类儿童绘本时易出现画风过度浓艳问题。</li>
+<li><strong>Animagine XL 3.1 (CagliostroLab 出品)</strong>：<br />
+   - <strong>设计定位</strong>：严谨的动漫概念解耦基模。对特定角色特征、发型、服饰与姿态的标签响应极其精准，非常适合作为企业自研 IP 训练基础底模。</li>
+<li><strong>Juggernaut XL / Realistic Vision</strong>：<br />
+   - <strong>设计定位</strong>：纪实摄影与写实 3D 渲染代表作。Juggernaut XL 在真实人像毛孔质感、电影级布光（Cinematic Lighting）上达到 SDXL 巅峰水平，广泛应用于写实类科普插画与影视分镜。</li>
+</ol>
+<hr />
+<h2 id="sec-3">3. 角色一致性技术全景矩阵与机制解密</h2>
+<h3>3.1 特征提取与注入机制的第一性原理剖析</h3>
+<p>角色一致性在数学与算法层面的核心矛盾是：<strong>“如何将参考图 $I_{ref}$ 中的面部几何与身份表征注入扩散去噪过程，同时绝不削弱文本提示词 $C_{text}$ 对动作、服饰、环境与画风的控制权？”</strong></p>
+<pre><code> [参考图像 I_ref] 
+        │
+        ├───&gt; [CLIP-Vision (ViT-H/bigG)] ───&gt; 宏观语义/风格/服饰 Token ──┐
+        │                                                                ├──&gt; 投影网络 (MLP / Perceiver)
+        └───&gt; [InsightFace (ArcFace)]    ───&gt; 512维面部生物几何特征 ─────┘          │
+                                                                                    ▼
+ [文本提示词 C_text] ────────────────────────────────────────────────────────&gt; 解耦交叉注意力 (Decoupled Cross-Attention)
+                                                                               Q = W_q * Z
+                                                                               K = [W_k_t * C_text,  W_k_i * F_id]
+                                                                               V = [W_v_t * C_text,  W_v_i * F_id]
+</code></pre>
+<ol>
+<li><strong>CLIP 语义特征 vs InsightFace 生物特征</strong>：<br />
+   - <strong>CLIP Vision (如 ViT-H/14, ViT-bigG, EVA-CLIP)</strong>：预训练目标为图文相似度，提取的是高层语义信息（发型轮廓、发色、服饰色彩、体态偏向）。缺陷是<strong>缺乏精准的局部面部几何测度</strong>，仅靠 CLIP 极易产生“五官形似神不似”的漂移。<br />
+   - <strong>InsightFace (ArcFace / AntelopeV2)</strong>：使用角边际损失训练于千万人脸识别任务，输出 512 维的纯人脸表征向量。其对眼距、鼻梁、下颌角等五官几何具有极高锁定力，但<strong>完全丢弃了艺术画风与环境色彩</strong>，生硬注入会导致手绘插画出现“三维真人面具脸”。</li>
+<li><strong>解耦交叉注意力（Decoupled Cross-Attention）</strong>：<br />
+   - 传统方法直接将图像特征拼接在文本特征之后参与同一个 Softmax 运算，导致文本与图像通道强行挤压。<br />
+   - IP-Adapter 机制将文本与图像分支完全解耦为独立的投影矩阵 $K_t, V_t$ 与 $K_i, V_i$：
+     <div class="formula-box">
+       <div class="formula-header">
+         <span class="formula-badge">📐 解耦交叉注意力计算公式</span>
+         <span class="formula-sub">Decoupled Cross-Attention</span>
+       </div>
+       <div class="formula-content attn-formula">
+         $$Z = \text{Softmax}\left(\frac{Q K_t^T}{\sqrt{d}}\right)V_t + \lambda \cdot \text{Softmax}\left(\frac{Q K_i^T}{\sqrt{d}}\right)V_i$$
+       </div>
+     </div>
+     该公式允许独立调节图像注入权重 $\lambda$，并为后续按时间步动态切断控制提供了数学基础。</li>
+<li><strong>PuLID 的对比对齐损失（Contrastive Alignment Loss）</strong>：<br />
+   - 传统 ID 适配器在注入特征时会引发严重的“ID 污染”（强制改变原图的光影朝向、背景颜色）。<br />
+   - PuLID 建立了两条并行计算分支：有 ID 注入的生成分支与纯文本无条件扩散分支。通过在隐空间拉近两条分支的特征分布差，迫使模型仅学习五官身份映射，而将背景、光影和风格的解释权完整归还给主扩散模型。</li>
+</ol>
+<hr />
+<h3>3.2 四大主流免训练方案多维评测矩阵</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">评估维度 (1~5分制)</th>
+<th style="text-align: center;">IP-Adapter-Plus</th>
+<th style="text-align: center;">IP-Adapter-FaceID PlusV2</th>
+<th style="text-align: center;">InstantID (SDXL)</th>
+<th style="text-align: center;">PuLID (SDXL / FLUX)</th>
+<th style="text-align: center;">PhotoMaker v2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>面部相似度保真度 (ID Fidelity)</strong></td>
+<td style="text-align: center;">3.2</td>
+<td style="text-align: center;">4.2</td>
+<td style="text-align: center;"><strong>4.8</strong> (极高)</td>
+<td style="text-align: center;">4.6 (高且自然)</td>
+<td style="text-align: center;">4.1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>动作/姿态/光影解耦泛化度</strong></td>
+<td style="text-align: center;">4.5</td>
+<td style="text-align: center;">3.8</td>
+<td style="text-align: center;">2.4 (易僵化锁死角度)</td>
+<td style="text-align: center;"><strong>4.9</strong> (完美解耦)</td>
+<td style="text-align: center;">4.3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>画风抗侵蚀度 (风格保留力)</strong></td>
+<td style="text-align: center;">4.6</td>
+<td style="text-align: center;">3.5</td>
+<td style="text-align: center;">2.1 (严重写实贴皮感)</td>
+<td style="text-align: center;"><strong>4.7</strong> (极佳)</td>
+<td style="text-align: center;">3.8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>算力与显存开销 (越省分越高)</strong></td>
+<td style="text-align: center;">4.6 (极轻量)</td>
+<td style="text-align: center;">4.1</td>
+<td style="text-align: center;">3.1 (IdentityNet额外开销)</td>
+<td style="text-align: center;">3.6 (FLUX版需显存量化)</td>
+<td style="text-align: center;">4.2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>多底模与生态兼容性</strong></td>
+<td style="text-align: center;"><strong>5.0</strong> (全生态支持)</td>
+<td style="text-align: center;">4.3</td>
+<td style="text-align: center;">3.8 (仅SDXL)</td>
+<td style="text-align: center;">4.6 (SDXL + FLUX)</td>
+<td style="text-align: center;">3.9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>商业出版适用场景定性</strong></td>
+<td style="text-align: center;">氛围/服装连续性</td>
+<td style="text-align: center;">真人写真摄影</td>
+<td style="text-align: center;">强换脸/单张证件照</td>
+<td style="text-align: center;"><strong>首推：现代绘本/分镜/插画</strong></td>
+<td style="text-align: center;">概念混合/多图堆叠</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>3.3 角色 LoRA 训练与混合工作流（Hybrid Pipeline）工程落地</h3>
+<p>面对 50+ 页绘本的长线生产，单纯依赖免训练单图输入，角色的全身服装细节（如特殊校服徽章、披风褶皱、发带款式）必将在跨视角中发生漂移。必须引入<strong>“轻量级专属角色 LoRA”</strong>形成双重锁死。</p>
+<h4>(1) 工业级角色 LoRA 数据工程规范</h4>
+<ol>
+<li><strong>样本规模与视角分布</strong>：<br />
+   - 最佳样本量：<strong>18 至 25 张高质量、无水印原图</strong>（≥ 1024 × 1024）。<br />
+   - 构成比例：<strong>肖像特写 40%</strong>（正脸、3/4侧脸、微仰视、不同微表情）+ <strong>半身/全身动态 60%</strong>（站、坐、奔跑、多场景背景）。</li>
+<li><strong>黄金打标法则（Captioning Rule）</strong>：<br />
+   - <strong>核心铁律</strong>：<strong>“希望未来由提示词自由控制的属性（服装、动作、背景、光影），必须打在 Caption 里；希望死死固化为角色固有特征的属性（特定发型、发色、瞳色、脸型），绝对不能打标！”</strong><br />
+   - <strong>案例</strong>：角色 <code>mia_girl</code> 设定为“银发单马尾”。训练集某张图穿红色外套。<ul>
+<li>错误打标：<code>mia_girl, silver hair, single ponytail, red jacket, garden</code>（模型会误以为银发不是自带的，需显式提示词唤醒）。</li>
+<li>正确打标：<code>mia_girl, red jacket, garden, sunlight</code>（模型将银发单马尾自然聚合到触发词 <code>mia_girl</code> 本身）。</li>
+</ul>
+</li>
+</ol>
+<h4>(2) 工业级混合流水线（Hybrid Pipeline）执行拓扑</h4>
+<p>单一技术路线均存在固有边界，商业出版级流水线必须采用分阶段混合架构：</p>
+<pre><code class="language-mermaid">flowchart TD
+    subgraph ST1[&quot;第一阶段：骨架与结构锁定 (Global Synthesis)&quot;]
+        direction TB
+        MODEL[Base Model: Illustrious-XL / FLUX] --&gt; KS1[KSampler: Step 0~25]
+        LORA[Character LoRA: 权重 0.45~0.55] --&gt; KS1
+        POSE[ControlNet: DWPose / Lineart] --&gt;|ending_step: 0.8| KS1
+        PROMPT[Prompt: 场景 + 镜头机位 + 触发词] --&gt; KS1
+    end
+
+    subgraph ST2[&quot;第二阶段：生物级面部特征精准注入 (Identity Refinement)&quot;]
+        direction TB
+        KS1 --&gt;|Latent Output| KS2[KSampler / ApplyPuLID]
+        REF_FACE[Standard Character Face Image] --&gt; PULID[PuLID / IP-Adapter-FaceID]
+        PULID --&gt;|权重 0.6, ending_step: 0.85| KS2
+    end
+
+    subgraph ST3[&quot;第三阶段：微观局部重绘与出版超分 (Detailing &amp; Finishing)&quot;]
+        direction TB
+        KS2 --&gt;|Decoded Image| DET[Impact Pack: FaceDetailer]
+        DET --&gt;|YOLOv8-face检测 + 局部重绘| HAND[Hands Refiner]
+        HAND --&gt; UPS[Ultimate SD Upscale 4K 印刷级放大]
+        UPS --&gt; FINAL[300 DPI 最终印刷成片]
+    end
+</code></pre>
+<hr />
+<h2 id="sec-4">4. 工业级核心工作流拓扑架构</h2>
+<h3>4.1 核心子系统拓扑连接逻辑</h3>
+<p>生产级工作流拓扑必须具备严格的模块化解耦，避免将 80+ 节点乱麻式堆叠在单个画布上。工业标准划分为五大子系统：</p>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| S1: 基础骨架层 (Base Pipeline)                                                                   |
+| [Checkpoint Loader] ──&gt; MODEL ──&gt; [KSampler] &lt;── Empty Latent Image                               |
+|                     ──&gt; CLIP  ──&gt; [Positive / Negative Prompt Encode]                             |
+|                     ──&gt; VAE   ─────────────────────────────────────────────┐                     |
++----------------------------------------------------------------------------│----------------------+
+                                                                             │
++----------------------------------------------------------------------------│----------------------+
+| S2: 一致性与空间约束层 (Identity &amp; Control)                                 │                      |
+| [Reference Face]  ──&gt; [PuLID / IP-Adapter] ──────&gt; 注入 MODEL (Weight:0.6) │                      |
+| [Pose / Lineart]  ──&gt; [Advanced ControlNet] ─────&gt; 注入 CONDITIONING        │                      |
+|                      (Timestep: 0.0 ~ 0.80)                                │                      |
++----------------------------------------------------------------------------│----------------------+
+                                                                             │
++----------------------------------------------------------------------------│----------------------+
+| S3: 微观检测与局部重绘层 (Detailer Pipeline)                                 v                      |
+| [VAE Decode] ──&gt; [Ultralytics Face Detector] ──&gt; SEGS ──&gt; [Face Detailer (Denoise: 0.35)]         |
+|                                                     └──&gt; [Hand Detailer (Denoise: 0.38)]         |
++---------------------------------------------------------------------------------------------------+
+                                                                             │
++----------------------------------------------------------------------------│----------------------+
+| S4: 美术资产分层合成 (LayerStyle Composition)                                v                      |
+| [Detailer Output] ──&gt; [LayerMask: VitMatte (发丝抠图)] ──&gt; [ColorAdapter (环境光反射校正)]          |
+| [Background Art]  ──&gt; [DropShadow (自然投影生成)]       ──&gt; [ImageBlend (图层混合导出)]              |
++---------------------------------------------------------------------------------------------------+
+                                                                             │
++----------------------------------------------------------------------------│----------------------+
+| S5: 瓦片化超分输出层 (Tiled Upscale)                                          v                      |
+| [ImageBlend] ──&gt; [Ultimate SD Upscale (Tile Size: 1024, Padding: 32, ControlNet Tile)] ──&gt; 最终成片 |
++---------------------------------------------------------------------------------------------------+
+</code></pre>
+<hr />
+<h3>4.2 关键生产节点参数配置规范</h3>
+<ol>
+<li><strong>KSampler 核心采样控制</strong>：<br />
+   - <strong>Sampler</strong>: <code>dpmpp_2m</code>（高阶收敛，纹理细腻，出版级首选）；加速场景使用 <code>euler</code>。<br />
+   - <strong>Scheduler</strong>: <code>karras</code>（高步数平滑过度）；FLUX 采用 <code>simple</code> 或 <code>sgm_uniform</code>。<br />
+   - <strong>Steps</strong>: 25 ~ 32 步（SDXL）；Dev 24 步；Schnell 4 步。<br />
+   - <strong>CFG Scale</strong>: SDXL 推荐 <strong>4.5 ~ 6.5</strong>（严禁超过 8.0，防止色彩过饱和崩边）；FLUX Schnell 强制锁定 <strong>1.0</strong>。</li>
+<li><strong>ControlNet &amp; IP-Adapter 时间步协同（防止张量竞争）</strong>：<br />
+   - <code>Apply Advanced ControlNet</code>: <code>strength</code> = 0.75~0.90，<code>ending_step</code> = <strong>0.80</strong>。<br />
+   - <code>IPAdapterAdvanced / ApplyPuLID</code>: <code>weight</code> = 0.60~0.75，<code>end_at</code> = <strong>0.85</strong>。<br />
+   - <strong>设计机理</strong>：在第 0.85 步结束时，主体姿态与面部骨骼已经定型，去噪过程剩余的 15% 步数将不再受到外界特征矩阵的强行钳制，基模能够自洽收敛出符合当前背景漫反射与环境光的高频皮肤纹理。</li>
+<li><strong>Impact Pack: Face Detailer 精修参数</strong>：<br />
+   - <code>guide_size</code>: <strong>768</strong>（防止大场景广角镜头中小人脸因像素过低导致画质崩塌）。<br />
+   - <code>denoise</code>: <strong>0.32 ~ 0.40</strong>（低于 0.30 修复不充分；高于 0.45 导致面部完全变样产生接缝）。<br />
+   - <code>feather</code>: <strong>8</strong>（接缝处羽化半径，消除边缘缝合硬边）。</li>
+</ol>
+<hr />
+<h3>4.3 高清放大与质感重绘方案对比（Upscale Matrix）</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">方案</th>
+<th style="text-align: left;">核心技术原理</th>
+<th style="text-align: left;">显存消耗</th>
+<th style="text-align: left;">耗时 (4K 输出)</th>
+<th style="text-align: left;">优势场景</th>
+<th style="text-align: left;">工业缺陷与局限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Latent Upscale</strong></td>
+<td style="text-align: left;">潜空间双三次插值后接第二道 KSampler</td>
+<td style="text-align: left;">极低</td>
+<td style="text-align: left;">极快 (&lt;5秒)</td>
+<td style="text-align: left;">构图快速二阶段验证</td>
+<td style="text-align: left;">容易产生伪细节，Denoise 稍大结构变形</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Ultimate SD Upscale</strong></td>
+<td style="text-align: left;">图像切片分块 (Tiles) + ControlNet Tile 约束 + 接缝重叠羽化</td>
+<td style="text-align: left;"><strong>低 (8GB 显存畅跑 4K)</strong></td>
+<td style="text-align: left;">中等 (~30秒)</td>
+<td style="text-align: left;"><strong>工业出版级标配</strong>；4K/8K 印刷挂历、图书跨页海报</td>
+<td style="text-align: left;">若 Tile 尺寸与 Padding 配错易产生网格接缝</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Tiled Diffusion</strong></td>
+<td style="text-align: left;">采样器内部跨区域高斯混合与去噪平滑</td>
+<td style="text-align: left;">较低</td>
+<td style="text-align: left;">偏慢 (~50秒)</td>
+<td style="text-align: left;">超长横幅全景画卷、长条漫画跨页</td>
+<td style="text-align: left;">局部细节易出现过度模糊平滑</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>SUPIR</strong></td>
+<td style="text-align: left;">基于专属 T2I 大模型先验的盲图像超分</td>
+<td style="text-align: left;"><strong>极高 (≥ 24GB)</strong></td>
+<td style="text-align: left;">极慢 (&gt;120秒)</td>
+<td style="text-align: left;">影视级极致微观质感、老旧废片修复</td>
+<td style="text-align: left;">显存算力开销过大，不适合高并发流水线</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sec-5">5. 必备节点库与核心插件生态清单</h2>
+<p>以下为搭建生产级角色一致性与出版工作流必须纳入版本受控管理的 <strong>13 大核心插件库</strong>：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">插件名称</th>
+<th style="text-align: left;">GitHub 官方/主流仓库</th>
+<th style="text-align: left;">核心功能与关键节点</th>
+<th style="text-align: left;">生产应用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>ComfyUI-Manager</strong></td>
+<td style="text-align: left;"><code>ltdrdata/ComfyUI-Manager</code></td>
+<td style="text-align: left;"><code>Install Custom Nodes</code>, <code>Model Manager</code></td>
+<td style="text-align: left;">基础设施：环境生命周期管理、缺失节点补全。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ComfyUI-Impact-Pack</strong></td>
+<td style="text-align: left;"><code>ltdrdata/ComfyUI-Impact-Pack</code></td>
+<td style="text-align: left;"><code>FaceDetailer</code>, <code>Detailer (SEGS)</code>, <code>SAMDetector</code></td>
+<td style="text-align: left;">微观精修：人脸/手部自动裁切检测、局部放大重绘与缝合。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ComfyUI_IPAdapter_plus</strong></td>
+<td style="text-align: left;"><code>cubiq/ComfyUI_IPAdapter_plus</code></td>
+<td style="text-align: left;"><code>IPAdapterUnifiedLoader</code>, <code>IPAdapterAdvanced</code>, <code>FaceID</code></td>
+<td style="text-align: left;">风格与角色特征迁移：跨分镜服装锁定、注意力遮罩控制。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ComfyUI-Advanced-ControlNet</strong></td>
+<td style="text-align: left;"><code>Kosinkadink/ComfyUI-Advanced-ControlNet</code></td>
+<td style="text-align: left;"><code>Apply Advanced ControlNet</code>, <code>TimestepKeyframe</code></td>
+<td style="text-align: left;">构图约束：分步控制衰减、时序关键帧融合。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>comfyui_controlnet_aux</strong></td>
+<td style="text-align: left;"><code>Fannovel16/comfyui_controlnet_aux</code></td>
+<td style="text-align: left;"><code>DWPose Estimator</code>, <code>Depth Anything V2</code>, <code>Lineart</code></td>
+<td style="text-align: left;">预处理器中心：提取骨骼、深度图与干净手绘线稿。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>PuLID_ComfyUI</strong></td>
+<td style="text-align: left;"><code>balazsorban44/PuLID_ComfyUI</code></td>
+<td style="text-align: left;"><code>ApplyPuLID</code>, <code>PuLIDModelLoader</code></td>
+<td style="text-align: left;">高保真免训练 ID 保持：专为 SDXL 与 FLUX.1 架构优化。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ComfyUI-InstantID</strong></td>
+<td style="text-align: left;"><code>cubiq/ComfyUI-InstantID</code></td>
+<td style="text-align: left;"><code>ApplyInstantID</code>, <code>InstantIDFaceAnalysis</code></td>
+<td style="text-align: left;">单图零样本换脸：高保真锁定五官几何。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ComfyUI_LayerStyle</strong></td>
+<td style="text-align: left;"><code>chflame163/ComfyUI_LayerStyle</code></td>
+<td style="text-align: left;"><code>LayerMask: VitMatte</code>, <code>ColorAdapter</code>, <code>DropShadow</code></td>
+<td style="text-align: left;">工业分层画板：全流程背景置换、自然光影反射与阴影合成。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>rgthree-comfy</strong></td>
+<td style="text-align: left;"><code>rgthree/rgthree-comfy</code></td>
+<td style="text-align: left;"><code>Context Big</code>, <code>Context Switch</code>, <code>Fast Groups Muter</code></td>
+<td style="text-align: left;">流程编排与总线解耦：多信号打包传参、消除飞线与算力泄漏。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ComfyUI-Inspire-Pack</strong></td>
+<td style="text-align: left;"><code>ltdrdata/ComfyUI-Inspire-Pack</code></td>
+<td style="text-align: left;"><code>Apply Regional IPAdapters</code>, <code>Lora Block Weight</code></td>
+<td style="text-align: left;">进阶控制：分区域多角色提示词渲染、LoRA 分层权重调优。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ComfyUI-KJNodes</strong></td>
+<td style="text-align: left;"><code>kijai/ComfyUI-KJNodes</code></td>
+<td style="text-align: left;"><code>Set</code>, <code>Get</code> (无线信号传递), <code>ColorMatch</code></td>
+<td style="text-align: left;">画布工程管理：跨模块无损参数无线流转、批处理图片工具。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ComfyUI-ReActor</strong></td>
+<td style="text-align: left;"><code>Gourieff/comfyui-reactor-node</code></td>
+<td style="text-align: left;"><code>ReActorFaceSwap</code>, <code>ReActorFaceMask</code></td>
+<td style="text-align: left;">终审兜底：最终成片在不重跑 Diffusion 下的确定性像素换脸。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ComfyUI_UltimateSDUpscale</strong></td>
+<td style="text-align: left;"><code>ssitu/ComfyUI_UltimateSDUpscale</code></td>
+<td style="text-align: left;"><code>Ultimate SD Upscale</code>, <code>Ultimate SD Upscale (No Upscale)</code></td>
+<td style="text-align: left;">工业级放大：支持 Tile ControlNet 约束的低显存超分渲染。</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sec-6">6. 工程显存优化、API 服务化与商用版权合规</h2>
+<h3>6.1 显存调度底层机制与量化选型</h3>
+<p>ComfyUI 的内存管理核心位于 <code>comfy/model_management.py</code>，其执行逻辑是<strong>基于生命周期的按需动态调度 (On-demand Dynamic Loading &amp; Offloading)</strong>。</p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                             Host System RAM (32GB+)                             |
+|  [Checkpoint Weights]  [Text Encoders (CLIP/T5)]  [VAE]  [ControlNet/LoRAs]     |
++---------------------------------------------------------------------------------+
+                                    |            ^
+                      Host-to-Device (H2D)  Device-to-Host (D2H)
+                                    v            |
++---------------------------------------------------------------------------------+
+|                             GPU VRAM (8GB - 24GB)                               |
+|   [Active Operator / Layer] &lt;---&gt; [Scratch Workspace / Attention KV &amp; Latents]  |
++---------------------------------------------------------------------------------+
+</code></pre>
+<ol>
+<li><strong>运行参数避坑</strong>：<br />
+   - 生产环境默认使用内置的 <strong>Dynamic VRAM</strong>。<strong>严禁盲目向现代 ComfyUI 启动脚本添加 <code>--lowvram</code></strong>。<code>--lowvram</code> 会开启极端的 Sub-module 逐层切片卸载，频繁引发 PCIe 往返传输，导致出图性能劣化 40%~150%，且容易导致控制台打印大量的 <code>Requested to load</code> 重载抖动。<br />
+   - 显存 ≥ 16GB 时，依赖默认策略即可获得最佳吞吐。</li>
+<li><strong>量化技术对比选型</strong>：<br />
+   - <strong>GGUF (<code>ComfyUI-GGUF</code>, city96 节点)</strong>：<strong>8GB~16GB 消费级显卡部署 FLUX.1 的首选</strong>。<code>Q4_K_M</code> 与 <code>Q5_K_M</code> 在将显存压制到 7GB~9GB 的同时，视觉感知质量损失 &lt; 2%，且完全兼容动态权重卸载。<br />
+   - <strong>FP8 (原生 <code>fp8_e4m3fn</code>)</strong>：<strong>现代企业级 GPU (RTX 4090 / A10G / L40 / H100) 的生产基准</strong>。Ada/Hopper 架构享有硬件级 FP8 Tensor Core 吞吐翻倍红利，无精度损耗，完美兼容 LoRA 动态挂载。<br />
+   - <strong>TensorRT (TRT)</strong>：虽能提速 40%~80%，但必须预编译静态分辨率 Engine，动态加载 LoRA 极其繁琐，不适合多变灵活的绘本插画管线。</li>
+</ol>
+<hr />
+<h3>6.2 导出 API 格式 vs UI JSON 的本质差异与生产集群架构</h3>
+<p>很多工程团队在初次将 ComfyUI 封装为后端微服务时，常因向 <code>/prompt</code> 接口直接投递前端保存的 <code>workflow.json</code> 而报 400 错误。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">维度</th>
+<th style="text-align: left;">前端界面保存格式 (<code>workflow.json</code>)</th>
+<th style="text-align: left;">开发者模式导出 API 格式 (<code>prompt.json</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>导出入口</strong></td>
+<td style="text-align: left;">主界面点击 <strong>"Save"</strong></td>
+<td style="text-align: left;">开启设置 <strong>"Enable Dev mode Options"</strong> 后点击 <strong>"Save (API Format)"</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>数据内容</strong></td>
+<td style="text-align: left;">包含画布坐标、节点大小、背景颜色、UI 分组等前端渲染元数据</td>
+<td style="text-align: left;"><strong>纯净的有向无环图 (DAG) 字典</strong>，顶层 Key 均为节点 ID 字符串</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>引脚连线表达</strong></td>
+<td style="text-align: left;">抽象数组：<code>[link_id, from_node, from_slot, to_node, to_slot, type]</code></td>
+<td style="text-align: left;"><strong>直接依赖指针元组</strong>：<code>"model": ["4", 0]</code> 表示依赖节点 <code>"4"</code> 的第 <code>0</code> 个输出</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>后端接口支持</strong></td>
+<td style="text-align: left;"><strong>完全不兼容</strong>。投递至 <code>/prompt</code> 必定抛出 Schema 校验异常</td>
+<td style="text-align: left;"><strong>唯一合法格式</strong>。<code>/prompt</code> 接口底层解析的核心载体</td>
+</tr>
+</tbody>
+</table>
+<h4>工业级无头 (Headless) 异步集群架构设计</h4>
+<pre><code>                            [ 业务系统 / Web 创作画板 / 原画师桌面插件 ]
+                                                  │
+                                    ┌─────────────▼─────────────┐
+                                    │    API Gateway (Traefik)  │
+                                    └─────────────┬─────────────┘
+                                                  │
+                                    ┌─────────────▼─────────────┐
+                                    │  Task Dispatcher Service  │ (FastAPI / 鉴权 / 业务逻辑)
+                                    └─────────────┬─────────────┘
+                                                  │
+                             ┌────────────────────┴────────────────────┐
+                             ▼                                         ▼
+                   [ Redis 任务队列 / Celery ]                [ MySQL / Postgres ]
+                   (FIFO, 优先级调度, 任务状态)                 (任务参数台账, 用户记录)
+                             │
+             ┌───────────────┴───────────────┐
+             ▼                               ▼
+     ┌───────────────┐               ┌───────────────┐
+     │ Celery Worker │               │ Celery Worker │ (分布式任务调度消费进程)
+     └───────┬───────┘               └───────┬───────┘
+             │ (Local WS + HTTP /prompt)     │ (Local WS + HTTP /prompt)
+             ▼                               ▼
+     ┌───────────────┐               ┌───────────────┐
+     │ ComfyUI Pod 1 │               │ ComfyUI Pod 2 │ (单卡独占容器, 无状态运行)
+     │ (GPU 0: A10G) │               │ (GPU 1: A10G) │
+     └───────┬───────┘               └───────┬───────┘
+             └───────────────┬───────────────┘
+                             ▼ (生成完毕自动上传)
+                 [ S3 / MinIO 对象存储中心 ] &lt;──&gt; [ CDN 边缘加速分发 ]
+</code></pre>
+<ul>
+<li><strong>容器启动标准</strong>：<br />
+<code>bash
+  python main.py --listen 0.0.0.0 --port 8188 --headless --no-auto-launch \
+    --preview-method none --disable-all-custom-nodes --verbose</code></li>
+<li><strong>核心工程原则</strong>：<br />
+  1. <strong>Pod 无状态化</strong>：所有基础模型存放在共享高速只读存储（如 AWS FSx for Lustre 或本地预热 NVMe），禁止 Pod 动态拉取数百 GB 模型；<br />
+  2. <strong>单卡单进程隔离</strong>：单台 8 卡机器严禁由单个 ComfyUI 实例共享，必须通过 <code>CUDA_VISIBLE_DEVICES=X</code> 启动 8 个独立的容器实例绑定不同端口；<br />
+  3. <strong>心跳与超时熔断</strong>：Worker 必须监听 WebSocket <code>progress</code> 事件。若超过 120 秒无响应，主动发起 <code>/interrupt</code>；若 CUDA 崩溃挂起，触发 Kubernetes Liveness Probe 自动销毁重建 Pod。</li>
+</ul>
+<hr />
+<h3>6.3 从 WebUI 迁移的认知转变与常见踩坑排查</h3>
+<pre><code>                                  ComfyUI 典型高频报错排查分支树
+                                                 │
+         ┌───────────────────────────────────────┼───────────────────────────────────────┐
+         ▼                                       ▼                                       ▼
+   [全黑图 / 噪点 / NaN]                  [Shape Mismatch 报错]                   [IMPORT FAILED 红字]
+         │                                       │                                       │
+  1. 是否漏接 VAEDecode 节点?             1. ControlNet 与基模架构交叉配错?       1. Python 虚拟环境依赖冲突
+  2. VAE 架构跨代错配?                    (严禁 SD1.5 ControlNet 连 SDXL 基模)    (如 onnxruntime 与 torch)
+     (SD1.5 / SDXL / FLUX 混用)           2. ControlNet 是否漏接预处理器直连RGB?  2. 自定义节点 git 依赖未拉全
+  3. FP16 溢出 (加载 taesd 或 fp32)       3. 输入图像宽高是否对齐 64 的整数倍?    3. 生产环境缺失必要 C++ 编译库
+</code></pre>
+<ol>
+<li><strong>认知转变核心</strong>：<br />
+   - WebUI 将潜空间变换、VAE 编解码、面部修缮打包为黑盒按钮；<strong>ComfyUI 中 Latent 是一等公民 (First-class citizen)</strong>，必须显式编排数据流。<br />
+   - ComfyUI 具有严格的<strong>拓扑缓存机制</strong>。只要上游节点的输入哈希未变（如 Model/Prompt 未修改），下游只改 Seed 或修图时，上游完全跳过计算。</li>
+<li><strong>高频避坑细则</strong>：<br />
+   - <strong>VAE 选错 / 未解码</strong>：FLUX 必须使用其专用的 16 通道 VAE，若误接 SDXL 的 4 通道 VAE，将直接抛出通道不匹配异常；SD1.5 VAE 在部分显卡上容易发生 FP16 数值下溢产生黑图，需使用 <code>sd-vae-ft-mse</code> 或 <code>--fp16-vae</code>。<br />
+   - <strong>ControlNet 预处理器直连</strong>：严禁将原始彩色图片直接连入 ControlNet 模型的输入端，必须中间经过 <code>DWPose Estimator</code> 或 <code>Lineart Preprocessor</code>，否则卷积核无法提取正确特征图导致画面大面积撕裂。</li>
+</ol>
+<hr />
+<h3>6.4 商业化合规与版权风险控制</h3>
+<p>在生产架构上线前，法务与合规审查具有“一票否决权”。</p>
+<h4>(1) 主流模型许可协议对比</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">模型家族</th>
+<th style="text-align: left;">基础许可证 (License)</th>
+<th style="text-align: left;">商业化使用门槛与限制条款</th>
+<th style="text-align: left;">企业合规落地判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>SD 1.5 / SDXL 1.0</strong></td>
+<td style="text-align: left;"><strong>CreativeML OpenRAIL-M</strong> (1.5)<br><strong>OpenRAIL++-M</strong> (SDXL)</td>
+<td style="text-align: left;"><strong>允许商业化使用</strong>。<br>必须遵守 Use Restrictions 条款（严禁违法、医疗诊断、歧视及色情等）。</td>
+<td style="text-align: left;"><strong>完全合规</strong>。初创与企业均可免费直接商用。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>SD 3.5 (Large/Medium)</strong></td>
+<td style="text-align: left;"><strong>Stability AI Community License</strong></td>
+<td style="text-align: left;"><strong>阶梯门槛</strong>：企业年总营收 &lt; 100 万美元免费商用；≥ 100 万美元必须采购 Enterprise License。</td>
+<td style="text-align: left;"><strong>中大型企业需法务介入</strong>购买企业许可。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>FLUX.1 [schnell]</strong></td>
+<td style="text-align: left;"><strong>Apache 2.0</strong></td>
+<td style="text-align: left;"><strong>完全宽松自由商用</strong>，允许集成、二次开发、提供付费 API。</td>
+<td style="text-align: left;"><strong>完全安全，首选商业底模</strong>。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>FLUX.1 [dev]</strong></td>
+<td style="text-align: left;"><strong>FLUX.1 [dev] Non-Commercial License</strong></td>
+<td style="text-align: left;"><strong>严格禁止商业运营服务</strong>。禁止搭建商业付费 API 或平台。<br>其单张输出图像原则上允许商用。</td>
+<td style="text-align: left;"><strong>严重红线</strong>。自建商业云服务严禁使用该权重，收费服务需用 Schnell 或买 BFL 授权。</td>
+</tr>
+</tbody>
+</table>
+<h4>(2) InsightFace 知识产权雷区与破局方案</h4>
+<ul>
+<li><strong>法律风险</strong>：InsightFace 的 GitHub 软件源代码采用 MIT License，但其官方预训练模型权重（<code>buffalo_l</code>, <code>antelopev2</code>）明确声明<strong>“仅供非商业研究使用 (Non-Commercial Only)”</strong>。商业平台直接在生产镜像中下载该权重并在收费功能中调用 InstantID / PuLID，已构成知识产权侵权。</li>
+<li><strong>企业破局路径</strong>：<br />
+  1. <strong>官方商业授权</strong>：向 DeepInsight 官方团队按年/按席位采购商业使用授权；<br />
+  2. <strong>模型重训替代</strong>：采用合法商业版权的人脸数据集，自行基于 ArcFace 算法重训面部特征提取器；<br />
+  3. <strong>架构升级规避</strong>：升级至基于纯 CLIP 视觉表征的架构，或直接采用企业自训 Character LoRA 管线，彻底剥离 InsightFace 依赖。</li>
+</ul>
+<h4>(3) 出版物与对外发布 AI 图像合规规范</h4>
+<ul>
+<li><strong>国内法规强制要求</strong>：</li>
+<li>依照《生成式人工智能服务管理暂行办法》及《互联网信息服务深度合成管理规定》，面向公众的物料必须添加<strong>显式 AI 标识</strong>（不可抹除的角标或水印说明）。</li>
+<li>在生成系统后端，必须在图片 EXIF 元数据或隐式数字盲水印中写入唯一的 Task ID、Prompt、时间戳与服务商信息，确保全流程可溯源。</li>
+<li><strong>独创性版权存证</strong>：参考北京互联网法院“AI 文生图著作权第一案”（2023京0491民初11279号），创作者在提示词设计、参数微调、多轮选图及局部重绘中投入的智力劳动可被认定为作品。设计团队必须建立 <strong>ComfyUI 工程 Prompt 与版本日志归档台账</strong>，作为主张原创著作权的司法证据链。</li>
+</ul>
+<hr />
+<h2 id="sec-7">7. 落地决策树与实施 Checklist</h2>
+<h3>7.1 工业选型决策树</h3>
+<pre><code>                         业务目标与画风场景定位
+                                  │
+         ┌────────────────────────┴────────────────────────┐
+         ▼                                                 ▼
+[2D 动漫 / 儿童绘本 / 连续插画]                    [影视级写实 / 高端海报 Key Visual]
+         │                                                 │
+   底模首选: Illustrious-XL                           底模首选: FLUX.1 [dev/schnell]
+         │                                                 │
+   角色一致性方案:                                   角色一致性方案:
+   1. 训练专用 LoRA (Rank 32, 权重 0.5)              1. ostris/ai-toolkit 训练 FLUX LoRA
+   2. PuLID-SDXL (权重 0.6) 辅助锁脸                 2. 挂载 PuLID-FLUX-v0.9.1 (权重 0.65)
+   3. DWPose 锁定肢体动作                            3. 量化方案: ComfyUI-GGUF (Q5_K_M)
+   4. Face Detailer 局部修缮                         4. 最终超分: Ultimate SD Upscale
+</code></pre>
+<h3>7.2 生产上线检查清单（Checklist）</h3>
+<ul>
+<li>[ ] <strong>底模选型</strong>：明确商业授权边界（商用服务避免直接裸跑 FLUX.1 [dev]；绘本插画首选 Illustrious-XL）。</li>
+<li>[ ] <strong>特征解耦</strong>：所有 ControlNet 与 IP-Adapter 均配置 <code>ending_step</code>（0.75~0.85），留出最后步数供基模自洽融合。</li>
+<li>[ ] <strong>打标规范</strong>：角色 LoRA 训练中，严格剥离不变量（发型发色不打标，服装动作全面打标）。</li>
+<li>[ ] <strong>工程优化</strong>：移除启动脚本中的 <code>--lowvram</code>，依赖原生 Dynamic VRAM；低显存设备部署 GGUF 节点。</li>
+<li>[ ] <strong>API 交付</strong>：后端接口仅接收 Save (API Format) 导出的 DAG JSON，杜绝直投 <code>workflow.json</code>。</li>
+<li>[ ] <strong>架构隔离</strong>：生产集群采用单卡独占 Pod，部署 Celery/Redis 队列与 WebSocket 心跳超时中断保护。</li>
+<li>[ ] <strong>法务排查</strong>：排查 InsightFace 预训练权重商业授权状态；落实出版物显式/隐式 AI 水印与工作流存证。</li>
+</ul>
+</div>
+
+<!-- ==================== Unified Sidebar Drawer Script ==================== -->
+<script id="unified-sidebar-script">
+(function() {
+  const btn = document.getElementById('unifiedNavBtn');
+  const overlay = document.getElementById('unifiedNavOverlay');
+  const closeBtn = document.getElementById('unifiedNavClose');
+  const tocContainer = document.getElementById('unifiedNavToc');
+  if (!btn || !overlay || !closeBtn || !tocContainer) return;
+
+  function openNav() { document.body.classList.add('unified-nav-open'); }
+  function closeNav() { document.body.classList.remove('unified-nav-open'); }
+
+  btn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('unified-nav-open')) closeNav();
+  });
+
+  const links = Array.from(tocContainer.querySelectorAll('a'));
+  links.forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth < 1200) closeNav();
+    });
+  });
+
+  // ScrollSpy
+  const targets = links.map(a => {
+    const id = a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  }).filter(Boolean);
+
+  if (targets.length > 0 && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const cur = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+          if (cur) cur.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0.1 });
+    targets.forEach(t => observer.observe(t));
+  }
+})();
+</script>
+
+</body>
+</html>

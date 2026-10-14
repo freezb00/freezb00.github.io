@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deck — AI 绘画产品全景深度调研与商业化判断系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafaf9;
+    --slide-bg: #ffffff;
+    --ink: #1c1917;
+    --mute: #78716c;
+    --line: #e7e5e4;
+    --soft: #f5f5f4;
+    --accent: #2563eb;
+    --warn: #b45309;
+    --bad: #b91c1c;
+    --ok: #15803d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a;
+      --slide-bg: #1e293b;
+      --ink: #f8fafc;
+      --mute: #94a3b8;
+      --line: #334155;
+      --soft: #0b1120;
+      --accent: #38bdf8;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --ok: #10b981;
+    }
+  }
+  *,*::before,*::after { box-sizing: border-box; }
+  body { 
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+           "Hiragino Sans GB", "Microsoft YaHei", sans-serif; 
+    background: var(--bg); margin: 0; padding: 0; color: var(--ink); 
+    line-height: 1.75; transition: background .2s, color .2s;
+    -webkit-font-smoothing: antialiased;
+  }
+  .deck { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+  .slide { 
+    background: var(--slide-bg); border-radius: 12px; padding: 32px 36px; margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.03);
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--accent); min-height: 360px; 
+    transition: background .2s, border-color .2s;
+  }
+  .slide.warn { border-left-color: var(--warn); }
+  .slide.kill { border-left-color: var(--bad); }
+  .slide.good { border-left-color: var(--ok); }
+  .no { 
+    display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .08em;
+    color: var(--mute); text-transform: uppercase; margin-bottom: 8px; 
+  }
+  h2 { font-size: 24px; margin: 0 0 16px; line-height: 1.35; color: var(--ink); font-weight: 750; }
+  h3 { font-size: 16px; margin: 18px 0 8px; color: var(--ink); font-weight: 700; }
+  p, li { font-size: 14.5px; line-height: 1.75; color: var(--ink); }
+  ul { padding-left: 22px; } li { margin: 5px 0; }
+  .claim { 
+    background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.25); border-radius: 8px;
+    padding: 14px 18px; margin: 14px 0; font-size: 15px; color: var(--accent); font-weight: 600; 
+  }
+  .claim.kill { background: rgba(185, 28, 28, 0.08); border-color: rgba(185, 28, 28, 0.25); color: var(--bad); }
+  .claim.good { background: rgba(21, 128, 61, 0.08); border-color: rgba(21, 128, 61, 0.25); color: var(--ok); }
+  .claim.warn { background: rgba(180, 83, 9, 0.08); border-color: rgba(180, 83, 9, 0.25); color: var(--warn); }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  th,td { border: 1px solid var(--line); padding: 9px 11px; text-align: left; vertical-align: top; color: var(--ink); }
+  th { background: var(--soft); font-weight: 650; color: var(--ink); }
+  tr:nth-child(even) { background: rgba(0,0,0,0.015); }
+  @media (prefers-color-scheme: dark) {
+    tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+  }
+  .src { font-size: 12px; color: var(--mute); margin-top: 16px; padding-top: 10px; border-top: 1px dashed var(--line); }
+  code { background: var(--soft); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 14px 0; }
+  .grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin: 14px 0; }
+  .card { background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+  .card h4 { margin: 0 0 6px; font-size: 14px; color: var(--accent); font-weight: 700; }
+  .card p { margin: 0; font-size: 13px; color: var(--mute); line-height: 1.55; }
+  .footer { text-align: center; font-size: 12px; color: var(--mute); padding: 20px; }
+  @media (max-width: 768px){ 
+    .grid2,.grid3,.grid4{grid-template-columns: 1fr;} 
+    .slide{padding: 22px 18px;} 
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- Slide 1 -->
+  <div class="slide">
+    <div class="no">SLIDE 01 · CORE THESIS</div>
+    <h2>单一“黑盒生图工具”独立 SaaS 窗口关闭，两极化垄断格局确立</h2>
+    <div class="claim">核心判断：纯生图底座已快速商品化；未来的价值捕获仅存在于“存量设计操作系统”与“垂直高 ROI 工作流资产网络”两极。</div>
+    <div class="grid2">
+      <div class="card">
+        <h4>旧共识的致命误区</h4>
+        <p>误以为生图算法越逼真壁垒越高；误以为只要搭建一个提示词生成网页就能获得持续付费；忽视了开源 DiT 与前沿多模态大模型的降维平权。</p>
+      </div>
+      <div class="card">
+        <h4>新商业格局的演化</h4>
+        <p>端到端设计平台（Canva/Adobe）吞噬生成能力消除断点；垂直 SaaS（美图设计室）以替代高昂商业拍摄成本锚定 ROI；套壳工具流失率超 85%。</p>
+      </div>
+    </div>
+    <div class="src">证据索引：CIT-CANVA-01 (Canva收购Leonardo), CIT-ADOBE-01 (Firefly超220亿资产), CIT-MEITU-01 (美图75%营收占比)</div>
+  </div>
+
+  <!-- Slide 2 -->
+  <div class="slide good">
+    <div class="no">SLIDE 02 · PRODUCT MATRIX & FOUR QUADRANTS</div>
+    <h2>全球与国内 AI 绘画生态四大阵营全景</h2>
+    <div class="claim good">全景坐标：从模型掌控力与应用场景跨度来看，市场呈现高度专业化的分工与整合矩阵。</div>
+    <div class="grid4">
+      <div class="card">
+        <h4>1. 闭源美学标杆</h4>
+        <p><strong>Midjourney / FLUX</strong><br>• 顶尖艺术审美调校<br>• 提示词社区飞轮<br>• 闭源自研或核心 API 供给</p>
+      </div>
+      <div class="card">
+        <h4>2. 专业无界工作流</h4>
+        <p><strong>Leonardo / Krea / Magnific</strong><br>• 无界画布与实时潜空间<br>• 垫图解耦与微调<br>• 极高交互掌控感</p>
+      </div>
+      <div class="card">
+        <h4>3. 协同设计操作系统</h4>
+        <p><strong>Canva / Adobe Firefly</strong><br>• 消除图元导出与排版断点<br>• 2.65 亿月活存量渗透<br>• 企业版权诉讼完全免赔</p>
+      </div>
+      <div class="card">
+        <h4>4. 垂直商业与模型社区</h4>
+        <p><strong>美图设计室 / LiblibAI</strong><br>• 电商商拍节省 90% 摄影费<br>• 开源模型与私域 LoRA 枢纽<br>• 本土高 ROI 场景变现</p>
+      </div>
+    </div>
+    <div class="src">证据索引：CIT-MJ-01, CIT-CANVA-01, CIT-LIBLIB-01, CIT-MEITU-01</div>
+  </div>
+
+  <!-- Slide 3 -->
+  <div class="slide">
+    <div class="no">SLIDE 03 · UX PARADIGM SHIFT</div>
+    <h2>交互范式五代跃迁：从“语言猜谜”到“原生设计操作系统”</h2>
+    <div class="claim">交互铁律：静态文本框已经淘汰，创作者的控制权必须从“概率赌博”演进至“实时潜空间毫秒级微操”。</div>
+    <table>
+      <thead>
+        <tr><th>演进阶段</th><th>交互代表</th><th>核心输入模式</th><th>用户体验痛点</th><th>确定性控制级别</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>第 1 代：黑盒单轮文本</strong></td><td>Midjourney v1-v4</td><td>纯文本 Prompt 盲猜</td><td>抽卡玄学，完全不可控</td><td>★☆☆☆☆ (纯随机)</td></tr>
+        <tr><td><strong>第 2 代：控制网与局部微调</strong></td><td>SD WebUI, Inpainting</td><td>涂抹遮罩 + 姿态垫图</td><td>交互繁琐，边缘拼接生硬</td><td>★★☆☆☆ (初级受控)</td></tr>
+        <tr><td><strong>第 3 代：无界画布多图元</strong></td><td>Leonardo Canvas</td><td>多图元分层、局部选区</td><td>静态离线渲染，等待时间长</td><td>★★★☆☆ (工作流整合)</td></tr>
+        <tr><td><strong>第 4 代：实时流式潜在交互</strong></td><td>Krea Realtime Canvas</td><td>画笔涂鸦、摄像头 30fps 渲染</td><td>模型参数较小，画质偏草图</td><td>★★★★☆ (即时掌控)</td></tr>
+        <tr><td><strong>第 5 代：原生协同设计系统</strong></td><td>Canva Magic Studio, PS</td><td>生成、排版、矢量字体全闭环</td><td>对高阶概念原画深度定制稍弱</td><td>★★★★★ (商业生产力)</td></tr>
+      </tbody>
+    </table>
+    <div class="src">证据索引：CIT-KREA-01 (实时潜在画布规范), CIT-CANVA-02 (Canva 40亿 ARR 协同生态)</div>
+  </div>
+
+  <!-- Slide 4 -->
+  <div class="slide warn">
+    <div class="no">SLIDE 04 · CUSTOMER PYRAMID & WILLINGNESS TO PAY</div>
+    <h2>客户价值五层金字塔：越往底层越价格敏感，越往上层越重合规</h2>
+    <div class="claim warn">获客避坑：泛 C 端尝鲜客流失率极高且拒绝付费；真正的商业金牛在电商高 ROI 生产力与企业版权合规。</div>
+    <div class="grid3">
+      <div class="card">
+        <h4>Level 1 & 2: 泛C端与自由插画师</h4>
+        <p>• 场景：壁纸头像、小说插画、灵感探索<br>• 付费特征：C端转化率 &lt;2%，插画师月费 \$10~30<br>• 风险：高流失率，极度敏感于订阅提价</p>
+      </div>
+      <div class="card">
+        <h4>Level 3: 电商卖家与商业营销</h4>
+        <p>• 场景：AI 商拍换景、虚拟模特试衣、营销海报<br>• 付费特征：转化率 15%~25%，LTV 极高<br>• 驱动力：单次商拍替代实体影棚数千元开支</p>
+      </div>
+      <div class="card">
+        <h4>Level 4 & 5: 游戏工业与企业合规</h4>
+        <p>• 场景：资产概念设计、跨国品牌营销宣发<br>• 付费特征：年客单价数万至数十万美元<br>• 驱动力：<strong>严控版权侵权诉讼，要求法务免赔</strong></p>
+      </div>
+    </div>
+    <div class="src">证据索引：CIT-ADOBE-01 (企业版免赔), CIT-MEITU-01 (电商商拍高转化)</div>
+  </div>
+
+  <!-- Slide 5 -->
+  <div class="slide">
+    <div class="no">SLIDE 05 · BUSINESS MODELS & PRICING</div>
+    <h2>商业模式演化：从“伪不限量”回归“算力变动成本严密对齐”</h2>
+    <div class="claim">定价底线：没有 GPU 算力熔断机制的无限订阅制是商业自杀；主流产品通过双轨排队与点数消耗筑牢毛利。</div>
+    <table>
+      <thead>
+        <tr><th>商业模式类型</th><th>代表产品</th><th>核心计费逻辑</th><th>防重度用户爆仓手段</th><th>毛利率表现</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>GPU 时长 + 潮汐排队</strong></td><td>Midjourney</td><td>\$10~\$120/月，买 Fast Hours</td><td>超额后转入 Relax 慢速潮汐队列，大客户强推 Pro</td><td><strong>65% ~ 75%</strong></td></tr>
+        <tr><td><strong>点数代币配额制 (Credits)</strong></td><td>Leonardo, Liblib</td><td>基础会员月付 + 扣减点数</td><td>不同模型倍率扣除点数，超出后充值算力包</td><td><strong>60% ~ 70%</strong></td></tr>
+        <tr><td><strong>协同生态捆绑增值</strong></td><td>Adobe Firefly, Canva</td><td>嵌入主套件会员 (\$15~\$60/月)</td><td>每月固定 Generative Credits，超出降速</td><td><strong>80%+ (拉动SaaS全盘)</strong></td></tr>
+        <tr><td><strong>Metered 纯算力 API</strong></td><td>Black Forest Labs (FLUX)</td><td>按单张图或 Megapixel 后付费</td><td>按量计费，完全无死角转移基础设施成本</td><td><strong>50% ~ 65%</strong></td></tr>
+      </tbody>
+    </table>
+    <div class="src">证据索引：CIT-MJ-01 (Midjourney 服务条款), CIT-BFL-01 (FLUX API 阶梯定价)</div>
+  </div>
+
+  <!-- Slide 6 -->
+  <div class="slide kill">
+    <div class="no">SLIDE 06 · UNIT ECONOMICS & NEGATIVE MARGIN TRAP</div>
+    <h2>单位经济学硬核算：单图成本测算与防单客负毛利</h2>
+    <div class="claim kill">财务警钟：\$19.9/月无限生图是致死陷阱；单客生图量超 1,000 张即导致毛利彻底转负！</div>
+    <div class="grid2">
+      <div class="card">
+        <h4>单图硬件推理成本基准 (1024x1024)</h4>
+        <p>
+          • <strong>SDXL (L4/A10G)</strong>: ~\$0.00045 (硬件) ｜ API 售价 ~\$0.0030<br>
+          • <strong>FLUX Schnell (H100)</strong>: ~\$0.00080 (硬件) ｜ API 售价 ~\$0.0030<br>
+          • <strong>FLUX Dev (H100, 28-step)</strong>: ~\$0.00750 (硬件) ｜ API 售价 ~\$0.0250<br>
+          • <strong>FLUX Pro / Midjourney</strong>: ~\$0.01200 (硬件) ｜ 零售均摊 ~\$0.0400
+        </p>
+      </div>
+      <div class="card">
+        <h4>防爆仓工程三板斧</h4>
+        <p>
+          1. <strong>点数硬顶 (Hard Cap)</strong>：轻度散客保底盈利，重度用户必须充值加购。<br>
+          2. <strong>潮汐降权 (Relax Mode)</strong>：用空闲算力异步消化重度请求，平抑峰值成本。<br>
+          3. <strong>动态模型路由 (Smart Routing)</strong>：草图用 4-step 蒸馏小模型，成稿再唤醒大模型。
+        </p>
+      </div>
+    </div>
+    <div class="src">证据索引：Fal.ai & Replicate FLUX 实测资费标准，EV-BFL-01 证据账本</div>
+  </div>
+
+  <!-- Slide 7 -->
+  <div class="slide warn">
+    <div class="no">SLIDE 07 · DEVIL'S ADVOCATE & RISK AUDIT</div>
+    <h2>魔鬼代言人：三大致命风险与交付精度鸿沟</h2>
+    <div class="claim warn">清醒认知：商业生产关注确定性交付；AI 绘画面临技术过时、修图返工与版权穿透三大暗礁。</div>
+    <div class="grid3">
+      <div class="card">
+        <h4>1. 中间层技术过时诅咒</h4>
+        <p>底层多模态通用大模型（如 GPT-4o 原生生图）每次升级，外挂提示词库与简易重绘插件的价值就会瞬间归零。</p>
+      </div>
+      <div class="card">
+        <h4>2. 最后 10% 商业交付鸿沟</h4>
+        <p>AI 可以在 5 秒内交付 90% 的构图草图，但手部微瑕、品牌 Logo 形变、色号精准对齐返工耗时甚至超过传统制作。</p>
+      </div>
+      <div class="card">
+        <h4>3. 版权与知识产权诉讼</h4>
+        <p>欧美主流法律裁定纯 AI 生成缺乏独创性不受保护；非合规开源数据集训练的模型随时可能让下游企业面临连带诉讼。</p>
+      </div>
+    </div>
+    <div class="src">证据索引：CIT-ADOBE-01 (企业法务诉讼免赔), research-thesis.yaml 证伪推演</div>
+  </div>
+
+  <!-- Slide 8 -->
+  <div class="slide good">
+    <div class="no">SLIDE 08 · STRATEGIC ROADMAP & PM PLAYBOOK</div>
+    <h2>产品战略决策红绿灯与未来行动化清单</h2>
+    <div class="claim good">行动指南：聚焦垂直高 ROI 生产力闭环，杜绝做无壁垒套壳工具；严密跟踪端侧算力与多模态原生演化。</div>
+    <div class="grid2">
+      <div class="card">
+        <h4>🟢 强烈推荐行动 (Do This)</h4>
+        <p>
+          • <strong>深耕垂直电商/营销工作流</strong>：锚定实体拍摄替代成本，获取超额定价溢价；<br>
+          • <strong>构建无界画布交互体验</strong>：打通参考图解耦、局部选区、矢量图元排版闭环；<br>
+          • <strong>落实严格混合计量防线</strong>：Fast 算力 + 潮汐降权排队，单图毛利倍率维持在 3.5x 以上。
+        </p>
+      </div>
+      <div class="card">
+        <h4>🔴 坚决避免陷阱 (Avoid This)</h4>
+        <p>
+          • <strong>严禁做通用黑盒生图套壳</strong>：无私有资产，底层模型升级即死亡；<br>
+          • <strong>严禁烧钱买量泛 C 端尝鲜</strong>：次月留存 &lt;15%，无法覆盖 GPU 硬件账单；<br>
+          • <strong>严禁推出无限制低价月卡</strong>：工作室脚本刷图将迅速击穿毛利造成爆仓。
+        </p>
+      </div>
+    </div>
+    <div class="src">编译完成：deep-research Compiler v1.0.3 ｜ 2026-10-12</div>
+  </div>
+
+</div>
+<div class="footer">deep-research Compiler · AI 绘画产品全景深度调研决策 Presentation · 2026-10-12</div>
+</body>
+</html>

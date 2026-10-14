@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="出版级 AI 绘图全要素资产中心方案：四大资产矩阵（角色/画风/场景/道具）、LoRA 训练 SOP、PM 与算法团队协同验收机制及多租户资产隔离规范。">
+<title>03. 全要素资产中心与算法协同机制（LoRA 产品化） · AI PM 作品集</title>
+<style>
+:root{
+  --bg:#ffffff; --bg-soft:#f7f8fa; --bg-sunk:#f1f3f6;
+  --ink:#1a1d23; --ink-2:#3d4450; --ink-3:#6b7280;
+  --line:#e3e6ea; --line-2:#d0d5dc;
+  --accent:#1a4d8f; --accent-soft:#e8f0fa;
+  --green:#1a7f4b; --green-soft:#e6f4ec;
+  --amber:#a86400; --amber-soft:#fdf3e0;
+  --red:#b03030; --red-soft:#fbeaea;
+  --blue:#1f5f9e; --blue-soft:#e7f0f8;
+  --grey:#5b6470; --grey-soft:#eef0f3;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  font-size:15px; line-height:1.75; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:960px;margin:0 auto;padding:40px 28px 100px}
+h1{font-size:28px;line-height:1.35;margin:0 0 10px;font-weight:700;letter-spacing:-.4px;color:var(--ink)}
+h2{font-size:21px;margin:46px 0 16px;padding-bottom:10px;border-bottom:2px solid var(--line);
+   font-weight:700;letter-spacing:-.2px;scroll-margin-top:20px;color:var(--ink)}
+h3{font-size:17px;margin:28px 0 10px;font-weight:650;color:var(--ink)}
+h4{font-size:15px;margin:20px 0 8px;font-weight:650;color:var(--ink-2)}
+p{margin:12px 0}
+ul,ol{margin:12px 0;padding-left:24px}
+li{margin:6px 0}
+strong{font-weight:650;color:#0d1117}
+code{background:var(--bg-sunk);padding:2px 6px;border-radius:4px;font-size:13.5px;
+  font-family:"SF Mono",Menlo,Consolas,monospace}
+pre{background:var(--bg-sunk);padding:14px 18px;border-radius:6px;overflow-x:auto;border:1px solid var(--line);font-size:13px;line-height:1.6}
+pre code{background:none;padding:0}
+hr{border:0;border-top:1px solid var(--line);margin:36px 0}
+blockquote{margin:16px 0;padding:12px 18px;background:var(--bg-soft);
+  border-left:4px solid var(--accent);color:var(--ink-2);border-radius:0 4px 4px 0}
+blockquote p{margin:4px 0}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:13.5px;
+  border:1px solid var(--line);border-radius:6px;overflow:hidden}
+th{background:var(--bg-sunk);text-align:left;padding:10px 12px;font-weight:650;
+  border-bottom:2px solid var(--line-2);color:var(--ink);font-size:13px}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink-2)}
+tr:last-child td{border-bottom:0}
+tbody tr:nth-child(even){background:#fbfcfd}
+
+/* Badge */
+.b{display:inline-block;padding:1px 7px;border-radius:3px;font-size:11px;
+  font-weight:700;vertical-align:middle;line-height:1.6}
+.bA{background:var(--green-soft);color:var(--green);border:1px solid #bfe3cd}
+.bB{background:var(--blue-soft);color:var(--blue);border:1px solid #c3d9ee}
+.bC{background:var(--grey-soft);color:var(--grey);border:1px solid #d8dce2}
+.bR{background:var(--red-soft);color:var(--red);border:1px solid #f0c4c4}
+.bAmber{background:var(--amber-soft);color:var(--amber);border:1px solid #f0d9ac}
+
+/* 提示块 */
+.note{background:var(--amber-soft);border:1px solid #f0d9ac;border-left:4px solid var(--amber);
+  border-radius:4px;padding:13px 17px;margin:18px 0;font-size:14px;color:#6b4200}
+.good{background:var(--green-soft);border:1px solid #bfe3cd;border-left:4px solid var(--green);
+  border-radius:4px;padding:13px 17px;margin:18px 0;font-size:14px;color:#12512f}
+.bad{background:var(--red-soft);border:1px solid #f0c4c4;border-left:4px solid var(--red);
+  border-radius:4px;padding:13px 17px;margin:18px 0;font-size:14px;color:#7d2020}
+
+/* Footer Nav */
+.doc-footer-nav{
+  display:flex;justify-content:space-between;gap:16px;margin-top:56px;padding-top:24px;border-top:1.5px solid var(--line);
+}
+.nav-card{
+  flex:1;padding:14px 18px;border-radius:6px;border:1px solid var(--line);background:var(--bg-soft);
+  text-decoration:none;transition:all .15s ease;display:flex;flex-direction:column;
+}
+.nav-card:hover{border-color:var(--accent);background:var(--accent-soft)}
+.nav-dir{font-size:11.5px;color:var(--ink-3);margin-bottom:4px;font-weight:600}
+.nav-title{font-size:14px;font-weight:650;color:var(--ink)}
+.nav-card:hover .nav-title{color:var(--accent)}
+
+@media (max-width:768px){
+  .wrap{padding:20px 16px 60px}
+  h1{font-size:22px} h2{font-size:18px}
+  table{font-size:12px} th,td{padding:7px 8px}
+  .doc-footer-nav{flex-direction:column}
+}
+</style>
+
+<!-- ==================== Unified Sidebar Drawer Navigation ==================== -->
+<style id="unified-sidebar-style">
+:root {
+  --unified-nav-width: 300px;
+}
+.unified-nav-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 9999;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.unified-nav-btn:hover {
+  background: #f8fafc;
+  color: #1a4d8f;
+  border-color: #1a4d8f;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(26, 77, 143, 0.15);
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-btn {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  }
+  .unified-nav-btn:hover {
+    background: #0f172a;
+    color: #38bdf8;
+    border-color: #38bdf8;
+  }
+}
+body.unified-nav-open .unified-nav-btn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 无蒙版模式：打开导航时保持正文完全清晰、无遮罩与高斯模糊 */
+.unified-nav-overlay {
+  display: none !important;
+}
+body.unified-nav-open .unified-nav-overlay {
+  display: none !important;
+}
+
+aside.unified-nav-drawer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--unified-nav-width);
+  max-width: 86vw;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  padding: 22px 16px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  z-index: 10001;
+  box-shadow: 8px 0 28px rgba(0, 0, 0, 0.12);
+  transform: translateX(-100%);
+  transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  box-sizing: border-box;
+}
+@media (prefers-color-scheme: dark) {
+  aside.unified-nav-drawer {
+    background: #0f172a;
+    border-right-color: #1e293b;
+    box-shadow: 8px 0 28px rgba(0, 0, 0, 0.45);
+  }
+}
+body.unified-nav-open aside.unified-nav-drawer {
+  transform: translateX(0);
+}
+
+.unified-nav-drawer .drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-header { border-bottom-color: #1e293b; }
+}
+.unified-nav-drawer .drawer-brand {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-brand { color: #f8fafc; }
+}
+.unified-nav-drawer .drawer-brand span {
+  color: #1a4d8f;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-brand span { color: #38bdf8; }
+}
+.unified-nav-drawer .drawer-close-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  font-size: 18px;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: all .15s;
+}
+.unified-nav-drawer .drawer-close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-close-btn:hover {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+  }
+}
+
+.unified-nav-drawer .drawer-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-shortcuts { border-bottom-color: #1e293b; }
+}
+.unified-nav-drawer .shortcut-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all .15s ease;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .shortcut-btn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+  }
+}
+.unified-nav-drawer .shortcut-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1a4d8f;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .shortcut-btn:hover {
+    background: #0369a133;
+    border-color: #0284c7;
+    color: #38bdf8;
+  }
+}
+
+.unified-nav-drawer .toc-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.6px;
+  margin: 6px 0 10px 4px;
+}
+.unified-nav-drawer .drawer-toc {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.unified-nav-drawer .drawer-toc a {
+  font-size: 13px;
+  color: #475569;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: all .15s ease;
+  border-left: 3px solid transparent;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-toc a { color: #94a3b8; }
+}
+.unified-nav-drawer .drawer-toc a:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-toc a:hover {
+    color: #f8fafc;
+    background: #1e293b;
+  }
+}
+.unified-nav-drawer .drawer-toc a.active {
+  color: #1a4d8f;
+  background: #eff6ff;
+  border-left-color: #1a4d8f;
+  font-weight: 600;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-toc a.active {
+    color: #38bdf8;
+    background: #0369a126;
+    border-left-color: #38bdf8;
+  }
+}
+@media print {
+  .unified-nav-btn, aside.unified-nav-drawer, .unified-nav-overlay, .doc-footer-nav {
+    display: none !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Unified Sidebar Drawer HTML -->
+<button class="unified-nav-btn" id="unifiedNavBtn" title="展开目录导航">☰</button>
+<div class="unified-nav-overlay" id="unifiedNavOverlay"></div>
+<aside class="unified-nav-drawer" id="unifiedNavDrawer">
+  <div class="drawer-header">
+    <div class="drawer-brand">作品集方案 · <span>出版级 AI PM</span></div>
+    <button class="drawer-close-btn" id="unifiedNavClose" title="收起导航">✕</button>
+  </div>
+  <div class="drawer-shortcuts">
+    <a href="../index.html" class="shortcut-btn">🏠 返回作品集总览</a>
+    <a href="01_出版级AI绘画产品全链路规划(PRD与架构).html" class="shortcut-btn">01 全链路规划 (PRD与架构)</a>
+    <a href="02_出版级AI绘画工作流与ComfyUI方案设计.html" class="shortcut-btn">02 工作流与 ComfyUI 设计</a>
+    <a href="03_全要素资产中心与算法协同机制(LoRA产品化).html" class="shortcut-btn" style="border-left:3px solid var(--accent);font-weight:600;">03 全要素资产中心与算法协同</a>
+    <a href="04_质量评测闭环与出版合规风控体系.html" class="shortcut-btn">04 质量评测与合规风控</a>
+  </div>
+  <div class="toc-section-title">方案目录 (Contents)</div>
+  <nav class="drawer-toc" id="unifiedNavToc">
+    <a href="#sec-1" title="一、 出版级资产中心的核心定位：从“单一画风”到“全要素矩阵”">一、 出版全要素资产体系定位</a>
+    <a href="#sec-2" title="二、 四大核心视觉资产构建标准与数据标注流水线 (Data Pipeline)">二、 四大视觉资产构建与打标SOP</a>
+    <a href="#sec-3" title="三、 PM 与算法团队的高效协同与模型验收机制 (Collaboration Matrix)">三、 PM与算法协同验收与Badcase</a>
+    <a href="#sec-4" title="四、 出版工程级“全要素资产包 (Asset Bundle)”与权限隔离">四、 工程资产包与多租户隔离规范</a>
+  </nav>
+</aside>
+
+<div class="wrap">
+  <h1>03. 全要素资产中心与算法协同机制（LoRA 产品化）</h1>
+
+  <h2 id="sec-1">一、 出版级资产中心的核心定位：从“单一画风”到“全要素资产矩阵”</h2>
+
+  <p>在传统认知中，AI 资产往往被狭隘地等同于“画风 LoRA”。但在严肃出版物（绘本、教辅、教材）生产中，<strong>如果只有画风，整本书依然无法工业化交付</strong>：</p>
+  <ul>
+    <li><strong>痛点 1（角色漂移）</strong>：画风统一了，但主角在第 3 页和第 20 页长相、服饰细节完全不同，编辑被迫手工反复修图；</li>
+    <li><strong>痛点 2（场景混乱）</strong>：同一故事常驻空间（如“主角卧室”、“古城街道”），每次生成的房间格局与地标朝向都在变；</li>
+    <li><strong>痛点 3（道具形制失真）</strong>：特定历史文物（如“司母戊鼎”）、科普实验仪器（如“特定显微镜”）屡屡出现常识性严重形变。</li>
+  </ul>
+
+  <p>因此，系统将底层资产抽象升级为<strong>“出版级全要素资产矩阵 (Multi-Dimensional Asset Hub)”</strong>。AI 产品经理作为业务方与算法工程团队的中枢桥梁，负责制定数据采编准入、标注解耦规则、模型训练准出与前台资产包封装标准。</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:18%;">资产大类</th>
+        <th style="width:22%;">底层算法与技术载体</th>
+        <th style="width:32%;">业务核心价值与出版指标</th>
+        <th style="width:28%;">生产准备周期与成本</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. 角色资产<br>(Character Hub)</strong></td>
+        <td>专属 Character LoRA (核心主角)<br>+ IP-Adapter / FaceID (配角)</td>
+        <td>锁死面部、发型、体态与标准色标；提供喜怒哀乐与四季服饰差分包；跨页面容漂移率 &lt;8%。</td>
+        <td>• 核心IP：15~20张多视角图，自动化微调半天<br>• 日常配角：单图即时抽取特征向量 (0秒)</td>
+      </tr>
+      <tr>
+        <td><strong>2. 画风资产<br>(Style LoRA)</strong></td>
+        <td>专属 Style LoRA (Rank 64/128)<br>+ StyleAlign 自注意力键值对</td>
+        <td>沉淀出版社专属水墨、水彩、版画或复古油画质感；全书色调 LUT 曲线锁死；杜绝画风浓淡割裂。</td>
+        <td>• 25~40张出版样张精修清洗<br>• 自动化训练流水线耗时约 40~60 分钟</td>
+      </tr>
+      <tr>
+        <td><strong>3. 场景空间资产<br>(Scene / Env)</strong></td>
+        <td>三维透视网格 + Depth/Normal Map<br>+ 关键常驻地标特征库</td>
+        <td>锁定常驻环境（书房/教室/森林）地标方位与透视关系；跨页（Double Spread）接缝透视无缝延伸。</td>
+        <td>• 3~5张全景空镜打标归档<br>• 绑定环境光照（晴昼/金光/雨夜）预设模板</td>
+      </tr>
+      <tr>
+        <td><strong>4. 核心道具资产<br>(Prop Asset)</strong></td>
+        <td>ControlNet 刚体线稿提取 (LineArt)<br>+ 专属轻量物品 LoRA</td>
+        <td>固定故事关键器物（宝剑/仪器/载具）形制，文物与科学图解 100% 严谨对齐，杜绝结构硬伤。</td>
+        <td>• 1~3张权威高清参考物图<br>• 配合持握交互姿态骨骼模板</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <h2 id="sec-2">二、 四大核心视觉资产构建标准与数据标注流水线 (Data Pipeline)</h2>
+
+  <h3>1. 资产数据收集与清洗准入标准 (Data Curation SOP)</h3>
+  <ul>
+    <li><strong>分辨率与频域清洗</strong>：短边不得低于 1024px；针对纸质扫描样张，自动执行双边滤波去噪，剔除印刷网点走样（Moire Pattern）干扰；</li>
+    <li><strong>样本正交性准则 (Orthogonality)</strong>：
+      <ul>
+        <li><strong>训练画风 LoRA 时</strong>：必须剔除 80% 出现同一固定主角的样张，补充纯背景空镜与多样化物种，防止模型将“某个人物面孔”误绑定为“画风本身”；</li>
+        <li><strong>训练角色 LoRA 时</strong>：必须剔除单一站立正面大头照，严格要求覆盖正面、正侧 45°、纯侧面、背面三视图，以及全景/特写与不同动态光照。</li>
+      </ul>
+    </li>
+    <li><strong>宽高比桶排序 (Aspect Ratio Bucketing)</strong>：按出版开本（16开/32开）长宽比动态分桶，禁止强行裁切破坏画面透视。</li>
+  </ul>
+
+  <h3>2. 核心打标策略 (Caption &amp; Tagging)：画风与内容的解耦机制</h3>
+  <p>打标深度直接决定了资产调用时的<strong>泛化能力与可控性</strong>。产品侧与算法团队建立严格的“三段式解耦打标规范”：</p>
+
+  <pre><code>[出版级三段式解耦打标规范模板]
+① 唯一触发锚点 (Trigger Token): yunti_watercolor_v2, 
+② 画面内容实体 (Content Stripping): a 7-year-old Asian boy wearing a yellow hooded raincoat, holding a wooden magnifying glass, crouching on wet stone pavement, ancient ginkgo tree background, 
+③ 艺术风格映射 (Artistic Style): soft transparent watercolor wash, delicate pencil contour lines, textured cold-pressed paper grain, muted warm palette, ample blank white space</code></pre>
+
+  <ul>
+    <li><strong>实体剥离机制 (Content Stripping)</strong>：将画面中的物体（小男孩、雨衣、放大镜、银杏树）详尽写入自然语言描述，迫使模型将这些具象语义分配给底层大底模的通用特征空间；</li>
+    <li><strong>画风锚定机制 (Style Binding)</strong>：将水彩晕染、冷压纸纹、留白质感与专属触发词 <code>yunti_watercolor_v2</code> 绑定，实现<strong>“调用画风时不绑架角色，调用角色时不污染背景”</strong>。</li>
+    <li><strong>自动化标注流</strong>：采用 <strong>JoyCaption-Alpha + Florence-2</strong> 提取富文本描述，引入出版社专属《艺术风格控词词库 (Art Taxonomy)》过滤臆造幻觉词，人工抽检合格率 ≥98%。</li>
+  </ul>
+
+  <hr>
+
+  <h2 id="sec-3">三、 PM 与算法团队的高效协同与模型验收机制 (Collaboration Matrix)</h2>
+
+  <pre><code>┌────────────────────────────────────────────────────────────────────────┐
+│                     全要素资产中台化算法协同工作流流水线                │
+└────────────────────────────────────────────────────────────────────────┘
+
+ [业务编辑/美术主管] ──上传样本集 (画风 ≥25张 / 角色 ≥15张三视图 / 道具 ≥3张)
+          │
+          ▼
+ [PM / 数据运营中台] ──样本准入过滤 ➔ 自动去网去噪 ➔ JoyCaption 解耦标注 ➔ 标注抽检
+          │
+          ▼
+ [算法工程训练流水线] ──基于 Kohya_ss / 自研分布式微调集群自动装配参数
+                       • Base: Flux.1-Dev / SDXL Base
+                       • 画风 LoRA: Rank 64, Alpha 32, lr 1e-4
+                       • 角色 LoRA: Rank 32, Alpha 16, lr 8e-5 (强化面部权重)
+                       • 定期保存检查点：1000, 1500, 2000, 2500 steps
+                        <em style="color:var(--ink-3);font-size:12px;">↑ 上述参数为算法团队基准测试推荐基线，最终以算法团队正式交付 spec 为准</em>
+          │
+          ▼
+ [PM 工业级基准测试] ──自动化跑 10 个跨类别基准提示词 (人物/动物/复杂机械/自然风景)
+                       • 风格保真度评估 (Fidelity ≥ 85%)
+                       • 提示词遵循度 (Adherence ≥ 80%)
+                       • 坏损崩坏率 (Degradation ≤ 5%)
+          │
+          ▼
+ [资产卡自动发布] ──封装为标准资产卡 (配置推荐权重 0.7、避坑词包、图层遮罩)</code></pre>
+
+  <h3>1. 算法交付与 PM 验收的“量化硬指标”</h3>
+  <ol>
+    <li><strong>风格保真度（Style Fidelity ≥ 85%）</strong>：由美术总监与资深责任编辑盲测评分，能稳定识别为该出版社标志性风格；</li>
+    <li><strong>提示词遵循度（Prompt Adherence ≥ 80%）</strong>：输入复杂指令时，不能因画风 LoRA 或角色 LoRA 权重过高导致画面丢主体或场景漏画；</li>
+    <li><strong>负面坏损率（Degradation Rate ≤ 5%）</strong>：杜绝过度锐化、面部死黑线条、高对比过曝与肢体畸变激增。</li>
+  </ol>
+
+  <h4>▸ 验收评测标准规范（统一口径）</h4>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:28%;">指标</th>
+        <th style="width:36%;">统计口径 / 评测方法</th>
+        <th style="width:36%;">评测集与评审人员要求</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>风格保真度 ≥ 85%</strong></td>
+        <td>5 分制盲测打分，取平均值；≥ 4.25 分（即 85%）视为通过</td>
+        <td>≥ 3 人盲测（含 1 名美术总监 + ≥ 2 名责任编辑），评分前不得知晓模型版本号</td>
+      </tr>
+      <tr>
+        <td><strong>提示词遵循度 ≥ 80%</strong></td>
+        <td>标准化测试集共 20 条 Prompt（覆盖人物/动物/建筑/自然 4 类，各 5 条），每条生成 5 张，人工标注"主体完整且符合描述"的比例</td>
+        <td>测试集由 PM 与美术总监共同审定，每季度迭代一次</td>
+      </tr>
+      <tr>
+        <td><strong>负面坏损率 ≤ 5%</strong></td>
+        <td>每批生成 100 张，由审图工具自动标记 + 人工抽检；坏损率 = 明显结构畸变张数 / 100</td>
+        <td>自动标记模型需提前经人工校准，误判率 ≤ 2%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>2. Badcase 归因树与算法调优协同 SOP 矩阵</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:20%;">Badcase 异常现象</th>
+        <th style="width:24%;">底层算法故障根因</th>
+        <th style="width:28%;">PM / 数据运营侧处置<br><small style="font-weight:400;color:var(--ink-3);">（数据策略决策层；具体预处理由数据工程执行）</small></th>
+        <th style="width:27%;">算法工程侧调优手段</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>过拟合 (Overfitting)<br>画面烧焦、构图死板</strong></td>
+        <td>训练步数过多、Rank/Alpha 比值失衡、样本构图同质化严重</td>
+        <td>协调补充 10 张大场景空镜与不同机位样张，稀释单一图像特征（由数据工程执行清洗入库）</td>
+        <td>调低 UNet 学习率，将 Alpha 从 32 降至 16，快速回滚至前序 Step 检查点</td>
+      </tr>
+      <tr>
+        <td><strong>画风欠拟合 (Underfitting)<br>生成画面缺乏出版社质感</strong></td>
+        <td>打标过度剥离风格细节，或训练步数偏小，触发词权重不足</td>
+        <td>检查标注文件，将“宣纸纹理、水墨晕染”核心风格标签重新绑定至触发词</td>
+        <td>提升 Text Encoder 学习率或上调训练轮数 (Epoch +2)</td>
+      </tr>
+      <tr>
+        <td><strong>概念绑定崩溃 (Concept Tangling)<br>画动物时强制长出人脸</strong></td>
+        <td>样本集中 90% 以上全是人物，模型强行把“画风”等同于“人类主体”</td>
+        <td>由 PM 制定数据集正交性重构方案：补采动物、植物、器物、建筑等非人物样张（由数据工程执行清洗入库）</td>
+        <td>开启类别正则化训练（Class Regularization Images / Prior Loss）</td>
+      </tr>
+      <tr>
+        <td><strong>多角色特征串扰 (Feature Bleeding)<br>角色A衣服颜色染到角色B</strong></td>
+        <td>全局 Cross-Attention 未做空间物理隔离，特征向量互穿</td>
+        <td>由 PM 在分镜需求文档中标注区域 Bounding Box 遮罩约束规则，传递给前台生产侧执行</td>
+        <td>切换至 <code>Regional IP-Adapter</code> 管线，结合 8px 潜空间软羽化融合</td>
+      </tr>
+      <tr>
+        <td><strong>高频网点噪点 (Moire Artifacts)<br>线稿发黑杂乱</strong></td>
+        <td>训练集含有未经频域去网处理的旧版印刷扫描翻拍件</td>
+        <td>由 PM 制定数据准入红线：禁止旧版扫描件直接入训练集；协调数据工程对存量数据执行高斯频域滤波与降噪预处理</td>
+        <td>引入 Min-SNR 加权策略（SNR Gamma = 5），抑制高频噪声发散</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <h2 id="sec-4">四、 出版工程级“全要素资产包 (Asset Bundle)”与权限隔离</h2>
+
+  <h3>1. 标准化项目资产包 (Project Asset Bundle) 规格定义</h3>
+  <p>通过验收的资产不再孤立存在，而是以整书工程维度打包为 <strong>《出版项目全要素资产包》</strong>，供前台各业务角色一键挂载：</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:24%;">资产包组成组件</th>
+        <th style="width:26%;">技术文件与格式</th>
+        <th style="width:26%;">运行时参数推荐配置</th>
+        <th style="width:24%;">业务功能映射</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>全局画风 LoRA</strong></td>
+        <td><code>style_yunti_ink_v2.safetensors</code></td>
+        <td>• 全景打样：权重 <strong>0.70</strong><br>• 局部重绘：权重 <strong>0.45</strong></td>
+        <td>锁定全书艺术风格与纸张质感</td>
+      </tr>
+      <tr>
+        <td><strong>核心主角资产集</strong></td>
+        <td><code>char_xiaoming_lora.safetensors</code><br>+ <code>face_embedding.bin</code></td>
+        <td>• 触发词：<code>@xiaoming</code><br>• IP-Adapter 权重：<strong>0.65</strong></td>
+        <td>锁定主角面容、四季服装与表情差分</td>
+      </tr>
+      <tr>
+        <td><strong>常驻场景透视空间</strong></td>
+        <td><code>scene_living_room_depth.png</code><br>+ 3D 摄像机位 JSON</td>
+        <td>• ControlNet Depth 权重：<strong>0.60</strong><br>• 光影预设：<code>morning_sunlight</code></td>
+        <td>保证家庭/教室等场景格局不走样</td>
+      </tr>
+      <tr>
+        <td><strong>关键叙事道具库</strong></td>
+        <td><code>prop_sword_lineart.png</code></td>
+        <td>• LineArt 边缘权重：<strong>0.80</strong></td>
+        <td>历史器物/科学仪器形制严谨合规</td>
+      </tr>
+      <tr>
+        <td><strong>出版规格约束集</strong></td>
+        <td><code>layout_16k_safezone.mask</code><br>+ <code>FOGRA39.icc</code><br><small style="color:var(--ink-3);">欧标胶印 ICC 色彩配置文件，对应国内常用出版印刷色域（CMYK 涂料纸）</small></td>
+        <td>• 出血位：<strong>3mm</strong><br>• 中缝避让：<strong>4~6mm</strong></td>
+        <td>300 DPI 超分、留白负向引导与 CMYK 打样</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>2. 多租户数据物理隔离与版本生命周期管理</h3>
+  <ul>
+    <li><strong>多租户物理存储隔离 (Tenant Data Isolation)</strong>：不同出版社与民营图书策划机构的模型资产、样本数据在对象存储（S3/OSS）中采用专用加密 Bucket 存储；推理集群调度时，严格校验租户数字证书与 JWT 权限，严禁跨社访问私有画风与 IP 角色模型。</li>
+    <li><strong>语义化版本控制 (Semantic Versioning)</strong>：资产严格执行 <code>Asset-Name-v1.0.0</code> 规则。当画风或角色产生迭代时，系统支持新老版本并存；编辑部在进行中项目可继续锁定旧版本，确保整本图书创作前后 100% 连贯，杜绝中途跳风格翻车。</li>
+    <li><strong>版权追溯与资产归档 (Archival)</strong>：图书出版并交付印刷厂后，整套工程资产包自动冻结并打包归档至冷存储桶，保存完整的打标元数据与训练日志，以备版权审查与系列图书续作复用。</li>
+  </ul>
+
+  <div class="doc-footer-nav">
+    <a href="02_出版级AI绘画工作流与ComfyUI方案设计.html" class="nav-card">
+      <span class="nav-dir">← 上一篇方案</span>
+      <span class="nav-title">02. 出版级 AI 绘画工作流与 ComfyUI 方案设计</span>
+    </a>
+    <a href="04_质量评测闭环与出版合规风控体系.html" class="nav-card" style="text-align:right;">
+      <span class="nav-dir">下一篇方案 →</span>
+      <span class="nav-title">04. 质量评测闭环与出版合规风控体系</span>
+    </a>
+  </div>
+</div>
+
+<!-- ==================== Unified Sidebar Drawer Script ==================== -->
+<script id="unified-sidebar-script">
+(function() {
+  const btn = document.getElementById('unifiedNavBtn');
+  const overlay = document.getElementById('unifiedNavOverlay');
+  const closeBtn = document.getElementById('unifiedNavClose');
+  const tocContainer = document.getElementById('unifiedNavToc');
+  if (!btn || !overlay || !closeBtn || !tocContainer) return;
+
+  function openNav() { document.body.classList.add('unified-nav-open'); }
+  function closeNav() { document.body.classList.remove('unified-nav-open'); }
+
+  btn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('unified-nav-open')) closeNav();
+  });
+
+  const links = Array.from(tocContainer.querySelectorAll('a'));
+  links.forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth < 1200) closeNav();
+    });
+  });
+
+  // ScrollSpy
+  const targets = links.map(a => {
+    const id = a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  }).filter(Boolean);
+
+  if (targets.length > 0 && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      // Fix: 当多个节点同时进入视口时，取距离视口顶部最近的那个，避免快速滚动时 active 态跳变
+      const intersecting = entries.filter(e => e.isIntersecting);
+      if (intersecting.length === 0) return;
+      const topEntry = intersecting.reduce((a, b) =>
+        a.boundingClientRect.top < b.boundingClientRect.top ? a : b
+      );
+      links.forEach(l => l.classList.remove('active'));
+      const cur = links.find(l => l.getAttribute('href') === '#' + topEntry.target.id);
+      if (cur) cur.classList.add('active');
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0.1 });
+    targets.forEach(t => observer.observe(t));
+  }
+})();
+</script>
+
+</body>
+</html>

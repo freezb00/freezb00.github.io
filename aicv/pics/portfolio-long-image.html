@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1125, initial-scale=1.0">
+  <title>朱彬彬 · AI 绘画产品经理求职作品集</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=PingFang+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1125px;
+      margin: 0 auto;
+      background: #080c15;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Plus Jakarta Sans", "Segoe UI", Roboto, sans-serif;
+      color: #f1f5f9;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .ambient-glow-top {
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1125px;
+      height: 700px;
+      background: radial-gradient(circle at 50% 30%, rgba(37, 99, 235, 0.22) 0%, rgba(14, 165, 233, 0.1) 40%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-glow-mid {
+      position: absolute;
+      top: 2600px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1100px;
+      height: 900px;
+      background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.12) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-glow-bottom {
+      position: absolute;
+      bottom: 250px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1000px;
+      height: 700px;
+      background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.14) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      padding: 56px 44px 72px;
+    }
+
+    /* ==================== HEADER BANNER (LIGHT CARD) ==================== */
+    .header-banner {
+      background: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: 28px;
+      padding: 44px 44px 36px;
+      box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.45);
+      margin-bottom: 50px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-banner::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #0284c7, #6366f1, #10b981);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .badge-role {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      color: #0284c7;
+      font-size: 13.5px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #0284c7;
+      box-shadow: 0 0 8px rgba(2, 132, 199, 0.6);
+    }
+
+    .header-serial {
+      font-size: 13px;
+      color: #94a3b8;
+      font-family: "JetBrains Mono", monospace;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .candidate-name-row {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .candidate-name {
+      font-size: 46px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+
+    .candidate-subtitle {
+      font-size: 19px;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .candidate-tagline {
+      font-size: 18px;
+      color: #0284c7;
+      font-weight: 600;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .candidate-tagline .sep {
+      color: #cbd5e1;
+    }
+
+    .candidate-desc {
+      font-size: 15.5px;
+      color: #334155;
+      line-height: 1.8;
+      margin-bottom: 24px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 20px 24px;
+      border-radius: 16px;
+    }
+
+    .candidate-desc strong {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    /* Core Highlights: 2-Card Light & Compact Style */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .metric-card-light {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 15px 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+      position: relative;
+    }
+
+    .metric-card-light .col-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      border-right: 1px solid #e2e8f0;
+      padding-right: 16px;
+      flex-shrink: 0;
+    }
+
+    .metric-card-light .badge-tag {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-bottom: 3px;
+      letter-spacing: 0.2px;
+      display: inline-block;
+    }
+
+    .metric-card-light .badge-tag.blue {
+      background: #eff6ff;
+      color: #0284c7;
+      border: 1px solid #bfdbfe;
+    }
+
+    .metric-card-light .badge-tag.amber {
+      background: #fffbeb;
+      color: #d97706;
+      border: 1px solid #fde68a;
+    }
+
+    .metric-card-light .val-num {
+      font-size: 28px;
+      font-weight: 800;
+      font-family: "JetBrains Mono", -apple-system, sans-serif;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+    }
+
+    .metric-card-light .val-num.blue { color: #0284c7; }
+    .metric-card-light .val-num.amber { color: #d97706; font-size: 24px; font-weight: 800; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; }
+
+    .metric-card-light .col-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
+      overflow: hidden;
+    }
+
+    .metric-card-light .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.25;
+    }
+
+    .metric-card-light .card-desc {
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.35;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .metric-card-light .tag-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .metric-card-light .micro-tag {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #e2e8f0;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    /* Contact Row: Modern Pill Group */
+    .contact-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      padding-top: 20px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .contact-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      font-size: 13.5px;
+      color: #475569;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .contact-pill strong {
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    /* ==================== SECTION HEADERS ==================== */
+    .section-wrap {
+      margin-bottom: 54px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 22px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .section-title-group h2 {
+      font-size: 27px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+      font-size: 14.5px;
+      color: #94a3b8;
+      font-weight: 400;
+    }
+
+    .section-tag {
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 5px 14px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      border-radius: 999px;
+      color: #7dd3fc;
+    }
+
+    /* ==================== SUB-ITEMS WITH WINDOW CHROME ==================== */
+    .sub-item-block {
+      margin-bottom: 30px;
+    }
+
+    .sub-item-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .sub-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+
+    .sub-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sub-title .sub-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      font-size: 12.5px;
+      font-weight: 800;
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    .sub-badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+    }
+
+    /* Elegant Mockup Window Container */
+    .window-card {
+      background: #101625;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .window-titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(15, 23, 42, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .window-dots {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .window-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .window-dot.red { background: #ef4444; opacity: 0.8; }
+    .window-dot.yellow { background: #f59e0b; opacity: 0.8; }
+    .window-dot.green { background: #10b981; opacity: 0.8; }
+
+    .window-tab {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      font-family: "JetBrains Mono", monospace;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 3px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .window-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Annotation Bar beneath Image */
+    .card-footer-notes {
+      padding: 18px 24px;
+      background: rgba(13, 19, 33, 0.96);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .note-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #f1f5f9;
+      font-weight: 700;
+    }
+
+    .note-left .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+    }
+
+    .note-points {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13.5px;
+      color: #94a3b8;
+    }
+
+    .note-points span strong {
+      color: #e2e8f0;
+      font-weight: 600;
+    }
+
+    /* ==================== DUAL BOOK GRID ==================== */
+    .dual-books-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .book-item-card {
+      background: #101625;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    .book-item-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .book-caption {
+      padding: 15px 20px;
+      background: rgba(13, 19, 33, 0.94);
+      font-size: 13.5px;
+      color: #cbd5e1;
+      font-weight: 500;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .book-caption .tag {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    /* ==================== CLOSING CARD ==================== */
+    .closing-card {
+      background: linear-gradient(145deg, rgba(26, 34, 53, 0.9) 0%, rgba(13, 19, 33, 0.98) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 28px;
+      padding: 48px 44px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .closing-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #38bdf8, #818cf8, #34d399);
+    }
+
+    .closing-card h3 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 14px;
+      letter-spacing: -0.5px;
+    }
+
+    .closing-card p {
+      font-size: 15.5px;
+      color: #cbd5e1;
+      max-width: 820px;
+      margin: 0 auto 30px;
+      line-height: 1.8;
+    }
+
+    .closing-contact-pills {
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .closing-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-size: 15.5px;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .closing-pill.primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border-color: #3b82f6;
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Glow Effects -->
+  <div class="ambient-glow-top"></div>
+  <div class="ambient-glow-mid"></div>
+  <div class="ambient-glow-bottom"></div>
+
+  <div class="container">
+
+    <!-- ==================== HEADER BANNER ==================== -->
+    <header class="header-banner">
+      <div class="header-top">
+        <div class="badge-role">
+          <div class="badge-pulse"></div>
+          意向岗位 · AI 绘画 / 视觉产品经理
+        </div>
+        <div class="header-serial">PORTFOLIO · 2026</div>
+      </div>
+
+      <div class="candidate-name-row">
+        <h1 class="candidate-name">朱彬彬</h1>
+        <div class="candidate-subtitle">Zhu Binbin</div>
+      </div>
+
+      <div class="candidate-tagline">
+        <span>研发工程背景</span>
+        <span class="sep">/</span>
+        <span>手绘与设计软件审美</span>
+        <span class="sep">/</span>
+        <span>专注 AI 绘画与产品设计探索</span>
+      </div>
+
+      <div class="candidate-desc">
+        目前是一名研发，有<strong>算法工程和 Agent 开发经验</strong>。平时很喜欢画画，日常会用 <strong>Photoshop、Procreate</strong>。出于好奇，日常有空就会去看看和体验各种 AI 绘画与设计软件（如 <strong>SD WebUI、ComfyUI、ChatGPT Images 2.5、即梦、Lovart、Liblib、星流、Nano Banana 2</strong> 等）。平时习惯切换产品视角思考迭代需求与用户体验，尝试在绘本领域做过 Demo 和工作台方案设计，并在小红书持续记录学习笔记。非常希望能转型做 AI 绘画产品经理，脚踏实地在实际业务中做点好用的工具。
+      </div>
+
+      <!-- Core Highlights: Two Focused Highlights (Light & Compact) -->
+      <div class="metrics-grid">
+        <div class="metric-card-light">
+          <div class="col-left">
+            <span class="badge-tag blue">✨ 方案设计</span>
+            <span class="val-num blue">3 套</span>
+          </div>
+          <div class="col-right">
+            <div class="card-title">项目方案设计推演</div>
+            <div class="card-desc">绘本工作台 · PS分层插件 · 电商批处理中台</div>
+            <div class="tag-row">
+              <span class="micro-tag">4 份完整 PRD</span>
+              <span class="micro-tag">UXP 原生插件</span>
+              <span class="micro-tag">自动化中台</span>
+            </div>
+          </div>
+        </div>
+        <div class="metric-card-light">
+          <div class="col-left">
+            <span class="badge-tag amber">🎨 复合背景</span>
+            <span class="val-num amber">双重视角</span>
+          </div>
+          <div class="col-right">
+            <div class="card-title">研发技术 + 绘画审美</div>
+            <div class="card-desc">算法/Agent 工程理解 × 手绘出图与工具体验</div>
+            <div class="tag-row">
+              <span class="micro-tag">算法工程</span>
+              <span class="micro-tag">PS / Procreate</span>
+              <span class="micro-tag">ComfyUI 常用流</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Info Pills -->
+      <div class="contact-row">
+        <div class="contact-pill">📱 电话 / 微信：<strong>18768010701</strong></div>
+        <div class="contact-pill">✉️ 邮箱：<strong>1446806183@qq.com</strong></div>
+        <div class="contact-pill">📕 小红书：<strong>遥布布 (CV / AI 学习记录)</strong></div>
+      </div>
+    </header>
+
+
+    <!-- ==================== SECTION 1: 项目作品集 ==================== -->
+    <section class="section-wrap">
+      <div class="section-header">
+        <div class="section-title-group">
+          <h2>01 · 项目作品集：方案设计与工作台原型</h2>
+          <div class="section-subtitle">推演设计的 3 个产品方案，并重点对绘本工作台的生产流水线与交互原型进行了详细展开</div>
+        </div>
+        <div class="section-tag">项目作品集</div>
+      </div>
+
+      <!-- 子模块 1.1: 方案全景 -->
+      <div class="sub-item-block">
+        <div class="sub-header-bar">
+          <div class="sub-title">
+            <span class="sub-num">A</span>
+            三套项目方案设计总览
+          </div>
+          <span class="sub-badge">方案规划</span>
+        </div>
+        <div class="window-card">
+          <div class="window-titlebar">
+            <div class="window-dots">
+              <span class="window-dot red"></span>
+              <span class="window-dot yellow"></span>
+              <span class="window-dot green"></span>
+            </div>
+            <span class="window-tab">Project Portfolio Overview</span>
+          </div>
+          <img src="作品集-项目.png" alt="平时推演的项目方案设计" loading="lazy">
+          <div class="card-footer-notes">
+            <div class="note-left">
+              <div class="badge-dot"></div>
+              <strong>包含方案</strong>
+            </div>
+            <div class="note-points">
+              <span><strong>① 工作台方案</strong>：面向绘本出版的 AI 绘画工作台设计推演 (4 份 PRD)</span>
+              <span><strong>② 插件方案</strong>：结合 PS/AI 的 AI 生图分层交稿插件设计</span>
+              <span><strong>③ 中台方案</strong>：针对电商批量出图场景的批处理中台构想</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子模块 1.2: 绘本流水线思考 -->
+      <div class="sub-item-block">
+        <div class="sub-header-bar">
+          <div class="sub-title">
+            <span class="sub-num">B</span>
+            绘本工作台深入 · 传统出版 vs AI 辅助流水线思考
+          </div>
+          <span class="sub-badge">业务流程梳理</span>
+        </div>
+        <div class="window-card">
+          <div class="window-titlebar">
+            <div class="window-dots">
+              <span class="window-dot red"></span>
+              <span class="window-dot yellow"></span>
+              <span class="window-dot green"></span>
+            </div>
+            <span class="window-tab">Publishing Workflow & Pipeline</span>
+          </div>
+          <img src="作品集-插画链路.png" alt="传统出版与 AI 辅助出图流水线思考" loading="lazy">
+          <div class="card-footer-notes">
+            <div class="note-left">
+              <div class="badge-dot"></div>
+              <strong>流程拆解设想</strong>
+            </div>
+            <div class="note-points">
+              <span><strong>脚本室</strong>：LLM 文稿拆解分镜</span>
+              <span><strong>资产库</strong>：角色 FaceID 与画风 LoRA 定型</span>
+              <span><strong>概念台</strong>：多图快速排版打样</span>
+              <span><strong>编辑器</strong>：图层分离与局部修图</span>
+              <span><strong>质检台</strong>：文本/画面基础差错校对</span>
+              <span><strong>出片台</strong>：印刷分辨率与色彩检查</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子模块 1.3: 绘本工作台原型 -->
+      <div class="sub-item-block">
+        <div class="sub-header-bar">
+          <div class="sub-title">
+            <span class="sub-num">C</span>
+            绘本工作台深入 · 交互原型与功能操作尝试
+          </div>
+          <span class="sub-badge">原型交互尝试</span>
+        </div>
+        <div class="window-card">
+          <div class="window-titlebar">
+            <div class="window-dots">
+              <span class="window-dot red"></span>
+              <span class="window-dot yellow"></span>
+              <span class="window-dot green"></span>
+            </div>
+            <span class="window-tab">Workbench Interactive Prototype v2.0</span>
+          </div>
+          <img src="作品集-绘画工作台.png" alt="绘本工作台原型设计尝试" loading="lazy">
+          <div class="card-footer-notes">
+            <div class="note-left">
+              <div class="badge-dot"></div>
+              <strong>交互探索重点</strong>
+            </div>
+            <div class="note-points">
+              <span><strong>全书看板</strong>：40P 分镜可以在白板平铺拖拽查看</span>
+              <span><strong>图层分离</strong>：尝试将背景、前景角色和文字排版分层管理</span>
+              <span><strong>笔刷修图</strong>：结合局部重绘 (Inpainting) 处理画错的手指或细节</span>
+              <span><strong>排版辅助</strong>：加入出血位与安全区辅助线，减少印前返工</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==================== SECTION 2: 交付样书成品 ==================== -->
+    <section class="section-wrap">
+      <div class="section-header">
+        <div class="section-title-group">
+          <h2>02 · 英语启蒙绘本的个人 Demo 尝试</h2>
+          <div class="section-subtitle">自己动手跑通的一个简版儿童绘本 Demo《In the Woods》，尝试保持画风与图文结合</div>
+        </div>
+        <div class="section-tag">绘本实做 Demo</div>
+      </div>
+
+      <div class="dual-books-grid">
+        <div class="book-item-card">
+          <div class="window-titlebar">
+            <div class="window-dots">
+              <span class="window-dot"></span>
+              <span class="window-dot"></span>
+              <span class="window-dot"></span>
+            </div>
+            <span class="window-tab">Cover & Reader</span>
+          </div>
+          <img src="绘本-1.png" alt="英语启蒙绘本封面" loading="lazy">
+          <div class="book-caption">
+            <span>封面与翻页阅读器交互尝试</span>
+            <span class="tag">封面 Demo</span>
+          </div>
+        </div>
+        <div class="book-item-card">
+          <div class="window-titlebar">
+            <div class="window-dots">
+              <span class="window-dot"></span>
+              <span class="window-dot"></span>
+              <span class="window-dot"></span>
+            </div>
+            <span class="window-tab">Page Artwork & Typography</span>
+          </div>
+          <img src="绘本-2.png" alt="绘本内页排版与插画质量" loading="lazy">
+          <div class="book-caption">
+            <span>内页儿童水彩风生图与英文排版尝试</span>
+            <span class="tag">内页 Demo</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==================== SECTION 3: 行业研报矩阵 ==================== -->
+    <section class="section-wrap">
+      <div class="section-header">
+        <div class="section-title-group">
+          <h2>03 · 平时整理的行业调研与学习笔记</h2>
+          <div class="section-subtitle">针对 ComfyUI 常用节点、LoRA 微调、印刷常识与主流工具做的调研与体验笔记</div>
+        </div>
+        <div class="section-tag">学习与调研</div>
+      </div>
+
+      <div class="window-card">
+        <div class="window-titlebar">
+          <div class="window-dots">
+            <span class="window-dot red"></span>
+            <span class="window-dot yellow"></span>
+            <span class="window-dot green"></span>
+          </div>
+          <span class="window-tab">Research Reports & Studies</span>
+        </div>
+        <img src="作品集-调研.png" alt="平时整理的行业调研与学习笔记" loading="lazy">
+        <div class="card-footer-notes">
+          <div class="note-left">
+            <div class="badge-dot"></div>
+            <strong>调研重点包括</strong>
+          </div>
+          <div class="note-points">
+            <span><strong>角色一致性</strong>：ComfyUI 常用节点与工作流探索</span>
+            <span><strong>印制流程</strong>：调研教辅绘本文稿的实际印制要求</span>
+            <span><strong>画风微调</strong>：LoRA 微调样本准备与参数测试</span>
+            <span><strong>视觉 Agent</strong>：多模态 Agent 在生图编排中的应用</span>
+            <span><strong>竞品体验</strong>：Lovart、Liblib、即梦、ChatGPT 2.5 的实测对比</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==================== SECTION 4: 知识沉淀与影响力 ==================== -->
+    <section class="section-wrap">
+      <div class="section-header">
+        <div class="section-title-group">
+          <h2>04 · 小红书：日常记录 CV 与 AI 学习笔记</h2>
+          <div class="section-subtitle">持续拆解 Diffusion、LoRA、ControlNet、IP-Adapter 等技术原理，前期也有发手绘作品</div>
+        </div>
+        <div class="section-tag">自驱学习记录</div>
+      </div>
+
+      <div class="window-card">
+        <div class="window-titlebar">
+          <div class="window-dots">
+            <span class="window-dot red"></span>
+            <span class="window-dot yellow"></span>
+            <span class="window-dot green"></span>
+          </div>
+          <span class="window-tab">Xiaohongshu Tech Notes (@遥布布)</span>
+        </div>
+        <img src="小红书主页.png" alt="小红书日常记录 CV 与 AI 学习笔记" loading="lazy">
+        <div class="card-footer-notes">
+          <div class="note-left">
+            <div class="badge-dot"></div>
+            <strong>小红书主页链接</strong>：<a href="https://xhslink.cn/o/23SG7oaiGwv" style="color:#38bdf8; text-decoration:none; margin-left:6px;">https://xhslink.cn/o/23SG7oaiGwv</a>
+          </div>
+          <div class="note-points">
+            <span><strong>专栏内容</strong>：Diffusion 底层、LoRA 微调、IP-Adapter、ControlNet 控图、光流估计、AI 绘画版权常识等</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==================== CLOSING & CONTACT ==================== -->
+    <footer class="closing-card">
+      <h3>非常希望能转型做 AI 绘画产品经理，期待能有面试交流的机会！</h3>
+      <p>
+        有研发技术底子，平时热爱画画和设计，习惯以产品思维去推演需求并动手做 Demo。<br>
+        非常真诚地希望能加入团队，在实际业务中做点好用、落地的 AI 视觉工具！
+      </p>
+
+      <div class="closing-contact-pills">
+        <div class="closing-pill primary">
+          <span>📱 电话 / 微信</span>
+          <strong style="font-size:17px;">18768010701</strong>
+        </div>
+        <div class="closing-pill">
+          <span>✉️ 电子邮箱</span>
+          <strong>1446806183@qq.com</strong>
+        </div>
+        <div class="closing-pill">
+          <span>📕 小红书</span>
+          <strong>遥布布 (持续记录学习)</strong>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+</body>
+</html>

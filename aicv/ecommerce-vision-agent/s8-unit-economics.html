@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>商业化与单位经济账 (Unit Economics) - AI PM Portfolio</title>
+<style>
+:root{
+--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#0f52ba;--accent-light:#eef4fc;--ok:#2f6b45;--bad:#a12a2a;--warn:#a8761f;--code:#f2f2ef;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#4d8bf0;--accent-light:#192538;--ok:#7ab88f;--bad:#e08585;--warn:#d6a75a;--code:#202020;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15.5px/1.75 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:24px 24px 0}
+nav{margin-bottom:48px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+h1{font-size:32px;line-height:1.2;margin:0 0 12px;letter-spacing:-.02em}
+.sub{font-size:16px;color:var(--muted);margin:0 0 32px}
+h2{font-size:15px;margin:50px 0 20px;border-bottom:1px solid var(--line);padding-bottom:12px;display:flex;align-items:center;gap:8px}
+h2 .n{background:var(--accent);color:#fff;font-size:11px;padding:2px 6px;border-radius:4px;margin-right:8px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:24px;margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,0.02)}
+.card h4{margin:0 0 12px;font-size:16px;color:var(--fg);display:flex;align-items:center;gap:8px}
+.q{border:1px solid var(--accent);border-radius:8px;padding:18px 20px;margin:0 0 16px;background:var(--card)}
+.q b{display:block;margin-bottom:6px;font-size:15px;color:var(--accent)}
+.q span{color:var(--muted);font-size:13.5px}
+hr{border:0;border-top:1px solid var(--line);margin:48px 0}
+.nav-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.nav-link{font-size:13px;color:var(--muted);text-decoration:none}
+.nav-link:hover{color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:18px 0}
+th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--line)}
+th{background:var(--code);font-weight:600;color:var(--muted)}
+.highlight-row{background:var(--accent-light)}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.tag.a{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+</style></head><body><div class="wrap">
+
+<div class="nav-bar">
+  <a href="index.html" style="font-weight:700;font-size:14px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:6px;">← 返回目录 (Index)</a>
+  <div style="display:flex;gap:14px;font-size:13px">
+    <a href="s0-project-brief.html" class="nav-link">S0 Brief</a>
+    <a href="s1-target-hypothesis.html" class="nav-link">S1 目标假说</a>
+    <a href="s3-architecture-adr.html" class="nav-link">S3 架构ADR</a>
+    <a href="s5-prd-v0.1.html" class="nav-link">S5 PRD</a>
+    <a href="s6-eval-harness.html" class="nav-link">S6 评测</a>
+    <a href="s7-interactive-demo.html" class="nav-link">S7 沙盘</a>
+    <a href="s8-unit-economics.html" class="nav-link" style="color:var(--accent);font-weight:600">S8 商业化</a>
+  </div>
+</div>
+
+<div style="background:var(--accent-light);border:1px solid rgba(15,82,186,0.25);border-radius:8px;padding:14px 18px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+  <div>
+    <span style="font-size:11.5px;color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase">商业化与单位经济模型 · S8</span>
+    <p style="margin:4px 0 0;font-size:13px;color:var(--muted)">不能算清 GPU Token 账的 AI 产品经理，只是一个“画图 PM”。</p>
+  </div>
+  <span class="tag a">S8 Milestone</span>
+</div>
+
+<h1>商业化模型与单位经济账 (Unit Economics)</h1>
+<p class="sub">从边际成本极度坍缩中捕获商业价值：B2B SaaS 95% 毛利是如何算出来的？</p>
+
+<div class="lead" style="font-size:14.5px;line-height:1.7;color:var(--muted);margin-bottom:32px;border-left:4px solid var(--accent);padding-left:16px;">
+  ToB 的核心永远是<strong>“算账” (ROI)</strong>。客户不会因为“AI很酷”而买单，他们只为“降本增效”买单。同样，一款 AI SaaS 产品的健康度，取决于其底层的 <strong>单位经济模型 (Unit Economics, UE)</strong> 是否能在刨除 GPU 算力成本后，依然保持极高的毛利率。本章节将剥丝抽茧地核算平台每处理一个 SKU 的真实账单。
+</div>
+
+<h2><span class="n">01</span> 单位经济模型对决：传统人工 vs AI 自动化管线</h2>
+
+<p>我们以生成 1 个服饰类 SKU（包含抠图、换场景、打光、合规审查与文字排版）为基准单位，进行成本拆解对照：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>成本项拆解 (Cost Breakdown)</th>
+      <th>传统外包/人工成本</th>
+      <th>本 AI 自动化管线成本</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>执行耗时 (Turnaround Time)</strong></td>
+      <td>约 3 - 5 天</td>
+      <td><strong style="color:var(--ok)">约 15 秒</strong></td>
+    </tr>
+    <tr>
+      <td><strong>1. 图像剥离 (SAM抠图)</strong></td>
+      <td>¥ 5.00 (精修美工)</td>
+      <td>¥ 0.01 (SAM API 摊销)</td>
+    </tr>
+    <tr>
+      <td><strong>2. 场景与光影生成</strong></td>
+      <td>¥ 20.00 (实景影棚+摄影师)</td>
+      <td>¥ 0.12 (ComfyUI / SDXL 算力调用)</td>
+    </tr>
+    <tr>
+      <td><strong>3. 动态文字排版</strong></td>
+      <td>¥ 5.00 (视觉设计/排版)</td>
+      <td>¥ 0.005 (SVG 渲染引擎)</td>
+    </tr>
+    <tr>
+      <td><strong>4. 合规与违禁词审查</strong></td>
+      <td>¥ 5.00 (运营/法务人工核对)</td>
+      <td>¥ 0.01 (Agent.Critic / VLM 视觉大模型)</td>
+    </tr>
+    <tr class="highlight-row">
+      <td><strong>单 SKU 综合边际成本</strong></td>
+      <td><strong style="color:var(--bad)">¥ 35.00</strong> / SKU</td>
+      <td><strong style="color:var(--ok)">¥ 0.145</strong> / SKU</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="font-size:13.5px;color:var(--muted);margin-top:16px;">
+  <strong>商业结论：</strong> AI 管线将边际成本降低了惊人的 <strong>99.5%</strong>。这种量级的成本坍缩，赋予了我们在商业定价上极大的降维打击空间。
+</p>
+
+<h2><span class="n">02</span> 商业变现设计 (Monetization & SaaS Margin)</h2>
+
+<p>有了极低的边际成本，我们在商业化定价（Pricing Strategy）上绝不售卖“API 算力”，而是直接售卖<strong>“业务交付结果 (Business Outcome)”</strong>。</p>
+
+<div class="card">
+  <h4>SaaS 订阅与用量定价双轨制 (Hybrid Pricing)</h4>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:12px;">采用“基础平台年费 + SKU 生成阶梯扣费”模式：</p>
+  <ul>
+    <li><strong>客户侧定价：</strong> 每成功导出一套多平台 SKU 营销图，收费 <strong>¥ 3.00</strong>（仅为传统成本 35元的不足十分之一，客户极度乐意接受）。</li>
+    <li><strong>SaaS 毛利率 (Gross Margin)：</strong> (¥ 3.00 - ¥ 0.145) / ¥ 3.00 = <strong style="color:var(--accent)">95.1%</strong>。</li>
+    <li>这使得产品同时具备了传统 SaaS 的极高毛利特性，以及按需计费（PLG）的规模化扩张能力。</li>
+  </ul>
+</div>
+
+
+<div class="card" style="border-left: 4px solid var(--warn);">
+  <h4>定价哲学：为什么坚决【按成品计费】而不是【按算力/GPU计费】？</h4>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:12px;">不同的管线（复杂的外景重绘 vs 简单的室内打光）耗费的 GPU 时长确实天差地别，但作为商业中台，我们在前端面对客户时，<strong>必须坚决执行“按交付成品计费”，将底层的算力波动黑盒化。</strong></p>
+  <ul>
+    <li><strong>迎合客户的“心理账户”</strong>：电商总监的预算表里只有“单个 SKU 拍摄成本 100 元”，他们无法理解且极度厌恶“GPU Token、排队耗时”这类不可控的黑盒计费。按成品算，能极大地降低 B 端销售的摩擦力。</li>
+    <li><strong>赚取“确定性风险溢价”</strong>：如果我们按算力卖，我们就沦为了阿里云的“二道贩子”，利润极薄。正是因为我们（SaaS方）替客户承担了“AI 抽卡失败、Agent 重试”的算力沉没成本，我们才能把成本 0.15 元的图卖到 3.00 元，赚取高达 90%+ 的风险溢价。</li>
+    <li><strong>倒逼产研团队死磕“一次通过率”</strong>：如果按算力收费，用户生成的废片越多，平台反而越赚钱，这会导致产研失去优化模型的动力。只有按成品收费，公司为了保住利润，才会死磕 PRD 中提到的“前置质检”与“合规拦截”，逼迫技术团队把“人工接管率”压到 5% 以下。</li>
+  </ul>
+</div>
+<h2><span class="n">03</span> 高级 PM 视角的隐形成本陷阱 (Hidden Agent Loops)</h2>
+
+<p>如果一份 UE 报告只算到上面那一步，那只能算刚及格。对于拥有“状态机”和“自循环重试 (Self-correction Loop)” 的 Agentic 系统来说，必须将 <strong>废片重试与人工接管成本</strong> 算入其中。</p>
+
+<div class="q">
+  <b>必须考虑 Agent 的循环成本乘数</b>
+  <span>在 S5 PRD 的状态机中，如果 Critic Agent 发现合规问题（如 UI 死区碰撞），会触发最高 3 次的自动重新生成。这意味着一个“难啃”的 SKU，可能会消耗 3 倍的算力成本（¥ 0.145 × 3 = ¥ 0.435）。即便如此，¥ 3.00 的售价依然能够覆盖这种最劣情况 (Worst-case scenario)，保持近 85% 的毛利。</span>
+</div>
+
+<div class="q">
+  <b>人工接管率 (Takeover) 即利润吞噬者</b>
+  <span>S6 设定的 5% 失败红线，其背后是极其残酷的经济账：一旦机器生成失败，任务转入人工工作台兜底，这 5% 的 SKU 成本就会立刻反弹回 ¥ 35.00 甚至更高。这也是为什么整个产品线不卷“生图画质”，而是死磕“一致性与确定性管线”的底层商业逻辑。</span>
+</div>
+
+
+
+</div></body></html>

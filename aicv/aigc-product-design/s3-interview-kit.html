@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S3 访谈工具包 · 商业插画师一手取证</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#b4531f;--ok:#2f6b45;--bad:#a12a2a;--warn:#a8761f;--code:#f2f2ef}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#e08a52;--ok:#7ab88f;--bad:#e08585;--warn:#d6a75a;--code:#202020}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:16px/1.72 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:800px;margin:0 auto;padding:20px 24px 120px}
+h1{font-size:25px;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 8px}
+h2{font-size:15px;margin:58px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--line);letter-spacing:.02em}
+h2 .n{color:var(--muted);font-weight:400;margin-right:10px;font-variant-numeric:tabular-nums}
+h3{font-size:14.5px;margin:26px 0 8px}
+p{margin:0 0 14px}ul,ol{margin:0 0 14px;padding-left:20px}li{margin:6px 0}
+em{font-style:normal;color:var(--accent);font-weight:600}
+.lead{font-size:17px;line-height:1.62;border-left:2px solid var(--accent);padding:2px 0 2px 18px;margin:26px 0 34px}
+.warn{border:1.5px solid var(--bad);border-radius:8px;padding:16px 20px;margin:0 0 20px;background:var(--card)}
+.warn h4{margin:0 0 8px;font-size:13px;letter-spacing:.03em;color:var(--bad);text-transform:uppercase}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin:0 0 16px}
+.card h4{margin:0 0 8px;font-size:13px;letter-spacing:.03em;color:var(--muted);text-transform:uppercase}
+.card.hot{border-color:var(--accent);border-width:1.5px}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border:1px solid var(--line);border-radius:20px;color:var(--muted);margin-right:6px}
+.tag.a{border-color:var(--accent);color:var(--accent)}
+.q{border:1px solid var(--line);border-radius:8px;padding:15px 18px;margin:0 0 12px;background:var(--card)}
+.q b{display:block;font-size:14.5px;margin-bottom:6px;color:var(--fg)}
+.q span{display:block;color:var(--muted);font-size:13px;line-height:1.6}
+.q .target{color:var(--accent);font-size:12.5px;margin-top:5px;font-weight:600}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+hr{border:0;border-top:1px solid var(--line);margin:52px 0}
+.foot{color:var(--muted);font-size:12.5px;line-height:1.7}
+.no{color:var(--bad);font-weight:600;margin-right:4px}
+</style></head><body><div class="wrap">
+
+<nav style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:14px;border-bottom:1px solid var(--line)">
+<a href="index.html" style="font-size:13px;color:var(--muted);text-decoration:none;font-weight:600;letter-spacing:.04em">&#8592; &#26041;&#26696;&#24635;&#35272;</a>
+<div style="display:flex;gap:16px;font-size:13px">
+<a href="s0-project-brief.html" style="color:var(--muted);text-decoration:none">Brief</a>
+<a href="s2-competitive-evidence.html" style="color:var(--muted);text-decoration:none">&#31454;&#21697;</a>
+<a href="s4-feature-derivation.html" style="color:var(--muted);text-decoration:none">&#21151;&#33021;&#25512;&#23548;</a>
+</div>
+</nav>
+<div style="background:rgba(180,83,31,0.06);border:1px solid rgba(180,83,31,0.25);border-radius:8px;padding:14px 18px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+<div>
+<span style="font-size:11.5px;color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase">用户访谈方法论 · 设计决策支撑</span>
+<p style="margin:4px 0 0;font-size:13px;color:var(--muted)">核心调研方法论：硬门槛筛选、防引导性偏差设计、每题明确设定验证目标。</p>
+</div>
+<a href="index.html" style="font-size:13px;color:var(--accent);text-decoration:none;white-space:nowrap;font-weight:600">&#8592; &#36820;&#22238;&#26041;&#26696;&#24635;&#35272;</a>
+</div>
+
+
+<h1>用户访谈工具包 · 商业插画师一手取证</h1>
+<p class="sub">目标：通过 5 场真实商业画师访谈，验证或推翻土办法假设与付费转移逻辑</p>
+
+
+<p class="lead"><strong>访谈第一铁律：永远只问过去发生的事实，不问对未来的愿望。</strong><br>
+问画师“如果有一个在 PS 里自动改字转 CMYK 的工具，你想要吗？”，100% 的人都会说“想要”——这是毫无价值的客套谎言。我们要问的是：<em>“你上个月被甲方要求改文案时，花了几个小时？最后尾款按时结清了吗？”</em></p>
+
+<h2><span class="n">01</span>样本合格硬门槛（必须满足全部 3 条）</h2>
+
+<div class="warn">
+<h4>受访者资格门槛（答不出任何一条，立即礼貌中止，样本作废）</h4>
+<ol style="margin:0;padding-left:20px">
+<li><b>年商业交付量 ≥ 5 单</b>：必须是有真实商业合同/委托金的商业稿件，纯自娱自乐画同人的不属于目标客群。</li>
+<li><b>能清晰说出最近一单的「尾款结算日期」与「交付物形式」</b>：必须交付过包含印刷、包装或商业物料的工程。</li>
+<li><b>在工作流中使用过至少一种 AI 绘图工具或辅助上色工具</b>：了解 AI 生成图与手工图层的差异。</li>
+</ol>
+</div>
+
+<h2><span class="n">02</span>触达渠道与约人话术</h2>
+
+<div class="card hot">
+<h4>高转化渠道排序</h4>
+<p><b>① 站酷 / 小红书商业画师私信</b>（直接搜“包装插画 / 品牌插画接单 / 绘本画师”）：真实度最高，作品集主页有微信号。<br>
+<b>② 米画师企划差评区 / 社区吐槽贴</b>：正在遭遇甲方反复修改、扣减稿酬的受访者，痛感处于最高峰。<br>
+<b>③ 熟人圈层与插画培训班社群</b>：破冰成本低，容易约到 40 分钟深度长聊。</p>
+</div>
+
+<div class="card">
+<h4>无痛破冰约聊模板（微信 / 私信直接复制）</h4>
+<p style="font-family:ui-monospace,Menlo,monospace;font-size:13.5px;color:var(--fg);background:var(--code);padding:12px;border-radius:6px;line-height:1.6">
+“老师您好！非常喜欢您在站酷/小红书发布的 [作品名字] 商业插画！<br>
+我是一名专注于设计工作流提效的产品人，最近正在调研商业插画师在<b>「定稿后交付甲方、印厂沟通、以及文案反复修改」</b>中遇到的实际繁琐问题。<br>
+绝非推销，只想耽误您 20~25 分钟做个专业交流，了解您平时的真实操作流。为表感谢，交流结束后为您准备了 <b>¥50 无门槛星巴克礼品卡 / 微信红包</b>，不知您明后天是否有空通个语音？”
+</p>
+</div>
+
+<h2><span class="n">03</span>访谈 9 题标准化提纲</h2>
+
+<div class="q">
+<b>Q1 · 交付链路复盘</b>
+<span>“请回忆一下您最近完成并收到尾款的一单商业插画。从甲方说‘画面没问题了’，到您最终把文件发过去、尾款到账，中间经历了几轮沟通？交了哪些格式？”</span>
+<div class="target">验证：实际交付物结构，究竟是扁平图、PSD 还是印刷包。</div>
+</div>
+
+<div class="q">
+<b>Q2 · 文案改动痛点（核心刺探）</b>
+<span>“有没有遇到过甲方在画面基本定稿后，突然要求‘换一个标语’或‘文案排版挪个位置’？您当时是怎么处理底图被盖住的部分的？花了多长时间？”</span>
+<div class="target">验证：S1 土办法 ①（仿制图章补底）与 ②（重新抽卡）的真实发生频次与工时。</div>
+</div>
+
+<div class="q">
+<b>Q3 · 印刷与格式退单事故</b>
+<span>“有没有过把图发给甲方或印厂后，对方因为‘色差太大变灰了’、‘没留出血’或‘文字没转曲’把文件退回来的经历？当时是怎么补救的？”</span>
+<div class="target">验证：RGB→CMYK 色偏和印刷预检的真实杀伤力。</div>
+</div>
+
+<div class="q">
+<b>Q4 · AI 工具在工作流中的实际位置</b>
+<span>“您平时会用 Midjourney、SD 或 Firefly 做辅助吗？通常在哪个环节用？生出来的图最大的硬伤是什么，导致您无法直接交差？”</span>
+<div class="target">验证：C1（无图层）与 C3（下采样）对画师构成的第一手心理摩擦。</div>
+</div>
+
+<div class="q">
+<b>Q5 · 版权与客户质疑</b>
+<span>“现在的甲方在合同或验收时，会不会盘问‘这是不是 AI 画的’？他们对版权合规有什么硬性要求吗？如果被质疑，您怎么自证？”</span>
+<div class="target">验证：权属存证包与创作链条记录的实际价值。</div>
+</div>
+
+<div class="q">
+<b>Q6 · 现存替代工具与成本</b>
+<span>“为了搞定最后的打包、修补或切图，您目前用过什么脚本、插件或第三方工具吗？每个月/每年为此花多少钱？”</span>
+<div class="target">验证：预算转移承载力。</div>
+</div>
+
+<div class="q">
+<b>Q7 · 工作流阻力测试（反常识检验）</b>
+<span>“如果有一个工具能帮您自动搞定改字补底和一键规范打包，但必须把图上传到一个独立网页里操作；和直接在 Photoshop 右边面板里点一下，您觉得哪种能接受？”</span>
+<div class="target">验证：公理四（离开 PS 的独立 SaaS 必死）在画师心智中的强度。</div>
+</div>
+
+<div class="q">
+<b>Q8 · 尾款与结算卡点</b>
+<span>“在您的接单经历中，有没有遇到过‘画面没争议，但因为格式/版权/琐碎返工把尾款拖了很久’的情况？通常拖欠比例是多少？”</span>
+<div class="target">验证：价值结算终点的硬度。</div>
+</div>
+
+<div class="q">
+<b>Q9 · 付费锚点测试</b>
+<span>“假设一个能在 PS 里让文案随时改而不坏图、一键生成符合印厂标准的物料包与合规存证的插件，如果按单付费（如 19 元/项目），或者月租 49 元，您会怎么选？”</span>
+<div class="target">验证：买断制 vs 订阅制的付费偏好。</div>
+</div>
+
+<h2><span class="n">04</span>绝对禁问清单（出现一次，访谈作废）</h2>
+
+<ul>
+<li><span class="no">✕</span> <b>禁问：“您觉得 AI 在插画领域未来前景如何？”</b>（诱导空泛玄学，毫无事实价值）</li>
+<li><span class="no">✕</span> <b>禁问：“如果有这个功能，您会买吗？”</b>（廉价的客套承诺，假阳性概率 90%）</li>
+<li><span class="no">✕</span> <b>禁问：“您平时改图累不累？”</b>（把答案喂给受访者）</li>
+</ul>
+
+</div></body></html>

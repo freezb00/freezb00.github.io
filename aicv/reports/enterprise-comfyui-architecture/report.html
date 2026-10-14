@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>企业级 ComfyUI 的使用方式与生产架构演进 — 深度调研报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style id="enterprise-standard-style">
+:root{
+  --bg:#fafaf9; --ink:#1c1917; --mute:#78716c; --line:#e7e5e4; --soft:#f5f5f4;
+  --accent:#2563eb; --accent-hover:#1d4ed8; --warn:#b45309; --bad:#b91c1c; --ok:#15803d;
+  --side: 280px;
+  --unified-nav-width: 300px;
+
+  /* 兼容映射变量 */
+  --bg-soft: var(--soft);
+  --bg-sunk: #eeedea;
+  --ink-2: #292524;
+  --ink-3: var(--mute);
+  --line-2: #d6d3d1;
+  --accent-soft: rgba(37, 99, 235, 0.08);
+  --green: var(--ok);
+  --green-soft: rgba(21, 128, 61, 0.1);
+  --amber: var(--warn);
+  --amber-soft: rgba(180, 83, 9, 0.1);
+  --red: var(--bad);
+  --red-soft: rgba(185, 28, 28, 0.1);
+  --blue: var(--accent);
+  --blue-soft: rgba(37, 99, 235, 0.1);
+  --grey: var(--mute);
+  --grey-soft: var(--soft);
+}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f172a; --ink:#f8fafc; --mute:#94a3b8; --line:#1e293b; --soft:#1e293b;
+    --accent:#38bdf8; --accent-hover:#0ea5e9; --warn:#f59e0b; --bad:#ef4444; --ok:#10b981;
+    --bg-soft: #1e293b;
+    --bg-sunk: #0b1120;
+    --ink-2: #cbd5e1;
+    --ink-3: #94a3b8;
+    --line-2: #334155;
+    --accent-soft: rgba(56, 189, 248, 0.12);
+    --green: #10b981;
+    --green-soft: rgba(16, 185, 129, 0.12);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245, 158, 11, 0.12);
+    --red: #ef4444;
+    --red-soft: rgba(239, 68, 68, 0.12);
+    --blue: #38bdf8;
+    --blue-soft: rgba(56, 189, 248, 0.12);
+    --grey: #94a3b8;
+    --grey-soft: #1e293b;
+  }
+}
+
+*{box-sizing:border-box;}
+html{scroll-padding-top:24px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%;}
+body{
+  margin:0; background:var(--bg); color:var(--ink); line-height:1.75;
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14.5px; transition:background .2s,color .2s; overflow-x: hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+.container, .wrap{
+  max-width:980px; margin:0 auto; padding:40px 24px 96px;
+}
+@media (max-width:768px){
+  .container, .wrap{ padding:24px 16px 64px; }
+}
+
+header.report-header{ padding-bottom: 24px; border-bottom: 2px solid var(--line); margin-bottom: 32px; }
+.header-badge{ display: inline-block; font-size: 11.5px; font-weight: 700; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+h1{ font-size:28px; line-height:1.35; margin:0 0 12px; color:var(--ink); font-weight:800; letter-spacing:-0.02em; }
+.subtitle{ font-size: 15.5px; color: var(--mute); line-height: 1.6; margin: 0 0 20px; }
+h2{ font-size:21px; margin:44px 0 18px; padding-bottom:10px; border-bottom:1.5px solid var(--line); color:var(--ink); font-weight:750; letter-spacing:-0.01em; scroll-margin-top:24px; }
+h3{ font-size:16.5px; margin:26px 0 12px; color:var(--ink); font-weight:700; }
+h4{ font-size:15px; margin:20px 0 8px; color:var(--ink); font-weight:650; }
+p, li{ font-size:14.5px; color:var(--ink); line-height:1.8; }
+ul, ol{ padding-left:22px; margin:12px 0; }
+li{ margin:6px 0; }
+strong{ color:var(--ink); font-weight:650; }
+a{ color:var(--accent); text-decoration:none; transition: color .15s; }
+a:hover{ color:var(--accent-hover); text-decoration:underline; }
+hr{ border:0; border-top:1px solid var(--line); margin:36px 0; }
+
+code{
+  background:var(--soft); color:var(--accent); padding:2px 6px; border-radius:4px;
+  font-size:13px; font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+pre{
+  background:var(--soft); border:1px solid var(--line); padding:16px; border-radius:8px;
+  overflow-x:auto; font-size:13px; line-height:1.6; margin:18px 0;
+  font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+pre code{ background:transparent; padding:0; color:var(--ink); }
+
+.architecture-diagram{
+  background: var(--soft); border: 1px solid var(--line); padding: 18px 20px;
+  border-radius: 8px; overflow-x: auto; font-size: 12.5px; line-height: 1.32;
+  font-family: 'JetBrains Mono', monospace; margin: 20px 0;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+}
+
+table{
+  width:100%; border-collapse:collapse; margin:18px 0; font-size:13px;
+  border:1px solid var(--line); border-radius:8px; overflow:hidden;
+}
+th, td{
+  border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; color:var(--ink);
+}
+th{
+  background:var(--soft); font-weight:650; color:var(--ink); position:sticky; top:0;
+}
+tr:nth-child(even){ background:rgba(0,0,0,0.015); }
+@media (prefers-color-scheme:dark){
+  tr:nth-child(even){ background:rgba(255,255,255,0.02); }
+}
+.tablewrap{ overflow-x:auto; margin:20px 0; border:1px solid var(--line); border-radius:8px; }
+.tablewrap table{ margin:0; border:none; }
+
+.badge, .b{ display:inline-block; padding:2px 9px; border-radius:6px; font-size:12px; font-weight:600; line-height:1.5; }
+.badge-pass, .bA{ background:var(--green-soft); color:var(--ok); border:1px solid rgba(21,128,61,0.25); }
+.badge-pending, .bB{ background:var(--accent-soft); color:var(--accent); border:1px solid rgba(37,99,235,0.25); }
+.badge-gray, .bC{ background:var(--soft); color:var(--mute); border:1px solid var(--line); }
+.badge-fail{ background:var(--red-soft); color:var(--bad); border:1px solid rgba(185,28,28,0.25); }
+.badge-amber{ background:var(--amber-soft); color:var(--warn); border:1px solid rgba(180,83,9,0.25); }
+.badge-blue{ background:var(--accent-soft); color:var(--accent); border:1px solid rgba(37,99,235,0.25); }
+.badge-green{ background:var(--green-soft); color:var(--ok); border:1px solid rgba(21,128,61,0.25); }
+.badge-purple{ background:rgba(147, 51, 234, 0.1); color:#9333ea; border:1px solid rgba(147, 51, 234, 0.25); }
+
+.thesis-box{
+  background:#eff6ff; border:1.5px solid #bfdbfe; border-left:5px solid var(--accent);
+  border-radius:8px; padding:20px 22px; margin:20px 0 24px;
+}
+.thesis-box strong.title{ display:block; font-size:15.5px; color:#1e40af; margin-bottom:8px; letter-spacing:0.5px; }
+.thesis-box p{ color:#1e3a8a; margin:0; font-size:14.5px; line-height:1.75; }
+@media (prefers-color-scheme:dark){
+  .thesis-box{ background:rgba(56, 189, 248, 0.08); border-color:rgba(56, 189, 248, 0.25); }
+  .thesis-box strong.title{ color:#38bdf8; }
+  .thesis-box p{ color:#e2e8f0; }
+}
+
+.grid-3{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin:20px 0; }
+.card{ background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,0.02); }
+.card .k{ font-size:12px; color:var(--mute); font-weight:600; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px; }
+.card .v{ font-size:24px; font-weight:750; color:var(--accent); line-height:1.2; margin-bottom:6px; }
+.card .d{ font-size:13px; color:var(--mute); line-height:1.5; }
+
+.callout{ border-left:4px solid var(--accent); background:var(--soft); padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; }
+.callout.warn, .note{ border-left:4px solid var(--warn); background:#fffbeb; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.warn strong, .note strong{ color:var(--warn); }
+.callout.danger, .bad{ border-left:4px solid var(--bad); background:#fef2f2; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.danger strong, .bad strong{ color:var(--bad); }
+.callout.good, .good{ border-left:4px solid var(--ok); background:#f0fdf4; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.good strong, .good strong{ color:var(--ok); }
+@media (prefers-color-scheme:dark){
+  .callout.warn, .note{ background:rgba(245, 158, 11, 0.1); }
+  .callout.danger, .bad{ background:rgba(239, 68, 68, 0.1); }
+  .callout.good, .good{ background:rgba(16, 185, 129, 0.1); }
+}
+
+blockquote{ margin:16px 0; padding:12px 18px; background:var(--soft); border-left:4px solid var(--accent); color:var(--ink); border-radius:0 8px 8px 0; }
+blockquote p{ margin:4px 0; }
+
+.meta-box{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px 20px; margin:20px 0 32px; }
+.meta-box .item{ display:inline-block; margin-right:24px; font-size:13px; color:var(--mute); }
+.meta-box .item strong{ color:var(--ink); font-weight:600; }
+.source-tag{ font-size: 12px; color: var(--mute); display: block; margin-top: 6px; }
+
+/* 业务特有组件适配 */
+.stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:18px 0; }
+.stat-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+.stat-val{ font-size:20px; font-weight:750; color:var(--accent); }
+.stat-lbl{ font-size:12px; color:var(--mute); margin-top:4px; }
+
+.prod-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin:16px 0; }
+.prod-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.prod-title{ font-size:16px; font-weight:700; color:var(--ink); margin:0; }
+.prod-tag{ font-size:12px; padding:2px 8px; border-radius:4px; background:var(--accent-soft); color:var(--accent); }
+.pros-cons{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px; }
+@media (max-width:640px){ .pros-cons{ grid-template-columns:1fr; } }
+.pros-box{ background:rgba(21,128,61,0.06); border:1px solid rgba(21,128,61,0.2); border-radius:6px; padding:12px; }
+.cons-box{ background:rgba(185,28,28,0.06); border:1px solid rgba(185,28,28,0.2); border-radius:6px; padding:12px; }
+.box-title{ font-weight:700; font-size:13px; margin-bottom:6px; }
+.pros-box .box-title{ color:var(--ok); }
+.cons-box .box-title{ color:var(--bad); }
+
+.formula-box{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px; margin:16px 0; }
+.formula-header{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.formula-badge{ font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px; background:var(--accent-soft); color:var(--accent); }
+.formula-sub{ font-size:12px; color:var(--mute); }
+.formula-content{ overflow-x:auto; padding:8px 0; }
+
+.scenario-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:20px 0; }
+.scenario-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px; }
+
+.meta-header{ background:var(--soft); border-radius:8px; margin:16px 0 28px; overflow:hidden; border:1px solid var(--line); }
+.meta-header summary{ padding:10px 16px; cursor:pointer; font-weight:600; font-size:13.5px; color:var(--mute); list-style:none; }
+.meta-header summary::-webkit-details-marker{ display:none; }
+.meta-header summary::before{ content:"▸ "; }
+.meta-header[open] summary::before{ content:"▾ "; }
+.meta-header dl{ padding:0 16px 14px; margin:0; font-size:13px; }
+.meta-header dt{ font-weight:600; color:var(--mute); margin-top:8px; }
+.meta-header dd{ margin:2px 0 0 16px; color:var(--ink); }
+.ai-disclaimer{ font-size:12px; color:var(--mute); padding:8px 16px; border-top:1px solid var(--line); }
+
+footer, .footer{ margin-top:60px; padding-top:20px; border-top:1px solid var(--line); font-size:13px; color:var(--mute); text-align:center; }
+
+/* ==================== 抽屉侧边栏统一标准导航 ==================== */
+.unified-nav-btn{
+  position:fixed; top:16px; left:16px; z-index:9999;
+  width:40px; height:40px; border-radius:8px;
+  border:1px solid var(--line); background:var(--bg); color:var(--ink);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:20px; box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  transition:all .2s cubic-bezier(0.4,0,0.2,1);
+}
+.unified-nav-btn:hover{
+  background:var(--soft); color:var(--accent); border-color:var(--accent);
+  transform:scale(1.05); box-shadow:0 4px 14px rgba(37,99,235,0.15);
+}
+body.unified-nav-open .unified-nav-btn{ opacity:0; pointer-events:none; }
+.unified-nav-overlay{ display:none !important; }
+
+aside.unified-nav-drawer{
+  position:fixed; left:0; top:0; bottom:0;
+  width:var(--unified-nav-width); max-width:86vw;
+  background:var(--soft); border-right:1px solid var(--line);
+  padding:24px 16px 20px; overflow-y:auto; display:flex; flex-direction:column;
+  z-index:10001; box-shadow:4px 0 24px rgba(0,0,0,0.08);
+  transform:translateX(-100%);
+  transition:transform .25s ease-in-out;
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme:dark){
+  aside.unified-nav-drawer{ box-shadow:4px 0 24px rgba(0,0,0,0.4); }
+}
+body.unified-nav-open aside.unified-nav-drawer{ transform:translateX(0); }
+
+.unified-nav-drawer .drawer-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding-bottom:14px; border-bottom:1px solid var(--line); margin-bottom:14px;
+}
+.unified-nav-drawer .drawer-brand{
+  font-size:14.5px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:6px;
+}
+.unified-nav-drawer .drawer-brand span{ color:var(--accent); }
+.unified-nav-drawer .drawer-close-btn{
+  background:transparent; border:none; font-size:18px; color:var(--mute);
+  cursor:pointer; padding:6px; border-radius:6px; line-height:1; transition:all .15s;
+}
+.unified-nav-drawer .drawer-close-btn:hover{ background:var(--bg); color:var(--ink); }
+
+.unified-nav-drawer .drawer-shortcuts{
+  display:flex; flex-direction:column; gap:6px; margin-bottom:14px;
+  padding-bottom:14px; border-bottom:1px dashed var(--line);
+}
+.unified-nav-drawer .shortcut-btn{
+  display:flex; align-items:center; gap:8px; padding:7px 12px;
+  border-radius:6px; font-size:13px; font-weight:500; color:var(--ink);
+  text-decoration:none; background:var(--bg); border:1px solid var(--line);
+  transition:all .15s ease;
+}
+.unified-nav-drawer .shortcut-btn:hover{
+  background:var(--line); color:var(--accent); border-color:var(--accent);
+}
+
+.unified-nav-drawer .toc-section-title{
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--mute); margin:6px 0 8px; padding:0 4px;
+}
+.unified-nav-drawer .drawer-toc{
+  display:flex; flex-direction:column; gap:3px; flex:1;
+}
+.unified-nav-drawer .drawer-toc a{
+  display:block; padding:7px 10px; border-radius:6px;
+  font-size:13px; color:var(--mute); text-decoration:none;
+  line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  transition:background .15s, color .15s;
+}
+.unified-nav-drawer .drawer-toc a:hover{
+  color:var(--ink); background:var(--line);
+}
+.unified-nav-drawer .drawer-toc a.active{
+  color:var(--accent); background:var(--bg); font-weight:600;
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== Unified Sidebar Drawer HTML ==================== -->
+<button class="unified-nav-btn" id="unifiedNavBtn" title="展开目录导航">☰</button>
+<div class="unified-nav-overlay" id="unifiedNavOverlay"></div>
+<aside class="unified-nav-drawer" id="unifiedNavDrawer">
+  <div class="drawer-header">
+    <div class="drawer-brand">作品集研报 · <span>出版教育 AI PM</span></div>
+    <button class="drawer-close-btn" id="unifiedNavClose" title="收起导航">✕</button>
+  </div>
+  <div class="drawer-shortcuts">
+    <a href="../../index.html" class="shortcut-btn">🏠 返回作品集总览</a>
+
+  </div>
+  <div class="toc-section-title">报告目录 (Contents)</div>
+  <nav class="drawer-toc" id="unifiedNavToc">
+    <a href="#sec-1" title="1. 核心判断与执行摘要（Executive Summary）">1. 核心判断与执行摘要（Executive Summary）</a>
+<a href="#sec-2" title="2. 企业级业务形态与双轨架构定位">2. 企业级业务形态与双轨架构定位</a>
+<a href="#sec-3" title="3. 云原生高并发服务化与 GPU 调度基础设施">3. 云原生高并发服务化与 GPU 调度基础设施</a>
+<a href="#sec-4" title="4. 存储架构与大模型只读分发机制">4. 存储架构与大模型只读分发机制</a>
+<a href="#sec-5" title="5. 工作流资产化、GitOps 版本流转与供应链安全治理">5. 工作流资产化、GitOps 版本流转与供应链安全治理</a>
+<a href="#sec-6" title="6. 业界主流方案横评与 FinOps 成本优化">6. 业界主流方案横评与 FinOps 成本优化</a>
+<a href="#sec-7" title="7. 落地决策树与工程排查自查清单">7. 落地决策树与工程排查自查清单</a>
+
+  </nav>
+</aside>
+
+
+<div class="container">
+<h1>企业级 ComfyUI 的使用方式与生产架构演进深度调研报告</h1>
+<hr />
+<h2 id="sec-1">1. 核心判断与执行摘要（Executive Summary）</h2>
+<h3>结论 1：企业级 ComfyUI 的本质是“无状态 DAG 算力引擎”，而非“云端单体画布”</h3>
+<p>将 ComfyUI 引入企业生产环境，最大的认知误区是试图把单机版 Web 界面直接搬到云端供全员共享。在工业化落地中，<strong>ComfyUI 必须彻底降级为纯粹的无状态有向无环图 (DAG) 算力执行容器</strong>。企业成功的标准架构是“分层解耦体系”：<br />
+- <strong>研发态（面向算法工程师与资深设计师）</strong>：在受限沙箱中利用 ComfyUI 可视化画布调试复杂生成逻辑（80+ 节点）；<br />
+- <strong>消费态（面向美编、插画师及业务系统）</strong>：通过 <strong>Dynamic Ingestion Manifest (<code>workflow_manifest.yaml</code>)</strong> 将庞杂计算图抽象为 3~5 个业务参数输入（Prompt、Seed、参考图、画风），业务端仅接触轻量 Web 画板或业务 API，实现“零节点感知”。</p>
+<h3>结论 2：GPU 调度黄金标准：必须坚守“单卡单 Pod”，严禁生产滥用 Time-Slicing</h3>
+<ul>
+<li><strong>单卡单 Pod (Single-GPU per Pod) 铁律</strong>：ComfyUI 内部核心基于全局模型缓存字典与单线程执行队列，单实例无法在同一物理卡上并发执行多个 prompt。多卡机器必须通过 <code>CUDA_VISIBLE_DEVICES=X</code> 启动多个独立的隔离容器。</li>
+<li><strong>Time-Slicing 风险判定</strong>：Diffusion 任务在 VAE 解码与大步长去噪阶段存在瞬时显存尖峰（VRAM Spikes）。由于 NVIDIA Time-Slicing 缺乏硬件级显存隔离，多容器共享单卡时极易发生<strong>跨 Pod 传染性 CUDA OOM 级联崩溃</strong>；A100/H100 高并发场景应采用 <strong>MIG (硬件多实例分割)</strong>，消费级或 24G 显卡（L4/A10/4090）必须采用单卡独占。</li>
+</ul>
+<h3>结论 3：存储与分发基石：JuiceFS 只读高速挂载与本地 NVMe 拦截</h3>
+<p>几十 GB 的 Checkpoint 权重（如 FLUX.1、SDXL、ControlNet）切忌打包进 Docker 镜像（会导致镜像膨胀至 100GB+ 并摧毁弹性扩缩容）。工业标准是<strong>容器镜像与模型权重彻底解耦</strong>：<br />
+- 底层采用对象存储（S3/MinIO），挂载层采用 <strong>JuiceFS CSI Driver (ReadOnlyMany PVC)</strong>；<br />
+- 利用宿主机本地高速 NVMe 建立数据块缓存，二次及并发加载顺序读取速度可达 <strong>3~5 GB/s</strong>，百 GB 模型库在 6~10 秒内即可由 <code>safetensors</code> 反序列化入显存；通过 <code>JuiceFS Operator WarmUp CRD</code> 或 P2P 预热彻底杜绝突发扩容时的“惊群效应”（Thundering Herd）。</p>
+<h3>结论 4：工作流研发与供应链安全：GitOps 双格式版本流转与物理沙盒准入</h3>
+<ul>
+<li><strong>双格式协同</strong>：Git 仓库中同时受控保存 <code>workflow_ui.json</code>（去除 Viewport 浮动噪声的开发态画布）与 <code>workflow_api.json</code>（运行态纯 DAG），消除脏 Diff；</li>
+<li><strong>自动化 CI 验证</strong>：PR 合并前必须通过三级流水线检查（节点 AST 白名单过滤、模型 SHA256 验真、基于固定 Seed 的端到端测试图 pHash 汉明距离 $\le 2$ 校验）；</li>
+<li><strong>供应链投毒防范</strong>：鉴于 2024 年 <strong>NullBulge 恶意扩展 (<code>ComfyUI_LLMVISION</code>) 窃取凭据事件</strong>，生产环境必须<strong>物理禁用原生 ComfyUI-Manager 的线上热安装</strong>；构建只读根文件系统（Read-only RootFS），配置 K8s NetworkPolicy 阻断外部 Egress 出站连接，依赖私有 PyPI 源并开启哈希强校验（<code>--require-hashes</code>）。</li>
+</ul>
+<h3>结论 5：FinOps 成本分水岭：Serverless 较自建集群 TCO 骤降 60%~75%，离线批处理 SaladCloud 具备绝对壁垒</h3>
+<ul>
+<li><strong>TCO 测算模型</strong>：在月产 100 万张图（70% SDXL + 30% FLUX.1 Dev）的混合负载下，自建 AWS EKS 算力闲置与 SRE 运维人力使月成本高达 <strong>$9,500–$15,100</strong>；而采用现代 Serverless（如 Modal / RunPod）综合 TCO 降至 <strong>$2,800–$3,700/月</strong>；</li>
+<li><strong>极端性价比方案</strong>：针对电商切图、海量数据集扩增等离线批处理场景，<strong>SaladCloud 利用消费级分布式算力将单张 SDXL 成本压至 $0.00014 (约 7,200 张/美元)</strong>，是目前公网算力单价的绝对天花板。</li>
+</ul>
+<hr />
+<h2 id="sec-2">2. 企业级业务形态与双轨架构定位</h2>
+<p>在企业内部落地 ComfyUI，必须平衡“专业创作者的灵活性需求”与“业务系统的大规模高可用需求”，形成明确的双轨分层体系：</p>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| 业务消费层 (Business Layer)                                                                       |
+| [电商后台 / 营销系统]     [出版排版 Web 画板]     [Figma / PS 创意插件]     [批量生图脚本/SDK]        |
++---------------------------------------------------------------------------------------------------+
+                                                  │ HTTP REST / WebSocket (入参仅 3-5 个业务变量)
+                                                  ▼
++---------------------------------------------------------------------------------------------------+
+| 中台控制面 (Control Plane: API Gateway &amp; Orchestration)                                           |
+| 1. API Gateway (FastAPI / Go): 认证鉴权 (JWT/OAuth2) ｜ 三级配额流控 (QPS / Concurrency / Budget)|
+| 2. Dynamic Ingestion Engine: 读取 workflow_manifest.yaml ｜ 参数校验 (Pydantic) ｜ 动态组装 DAG     |
+| 3. 安全审查网关 (Content Moderation): 前置文本敏感词过滤 (Trie/LlamaGuard) ｜ 越狱 Prompt 阻断     |
+| 4. 任务调度状态机: Redis Streams / RabbitMQ 任务缓冲 ｜ 会话映射表 (PromptID &lt;-&gt; SessionID)       |
++---------------------------------------------------------------------------------------------------+
+                                                  │ 分布式拉取与派发
+                                                  ▼
++---------------------------------------------------------------------------------------------------+
+| 算力数据面 (Data Plane: Kubernetes GPU Worker Pool)                                               |
+| [Pod 1 (Worker)]          [Pod 2 (Worker)]          [Pod N (Worker)]     &lt;── KEDA 弹性伸缩驱动    |
+| • ComfyUI Headless Engine • ComfyUI Headless Engine • ComfyUI Headless   (基于队列深度 0 -&gt; N)   |
+| • Local Sidecar Agent     • Local Sidecar Agent     • Local Sidecar Agent                         |
++---------------------------------------------------------------------------------------------------+
+                                                  │ 挂载 /models (POSIX ReadOnlyMany)
+                                                  ▼
++---------------------------------------------------------------------------------------------------+
+| 存储与基础设施底座 (Storage &amp; Infrastructure)                                                     |
+| [JuiceFS CSI / 分布式缓存] ──&gt; [宿主机本地 NVMe 高速缓存 (3-5 GB/s)] ──&gt; [底层 S3/MinIO 对象存储]  |
+| [企业模型中心 (Model Registry)] ──&gt; [模型 SHA256 验真] ｜ [产物 CDN 分发中心]                       |
++---------------------------------------------------------------------------------------------------+
+</code></pre>
+<h3>2.1 动态参数模板化 (Dynamic Ingestion) 机制</h3>
+<p>将 80+ 个节点的复杂计算图解耦为标准化 OpenAPI 接口，核心在于<strong>工作流元数据抽象层（<code>workflow_manifest.yaml</code>）</strong>：<br />
+1. <strong>参数插桩（Node Alias Annotation）</strong>：算法工程师在设计画布时，将需要外部动态注入的节点赋予统一的前缀别名（如将正向提示词节点命名为 <code>{{VAR_PROMPT}}</code>，将主采样器命名为 <code>{{VAR_SAMPLER}}</code>）；<br />
+2. <strong>Schema 映射清单文件</strong>：<br />
+<code>yaml
+   schema_version: "2.0"
+   workflow_id: "book-illustration-watercolor-v2"
+   version: "2.1.0"
+   inputs:
+     prompt:
+       type: string
+       target_node_id: "6"
+       target_field: "text"
+       template: "{input}, soft watercolor, children book style, clean linework"
+     seed:
+       type: integer
+       target_node_id: "3"
+       target_field: "seed"
+       default_generator: "random_int64"
+     reference_character_image:
+       type: image_url
+       target_node_id: "45"
+       target_field: "image"
+     style_strength:
+       type: float
+       target_node_id: "58"
+       target_field: "strength_model"
+       min: 0.1
+       max: 1.0
+       default: 0.6
+   outputs:
+     rendered_image:
+       source_node_id: "9"</code><br />
+3. <strong>安全注入器（Parameter Sanitizer &amp; Hydrator）</strong>：<br />
+   API 网关载入运行时专用的 <code>workflow_api.json</code> 模板后，在内存中执行深拷贝，按照 Manifest 清单覆写对应字典键值，严禁外部参数越权覆盖未暴露的内部算子。</p>
+<hr />
+<h2 id="sec-3">3. 云原生高并发服务化与 GPU 调度基础设施</h2>
+<h3>3.1 Kubernetes GPU 调度与单卡隔离规范</h3>
+<h4>(1) NVIDIA GPU Operator 配置要求</h4>
+<p>生产集群必须统一部署 <code>NVIDIA GPU Operator</code>，以容器化方式接管宿主机驱动、CUDA Toolkit、K8s Device Plugin 与 DCGM 监控组件。</p>
+<h4>(2) 资源规格与 QoS 保障</h4>
+<p>在 Kubernetes Deployment 中，<strong>必须将 GPU 的 <code>requests</code> 与 <code>limits</code> 保持严格一致</strong>，确保 Pod 获得 <strong>Guaranteed QoS</strong> 等级：</p>
+<pre><code class="language-yaml">resources:
+  requests:
+    cpu: &quot;4&quot;
+    memory: &quot;16Gi&quot;
+    nvidia.com/gpu: &quot;1&quot;
+  limits:
+    cpu: &quot;8&quot;
+    memory: &quot;32Gi&quot;
+    nvidia.com/gpu: &quot;1&quot;
+</code></pre>
+<p><strong>原因</strong>：Kubernetes 调度器将 GPU 视为不可压缩、不可超卖的独占资源。若 requests 小于 limits，可能导致 Pod 被调度至物理显存不足的节点，在突发推理时触发致命的系统级驱逐。</p>
+<h4>(3) Time-Slicing vs MIG 分割选型矩阵</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">评估维度</th>
+<th style="text-align: left;">NVIDIA Time-Slicing (软件分片)</th>
+<th style="text-align: left;">NVIDIA Multi-Instance GPU (MIG)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>隔离层级</strong></td>
+<td style="text-align: left;">驱动层软件时间片轮询上下文切换</td>
+<td style="text-align: left;">硅片硬件级物理切分 (独立计算核心、显存、L2 Cache)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>显存安全</strong></td>
+<td style="text-align: left;"><strong>无隔离</strong>。共享物理显存池，单 Pod 显存突增击穿整卡</td>
+<td style="text-align: left;"><strong>硬隔离</strong>。独立物理显存，单个实例超出仅自身 OOM</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>并发性能</strong></td>
+<td style="text-align: left;">存在严重的“吵闹邻居”（Noisy Neighbor）显存带宽争抢</td>
+<td style="text-align: left;">具备确定性计算吞吐与时延 SLA 保障</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>硬件门槛</strong></td>
+<td style="text-align: left;">适配广（T4、L4、A10、3090、4090、A100）</td>
+<td style="text-align: left;">仅限 Ampere 及以上数据中心架构（A100、A30、H100）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>生产判定</strong></td>
+<td style="text-align: left;"><strong>生产高并发严禁使用</strong>（仅限开发测试或小图）</td>
+<td style="text-align: left;"><strong>A100/H100 生产集群多租户切分的工业首选</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>3.2 容器无头部署与生命周期治理</h3>
+<h4>(1) Headless 启动参数基线</h4>
+<p>容器启动命令必须配置为完全无头、路径重定向与显存预留模式：</p>
+<pre><code class="language-bash">python main.py \
+  --listen 0.0.0.0 \
+  --port 8188 \
+  --disable-auto-launch \
+  --extra-model-paths-config /etc/comfyui/extra_model_paths.yaml \
+  --output-directory /workspace/output \
+  --input-directory /workspace/input \
+  --temp-directory /tmp/comfy_temp \
+  --reserve-vram 1.5 \
+  --fast \
+  --preview-method none
+</code></pre>
+<ul>
+<li><code>--extra-model-paths-config</code>：彻底解耦模型目录，指向挂载的共享只读存储；</li>
+<li><code>--reserve-vram 1.5</code>：强制保留 1.5GB 物理显存余量作为安全气囊，防止瞬时峰值击穿驱动；</li>
+<li><code>--preview-method none</code>：企业 API 服务无需生成中间去噪预览图，关闭可节省 8%~15% 的显存与计算时间。</li>
+</ul>
+<h4>(2) 探针规范 (Kubernetes Probes)</h4>
+<p>ComfyUI 原生缺乏精简的 <code>/health</code> 接口，生产实践依赖内置的 <code>/system_stats</code> 端点：</p>
+<pre><code class="language-yaml">startupProbe:
+  httpGet:
+    path: /system_stats
+    port: 8188
+  failureThreshold: 30       # 允许 300 秒冷启动窗口（自定义节点初始化与引擎自检）
+  periodSeconds: 10
+readinessProbe:
+  httpGet:
+    path: /system_stats
+    port: 8188
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 2
+livenessProbe:
+  httpGet:
+    path: /system_stats
+    port: 8188
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
+</code></pre>
+<h4>(3) 优雅停机 (Graceful Shutdown) 与任务排空</h4>
+<p>生成式任务耗时通常在 10s~120s 之间。节点缩容或滚动更新时，若直接发送 <code>SIGTERM</code> 会导致当前正在渲染的昂贵算力报废。<br />
+- <strong>配置缓冲期</strong>：设置 <code>terminationGracePeriodSeconds: 300</code>；<br />
+- <strong>PreStop Hook 拦截</strong>：在 Pod 销毁前向本地下发 <code>/interrupt</code> 指令中断任务，通知队列释放锁，平滑等待子进程清理显存。</p>
+<hr />
+<h3>3.3 异步调度与 WebSocket 广播架构</h3>
+<pre><code class="language-mermaid">sequenceDiagram
+    autonumber
+    actor Client as 客户端 (Web / 业务系统)
+    participant GW as API Gateway (FastAPI)
+    participant Queue as Redis Task Queue
+    participant Worker as ComfyUI Worker Pod
+    participant Storage as JuiceFS / S3
+
+    Client-&gt;&gt;GW: 1. 建立长连接 (wss://.../ws?client_id=UUID)
+    GW--&gt;&gt;Client: 2. WebSocket 握手成功
+    Client-&gt;&gt;GW: 3. POST /v1/workflow/generate (提交业务参数)
+    GW-&gt;&gt;GW: 4. 参数校验、合并 manifest 组装 Prompt JSON
+    GW-&gt;&gt;Queue: 5. LPUSH comfy_tasks:default (Task Payload, PromptID)
+    GW--&gt;&gt;Client: 6. 返回任务已提交 (PromptID)
+
+    Worker-&gt;&gt;Queue: 7. BRPOP comfy_tasks:default (拉取待处理任务)
+    Worker-&gt;&gt;Worker: 8. 建立本地内部 WS (ws://127.0.0.1:8188/ws) 并提交 /prompt
+
+    loop 实时进度双向流转
+        Worker--&gt;&gt;GW: 9. 内部 WS 捕获 progress / executing 事件，推至 Redis Channel
+        GW--&gt;&gt;Client: 10. 网关订阅 Channel，向对应客户端 WS 广播实时百分比
+    end
+
+    alt 正常执行成功
+        Worker-&gt;&gt;Storage: 11. 抽取 output 结果上传至 S3，生成 CDN 访问链接
+        Worker--&gt;&gt;GW: 12. 广播 execution_success
+        GW--&gt;&gt;Client: 13. WS 推送最终结果图像 URL
+    else 客户端主动取消或超时熔断
+        Client-&gt;&gt;GW: 14. POST /v1/workflow/{PromptID}/cancel
+        GW-&gt;&gt;Worker: 15. POST http://&lt;worker-ip&gt;:8188/interrupt
+        Worker-&gt;&gt;Worker: 16. 立即中断去噪并释放显存
+        GW--&gt;&gt;Client: 17. WS 推送取消确认
+    end
+</code></pre>
+<ul>
+<li><strong>KEDA 队列驱动伸缩规范</strong>：<br />
+  配置 <code>ScaledObject</code> 监听 Redis 任务队列长度（Queue Depth），设置 <code>cooldownPeriod: 300</code>（5分钟防抖冷却窗口），杜绝波峰波谷频繁交替引起的 GPU 实例频繁销毁与拉起抖动。</li>
+</ul>
+<hr />
+<h2 id="sec-4">4. 存储架构与大模型只读分发机制</h2>
+<h3>4.1 资产存储方案技术选型全景对比</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">评测指标</th>
+<th style="text-align: left;">JuiceFS (元数据引擎 + 对象存储)</th>
+<th style="text-align: left;">AWS FSx for Lustre</th>
+<th style="text-align: left;">CephFS</th>
+<th style="text-align: left;">原生集中式 NFS</th>
+<th style="text-align: left;">对象存储挂载 (S3 FUSE)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>底层架构</strong></td>
+<td style="text-align: left;">元数据引擎 (Redis/TiKV) + S3 数据块解耦</td>
+<td style="text-align: left;">高性能并行分布式文件系统 (HPC)</td>
+<td style="text-align: left;">分布式 MDS + OSD 集群</td>
+<td style="text-align: left;">集中式网络存储 (单点或主备)</td>
+<td style="text-align: left;">用户态 FUSE 桥接转换层</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>顺序读吞吐</strong></td>
+<td style="text-align: left;"><strong>极高 (本地 NVMe 命中达 3~5 GB/s)</strong></td>
+<td style="text-align: left;"><strong>极高 (百 GB/s 聚合带宽)</strong></td>
+<td style="text-align: left;">高 (依赖集群规模与网络)</td>
+<td style="text-align: left;">低~中 (受限于单节点带宽与磁盘)</td>
+<td style="text-align: left;">中 (受限于 HTTP 连接与吞吐)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>小文件与元数据性能</strong></td>
+<td style="text-align: left;"><strong>极高 (元数据直接在 Redis 中响应)</strong></td>
+<td style="text-align: left;"><strong>极高 (并行元数据架构)</strong></td>
+<td style="text-align: left;">高</td>
+<td style="text-align: left;">较慢 (RPC 往返延迟明显)</td>
+<td style="text-align: left;"><strong>极慢 (高延迟 HTTP HEAD 轮询)</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>多 Pod 只读并发能力</strong></td>
+<td style="text-align: left;"><strong>卓越 (多节点缓存 + P2P 预热分发)</strong></td>
+<td style="text-align: left;"><strong>卓越 (专为大规模并发设计)</strong></td>
+<td style="text-align: left;">良好 (需大规模调优 MDS)</td>
+<td style="text-align: left;"><strong>极差 (数十个 Pod 并发加载必瘫痪)</strong></td>
+<td style="text-align: left;">中 (并发大量 GET 导致 API 账单激增)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>综合成本效益</strong></td>
+<td style="text-align: left;"><strong>最优 (利用廉价 S3，按需弹性配元数据)</strong></td>
+<td style="text-align: left;"><strong>极昂贵 (按预配带宽与容量常驻计费)</strong></td>
+<td style="text-align: left;">适中 (需高昂硬件采购与运维成本)</td>
+<td style="text-align: left;">较低 (但无法满足高吞吐要求)</td>
+<td style="text-align: left;">低 (但缺少企业级弹性缓存机制)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>POSIX 兼容度</strong></td>
+<td style="text-align: left;"><strong>100% 完全兼容</strong></td>
+<td style="text-align: left;"><strong>100% 完全兼容</strong></td>
+<td style="text-align: left;"><strong>100% 完全兼容</strong></td>
+<td style="text-align: left;"><strong>100% 完全兼容</strong></td>
+<td style="text-align: left;"><strong>不完整 (仅部分只读兼容)</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>生产推荐定位</strong></td>
+<td style="text-align: left;"><strong>企业级 AI 推理集群存储黄金标准</strong></td>
+<td style="text-align: left;">超大规模大模型集中训练 (LLM)</td>
+<td style="text-align: left;">私有云/自建 IDC 物理机房底座</td>
+<td style="text-align: left;">仅限少量测试节点共享模型</td>
+<td style="text-align: left;">简单静态归档</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>4.2 多级缓存与模型预热机制</h3>
+<pre><code>                                 JuiceFS 多级存储与预热拓扑
++---------------------------------------------------------------------------------------------------+
+| 远程持久化层: AWS S3 / MinIO / 阿里云 OSS (统一存放 500GB+ Checkpoints / LoRAs / VAE)              |
++---------------------------------------------------------------------------------------------------+
+                                                  │ 首次冷访问分块拉取 (Chunk Size: 64MB)
+                                                  ▼
++---------------------------------------------------------------------------------------------------+
+| Kubernetes 宿主机层: Local High-Speed NVMe SSD Cache (/var/jfsCache, 3~5 GB/s 顺序吞吐)           |
++---------------------------------------------------------------------------------------------------+
+                                                  │ POSIX 零拷贝 / Direct I/O
+                                                  ▼
++---------------------------------------------------------------------------------------------------+
+| Worker Pod 容器内: ReadOnlyMany PVC 挂载至 /mnt/models_repository (秒级载入 GPU VRAM)             |
++---------------------------------------------------------------------------------------------------+
+</code></pre>
+<ol>
+<li><strong>ReadOnlyMany (ROX) PVC 挂载</strong>：通过 <code>extra_model_paths.yaml</code> 映射，所有 Worker Pod 均以只读模式挂载同一个存储卷，彻底杜绝多容器写入冲突与数据漂移；</li>
+<li><strong>本地 NVMe 拦截（Node Cache Hit）</strong>：同节点上的首个 Pod 访问模型时边读边缓存在宿主机本地 NVMe；随后启动的新 Pod 或重启后的容器直接从本地高速介质读取，将数十 GB 大模型的加载耗时从数分钟压制至 <strong>6~10 秒</strong>；</li>
+<li><strong>P2P 预热分发 (<code>juicefs p2p-warmup</code>) 与 WarmUp CRD</strong>：在发布新模型时，通过 CI/CD 流水线下发 <code>WarmUp</code> 资源，节点间通过局域网横向对等传输数据块，彻底消除数十个 Pod 突发拉取对象存储带宽打满的惊群效应。</li>
+</ol>
+<hr />
+<h3>4.3 容器镜像瘦身与 JIT 预编译持久化</h3>
+<ol>
+<li><strong>镜像分层瘦身规范</strong>：<br />
+   - 严禁将任何 <code>.safetensors</code> 或 <code>.ckpt</code> 打包进 Docker 镜像；<br />
+   - 镜像只包含基础设施底座（CUDA 12.4 + cuDNN）、Python 依赖库（PyTorch 2.4、Triton、FlashAttention-2）及经过安全过审的固定版本 Custom Nodes；<br />
+   - <strong>最终镜像大小控制在 6GB~8GB</strong>，新节点冷拉取镜像耗时压制在 30~60 秒内。</li>
+<li><strong>算子 JIT 编译缓存持久化</strong>：<br />
+   在引入 <code>torch.compile</code>、FlashAttention 或 SageAttention 时，PyTorch 会在首个任务运行时触发 JIT 编译（耗时 2~5 分钟）。<br />
+   - <strong>解决方案</strong>：将宿主机目录通过 <code>hostPath</code> 挂载至 Pod，并通过环境变量配置持久化重定向：<br />
+     ```yaml<br />
+     env:<ul>
+<li>name: TORCHINDUCTOR_CACHE_DIR<br />
+   value: "/var/cache/jit/torchinductor"</li>
+<li>name: TORCHINDUCTOR_FX_GRAPH_CACHE<br />
+   value: "1"<br />
+ volumeMounts:</li>
+<li>name: jit-cache<br />
+   mountPath: /var/cache/jit/torchinductor<br />
+<code>``
+   同一宿主机上的 Pod 共享预编译好的</code>.cubin` 二进制文件，杜绝重复编译卡顿。</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="sec-5">5. 工作流资产化、GitOps 版本流转与供应链安全治理</h2>
+<h3>5.1 工作流 GitOps 规范与双格式协同</h3>
+<pre><code>workflows/
+├── catalog.yaml                     # 企业工作流资产总清单
+└── commercial-illustration/
+    ├── v2.1.0/
+    │   ├── workflow_ui.json         # [开发态] 规范化后的画布文件 (供二次迭代调试)
+    │   ├── workflow_api.json        # [运行时] 生产执行 DAG (Single Source of Truth)
+    │   ├── manifest.yaml            # 参数抽象与暴露规范
+    │   ├── test_payload.json        # CI 自动化合成测试输入
+    │   └── CHANGELOG.md             # 变更日志与审计记录
+</code></pre>
+<ol>
+<li><strong>Git Pre-commit 自动清洗（Normalize &amp; Sanitize）</strong>：<br />
+   - 自动移除 UI JSON 中因拖拽缩放频繁变动的 Viewport 浮动属性（<code>ds.offset</code> 与 <code>ds.scale</code>）；<br />
+   - 对 JSON 字典 Key 实施确定性升序排序（<code>sort_keys=True</code>），使 Git Diff 严格聚焦于真实的算子与连线变更；<br />
+   - 执行 Node ID 规范化重排，消除空洞 ID，避免数字 ID 漂移。</li>
+<li><strong>PR 双签审核流</strong>：任何生产工作流变更必须经过算法专家（校验画质与采样参数）与系统架构师（校验显存预估与节点白名单）双签批准后方可合并。</li>
+</ol>
+<hr />
+<h3>5.2 自动化 CI/CD 校验流水线</h3>
+<pre><code class="language-mermaid">flowchart TD
+    A[开发者提交 PR: workflows/xxx] --&gt; B[CI 阶段 1: 静态语法与元数据校验]
+    B --&gt;|检查| B1[JSON 语法有效性 &amp; Schema Linting]
+    B --&gt;|检查| B2[自定义节点全量命中企业白名单 allowlist.json]
+    B --&gt;|检查| B3[模型 Checkpoint SHA256 存在于企业仓库]
+
+    B1 &amp; B2 &amp; B3 --&gt; C{静态校验通过?}
+    C --&gt;|否| F[阻断 PR 并发送告警通知]
+    C --&gt;|是| D[CI 阶段 2: 动态无头容器 E2E 合成测试]
+
+    D --&gt; D1[启动轻量 ComfyUI Runner Container]
+    D1 --&gt; D2[注入固定 Seed 与 test_payload.json]
+    D2 --&gt; D3[执行完整图计算生成测试输出图]
+
+    D3 --&gt; E[CI 阶段 3: 输出产物保真度校验]
+    E --&gt;|算法 1| E1[感知哈希 pHash: 汉明距离 &lt;= 2]
+    E --&gt;|算法 2| E2[结构相似度 SSIM &gt;= 0.98]
+
+    E1 &amp; E2 --&gt; G{测试匹配基线?}
+    G --&gt;|否| F
+    G --&gt;|是| H[CI 成功: 自动发布至工作流模板注册表]
+</code></pre>
+<ul>
+<li><strong>输出确定性与浮点容忍</strong>：由于不同批次 GPU 架构（如 Ada Lovelace 与 Hopper）存在微妙的 CUDA 舍入误差，绝对二进制 SHA256 极易失配。生产流水线采用<strong>感知哈希（pHash，汉明距离 $\le 2$）</strong>与 <strong>SSIM（结构相似度 $\ge 0.98$）</strong> 作为金标准基线测试判定准则。</li>
+</ul>
+<hr />
+<h3>5.3 自定义节点供应链安全与沙盒加固</h3>
+<h4>(1) 历史恶意事件深度警示：2024 年 NullBulge 供应链投毒案</h4>
+<p>2024 年 6 月，威胁组织 NullBulge 伪造了开源扩展 <strong><code>ComfyUI_LLMVISION</code></strong>，在节点代码包中夹带恶意混淆脚本。当用户启动 ComfyUI 时，脚本自动扫描宿主机，提取 Chrome/Edge 浏览器凭据、信用卡信息、SSH 私钥以及系统环境变量中配置的 OpenAI/Anthropic API Key，并通过 Discord Webhook 外发泄密。<br />
+- <strong>根本成因</strong>：原生 ComfyUI 缺乏模块沙盒，启动时全量导入并执行所有 Custom Node 的 Python 代码，具备完整的操作系统特权。</p>
+<h4>(2) 节点四层准入与沙盒防护体系</h4>
+<ol>
+<li><strong>静态 AST 规则扫描</strong>：自动化静态扫描，严禁节点包含 <code>eval()</code>、<code>exec()</code>、<code>subprocess.Popen</code>、<code>os.system</code> 及未受控的外部网络套接字 <code>socket.socket</code>；</li>
+<li><strong>私有 PyPI 源与哈希锁定</strong>：构建镜像时强制使用企业私有源，开启 <code>--require-hashes</code> 校验每一个 wheel 包的 SHA256；</li>
+<li><strong>运行时沙盒加固</strong>：<br />
+   - 容器以非 root 用户运行（<code>runAsNonRoot: true</code>）；<br />
+   - 开启只读根文件系统（<code>readOnlyRootFilesystem: true</code>）；<br />
+   - 裁剪全部 Linux 内核 Capabilities（<code>drop: ["ALL"]</code>）；</li>
+<li><strong>K8s NetworkPolicy Egress 出站阻断</strong>：严格封锁 Worker Pod 对外部公网的所有出站连接，仅放行内网 S3、Redis 与指定私有服务的 IP，从物理网络层面彻底斩断挖矿木马与数据外传通道。</li>
+</ol>
+<hr />
+<h3>5.4 权限体系与多租户配额流控</h3>
+<h4>(1) RBAC 权限四级模型</h4>
+<ul>
+<li><strong>平台超管 (Admin)</strong>：全局配置、集群弹性伸缩策略、节点准入最终审批；</li>
+<li><strong>工作流架构师 (Architect)</strong>：生产工作流设计、PR 合并、Manifest 契约维护；</li>
+<li><strong>业务制作人 (Lead Designer)</strong>：部门空间管理、团队工作流共享、专属 LoRA 挂载；</li>
+<li><strong>业务操作员 (Operator)</strong>：仅通过简易 Web 画板或业务系统传参出图，无底层节点感知。</li>
+</ul>
+<h4>(2) 三级配额控制机制</h4>
+<ol>
+<li><strong>请求频次流控 (Rate Limiting)</strong>：针对 API Key 实施滑动窗口限流（如 <code>5 QPS</code>）；</li>
+<li><strong>并发 GPU 槽位限制 (Concurrency Limiting)</strong>：限制单租户在队列中最大并发处理数（如同时最多占用 2 个 GPU Pod），防止大租户打满集群造成小租户饥饿；</li>
+<li><strong>算力额度核扣 (Compute Budget)</strong>：从任务历史元数据中提取实际执行耗时（<code>execution_duration_seconds</code>），按秒核扣算力预算，超额自动熔断。</li>
+</ol>
+<hr />
+<h2 id="sec-6">6. 业界主流方案横评与 FinOps 成本优化</h2>
+<h3>6.1 业界主流企业级方案与生态横评</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">平台/方案</th>
+<th style="text-align: left;">运行模式与架构形态</th>
+<th style="text-align: left;">冷启动时延</th>
+<th style="text-align: left;">计费模式与单价水位</th>
+<th style="text-align: left;">核心优势</th>
+<th style="text-align: left;">主要局限/短板</th>
+<th style="text-align: left;">适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Comfy Deploy</strong> (开源/商业)</td>
+<td style="text-align: left;">开源编排层 + 自建/托管 Worker，工作流转 API</td>
+<td style="text-align: left;">依赖底层设施 (自建1-5s / 托管15-30s)</td>
+<td style="text-align: left;">开源免费自建；托管版按调用量与 GPU 运行时计费</td>
+<td style="text-align: left;">• “Vercel for ComfyUI”体验<br>• 版本快照与一键 OpenAPI 导出<br>• 团队多版本工作流分支协作</td>
+<td style="text-align: left;">托管版底层仍依赖公有云；自建版需自行维护 GPU 集群与伸缩编排</td>
+<td style="text-align: left;">拥有自建 K8s 算力、希望快速为前端提供工作流 API 的中大型团队</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>SaladCloud</strong></td>
+<td style="text-align: left;">去中心化/消费级 GPU 云 (分布式节点)，按容器实例计费</td>
+<td style="text-align: left;">30s – 90s (需预拉取镜像与权重)</td>
+<td style="text-align: left;"><strong>极低</strong>：RTX 4090 低至 <strong>$0.16 - $0.22/h</strong> (Lowest/Medium 阶梯)</td>
+<td style="text-align: left;">• 极致的硬件性价比 (比 AWS 低 70%-90%)<br>• 无冷启动计费惩罚 (按容器健康运行计费)</td>
+<td style="text-align: left;">• 抢占式中断风险 (Spot 机制需容错)<br>• 节点网络带宽异构，不适合超低延迟实时交互</td>
+<td style="text-align: left;">大规模批处理任务（电商生图、海量数据集标注扩增、LoRA 批量测试）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Modal</strong></td>
+<td style="text-align: left;">Python 原生代码即基础设施 (Code-as-Infra)，无头容器</td>
+<td style="text-align: left;"><strong>极快：&lt; 3s</strong> (利用内存快照 Memory Snapshots)</td>
+<td style="text-align: left;">按秒精准计费 (A10G ~$1.10/h, A100 ~$4.40/h, 按毫秒换算)</td>
+<td style="text-align: left;">• 业内顶级的冷启动优化 (Rust 运行时 + 快照)<br>• <code>modal.Volume</code> 共享模型权重<br>• 纯 Python 代码定义环境</td>
+<td style="text-align: left;">学习曲线偏代码优先；无现成的 GUI 模板目录，需代码级打包封装</td>
+<td style="text-align: left;">高并发波动、对冷启动极敏感的现代 Web/App 实时生图后端</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>RunPod Serverless</strong></td>
+<td style="text-align: left;">官方 Worker 镜像 (<code>worker-comfyui</code>) + Serverless Endpoint</td>
+<td style="text-align: left;">15s – 40s (挂载 Network Volume)</td>
+<td style="text-align: left;">按秒计费 (RTX 4090 ~$0.74/h, A40 ~$0.79/h)</td>
+<td style="text-align: left;">• 丰富的社区 ComfyUI 模板<br>• Network Volume 集中挂载数百 GB 权重<br>• 一体化过渡 (Pod 调试 → Serverless 上线)</td>
+<td style="text-align: left;">冷启动相较 Modal 较慢；复杂节点依赖易导致 Docker 镜像膨胀</td>
+<td style="text-align: left;">快速上线 MVP、需要灵活切换消费级与企业级 GPU 的初创团队</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Fal.ai</strong></td>
+<td style="text-align: left;">专为生成式媒体打造的推理引擎，提供 ComfyUI 托管 API</td>
+<td style="text-align: left;">极快 (&lt; 2-5s)</td>
+<td style="text-align: left;">按生图任务/分辨率/Step 阶梯计费</td>
+<td style="text-align: left;">• 针对 Diffusion 深度优化的推理流水线<br>• 极低的 TTFT 与极速渲染<br>• 完全无需维护容器底层</td>
+<td style="text-align: left;">黑盒化程度高；非标准自定义节点集成受限，私有化部署门槛高</td>
+<td style="text-align: left;">追求极致出图速度、不想碰任何基础设施的标准生图业务</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>6.2 总体拥有成本 (TCO) 对比矩阵（月产 100 万张高画质图片）</h3>
+<p>负载模型设定：月生成量 100 万张（70% SDXL 1024px [推理耗时 2.5s] + 30% FLUX.1 Dev [推理耗时 16s]）：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">成本构成要素</th>
+<th style="text-align: left;">方案 A：自建公有云 K8s (AWS EKS + G5)</th>
+<th style="text-align: left;">方案 B：混合自建 (IDC 托管 4090 裸金属)</th>
+<th style="text-align: left;">方案 C：现代化 Serverless (Modal / RunPod)</th>
+<th style="text-align: left;">方案 D：商业批处理托管 (SaladCloud)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>纯算力成本 (GPU Compute)</strong></td>
+<td style="text-align: left;"><strong>$3,200 – $4,500/月</strong><br>(AWS g5.xlarge 实例常驻 + 弹性峰值，利用率约 50-60%)</td>
+<td style="text-align: left;"><strong>$900 – $1,400/月</strong><br>(IDC 托管 4-8 卡 4090 服务器，硬件折旧摊销 + 电力机房费)</td>
+<td style="text-align: left;"><strong>$1,600 – $2,300/月</strong><br>(按实际生成耗时毫秒级扣费，零闲置损耗)</td>
+<td style="text-align: left;"><strong>$450 – $750/月</strong><br>(利用 Lowest 优先级批量出图，极致单位算力成本)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>存储与网络出网成本 (Egress)</strong></td>
+<td style="text-align: left;"><strong>$300 – $600/月</strong><br>(S3 存储 + AWS 高昂出网费 $0.09/GB)</td>
+<td style="text-align: left;"><strong>$150 – $300/月</strong><br>(自建 MinIO/OSS + IDC 独享保底带宽)</td>
+<td style="text-align: left;"><strong>$200 – $400/月</strong><br>(云原生 Volume 挂载 + 对象存储转存 CDN)</td>
+<td style="text-align: left;"><strong>$200 – $350/月</strong><br>(外部 S3 读写及出网流量)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>运维人力成本 (DevOps/MLOps)</strong></td>
+<td style="text-align: left;"><strong>高：约 0.5 - 1 名工程师</strong><br>(~$6,000–$10,000/月等效工时)<br>负责 K8s、驱动/CUDA升级、KEDA扩缩容</td>
+<td style="text-align: left;"><strong>极高：约 1 名 SRE 工程师</strong><br>(~$8,000/月等效工时)<br>需处理硬件故障、散热、消费级显卡稳定性维护</td>
+<td style="text-align: left;"><strong>极低：约 0.1 名工程师</strong><br>(~$1,000/月等效工时)<br>基础设施全托管，专注于 ComfyUI 工作流编排</td>
+<td style="text-align: left;"><strong>中等：约 0.25 名工程师</strong><br>(~$2,500/月等效工时)<br>需搭建重试队列与抢占补偿机制</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>初期搭建周期与研发摩擦</strong></td>
+<td style="text-align: left;">4 – 8 周 (网络存储挂载、镜像加速、调度优化)</td>
+<td style="text-align: left;">6 – 12 周 (硬件采购、上架、组网、驱动加固)</td>
+<td style="text-align: left;"><strong>1 – 2 天 (利用 SDK 快速部署，开箱即用)</strong></td>
+<td style="text-align: left;">1 – 2 周 (编写容器封装与排队调度适配层)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>月度综合 TCO 总计</strong></td>
+<td style="text-align: left;"><strong>$9,500 – $15,100 /月</strong></td>
+<td style="text-align: left;"><strong>$9,050 – $9,700 /月</strong></td>
+<td style="text-align: left;"><strong>$2,800 – $3,700 /月</strong></td>
+<td style="text-align: left;"><strong>$3,150 – $3,600 /月</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>6.3 单图成本测算公式与性能矩阵</h3>
+<h4>(1) 成本核算通用公式</h4>
+<p>$$\text{Cost}<em>{\text{image}} = \left( \frac{\text{Rate}</em>{\text{GPU/hour}}}{3600} \times T_{\text{inference}} \right) + \left( S_{\text{output}} \times \text{Rate}<em>{\text{egress/GB}} \right) + \text{Cost}</em>{\text{storage}} + \left( \frac{\text{Rate}<em>{\text{GPU/hour}}}{3600} \times \frac{T</em>{\text{coldstart}}}{N_{\text{batch}}} \right)$$</p>
+<h4>(2) 单图成本对比矩阵 (1024×1024 分辨率)</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">基础模型与规格</th>
+<th style="text-align: left;">GPU 硬件型号</th>
+<th style="text-align: left;">典型推理耗时 ($T_{\text{inf}}$)</th>
+<th style="text-align: left;">硬件参考费率 ($/h)</th>
+<th style="text-align: left;">单张计算成本 ($)</th>
+<th style="text-align: left;">每美元出图量 (张/$)</th>
+<th style="text-align: left;">实测表现说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>SDXL 1.0</strong> (30 步)</td>
+<td style="text-align: left;"><strong>NVIDIA RTX 4090</strong> (24G)</td>
+<td style="text-align: left;">2.5 s</td>
+<td style="text-align: left;">$0.20 (Salad) / $0.74 (RunPod)</td>
+<td style="text-align: left;"><strong>$0.00014</strong> / $0.00051</td>
+<td style="text-align: left;"><strong>~7,200</strong> / ~1,950</td>
+<td style="text-align: left;">算力与内存带宽极度匹配，性价比之王</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>SDXL 1.0</strong> (30 步)</td>
+<td style="text-align: left;"><strong>NVIDIA A10G</strong> (24G)</td>
+<td style="text-align: left;">5.5 s</td>
+<td style="text-align: left;">$1.00 (AWS g5.xlarge)</td>
+<td style="text-align: left;"><strong>$0.00153</strong></td>
+<td style="text-align: left;">~650</td>
+<td style="text-align: left;">显存带宽弱于 4090，单位成本偏高</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>SDXL 1.0</strong> (30 步)</td>
+<td style="text-align: left;"><strong>NVIDIA A100 SXM</strong> (80G)</td>
+<td style="text-align: left;">2.0 s</td>
+<td style="text-align: left;">$1.89 (RunPod) / $3.67 (AWS)</td>
+<td style="text-align: left;"><strong>$0.00105</strong> / $0.00204</td>
+<td style="text-align: left;">~950 / ~490</td>
+<td style="text-align: left;">单卡单并发下算力闲置浪费，适合批处理</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>FLUX.1 Schnell</strong> (4 步)</td>
+<td style="text-align: left;"><strong>NVIDIA RTX 4090</strong> (24G)</td>
+<td style="text-align: left;">2.0 s</td>
+<td style="text-align: left;">$0.20 (Salad) / $0.74 (RunPod)</td>
+<td style="text-align: left;"><strong>$0.00011</strong> / $0.00041</td>
+<td style="text-align: left;"><strong>~9,000</strong> / ~2,430</td>
+<td style="text-align: left;">极少步数下的快速原型首选，秒级生成</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>FLUX.1 Dev</strong> (28 步, FP8)</td>
+<td style="text-align: left;"><strong>NVIDIA RTX 4090</strong> (24G)</td>
+<td style="text-align: left;">16.0 s</td>
+<td style="text-align: left;">$0.20 (Salad) / $0.74 (RunPod)</td>
+<td style="text-align: left;"><strong>$0.00089</strong> / $0.00329</td>
+<td style="text-align: left;"><strong>~1,120</strong> / ~304</td>
+<td style="text-align: left;">需采用 FP8 权重 + SageAttention，显存完全常驻</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>FLUX.1 Dev</strong> (28 步, FP8)</td>
+<td style="text-align: left;"><strong>NVIDIA A10G</strong> (24G)</td>
+<td style="text-align: left;">28.0 s</td>
+<td style="text-align: left;">$1.00 (AWS g5.xlarge)</td>
+<td style="text-align: left;"><strong>$0.00778</strong></td>
+<td style="text-align: left;">~128</td>
+<td style="text-align: left;">算力瓶颈严重，不推荐作为主力卡</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>6.4 MLOps 监控大盘与内容安全防御</h3>
+<ol>
+<li><strong>Prometheus + Grafana 核心度量清单</strong>：<br />
+   - <code>DCGM_FI_DEV_GPU_UTIL</code>：单卡 GPU 计算核心利用率（目标保持在 75%~90%）；<br />
+   - <code>DCGM_FI_DEV_FB_USED</code>：物理显存分配值（超过 92% 触发预警）；<br />
+   - <code>comfyui_queue_remaining</code>：未消费队列深度（触发 KEDA 紧急拉起 Pod）；<br />
+   - <code>comfyui_cuda_oom_total</code>：累计 CUDA OOM 次数（<strong>大于 0 立即触发 P1 级告警</strong>，自动隔离故障 Pod）；<br />
+   - <code>comfyui_inference_duration_seconds</code>：端到端工作流 P95/P99 耗时分布。</li>
+<li><strong>内容安全风控（Content Moderation）纵深防御</strong>：<br />
+   - <strong>前置文本审查</strong>：在 API 网关层通过 AC 自动机过滤敏感词库，并接入轻量语言安全模型（如 Llama Guard 3），拦截越狱诱导词，<strong>直接返回 400 阻断，杜绝无效昂贵的 GPU 渲染</strong>；<br />
+   - <strong>后置图像审查</strong>：在生成产物写入 S3 前，通过 FalconsAI NSFW Detector 执行安全评级，违规图像自动全黑化处理并记录审计告警。</li>
+</ol>
+<hr />
+<h2 id="sec-7">7. 落地决策树与工程排查自查清单</h2>
+<h3>7.1 企业落地选型决策树</h3>
+<pre><code>                         企业业务形态与技术成熟度
+                                    │
+         ┌──────────────────────────┴──────────────────────────┐
+         ▼                                                     ▼
+【追求极快交付 / 团队 &lt; 20人 / 交互式服务】              【海量批处理 / 电商切图 / 离线扩增】
+         │                                                     │
+   优先选用: Modal / RunPod Serverless                   优先选用: SaladCloud
+   (零 K8s 运维，利用快照实现 &lt;3s 冷启动)                (RTX 4090 算力低至 $0.16/h，单图成本 $0.00014)
+                                                               │
+         ┌─────────────────────────────────────────────────────┘
+         ▼
+【中大型企业 / 严苛数据合规 / 具备完善自建 K8s 基础设施】
+         │
+   全面落地自建混合架构:
+   1. 网关层: FastAPI + Comfy Deploy 工作流版本中台 + 前置 LlamaGuard 审查
+   2. 调度层: Redis Streams + KEDA 弹性伸缩 + 单卡单 Pod 隔离 (Guaranteed QoS)
+   3. 存储层: JuiceFS CSI (ReadOnlyMany PVC) + 本地 NVMe 缓存 + P2P 预热
+   4. 安全层: 禁用线上 Manager，私有 PyPI 哈希锁定，K8s NetworkPolicy 阻断出网
+</code></pre>
+<h3>7.2 故障工程排查表 (Troubleshooting Runbook)</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">故障现象</th>
+<th style="text-align: left;">潜在根因 (Root Cause)</th>
+<th style="text-align: left;">排查定位手段</th>
+<th style="text-align: left;">修复与规避方案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>API 调用报 400: <code>Node not found</code></strong></td>
+<td style="text-align: left;">生产镜像中缺失该工作流所用的 Custom Node</td>
+<td style="text-align: left;">核对报错返回的 <code>class_type</code> 与 Dockerfile</td>
+<td style="text-align: left;">提交节点准入 PR，通过静态安全扫描后重新构建生产镜像</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>多 Pod 并发加载大模型时集群挂死</strong></td>
+<td style="text-align: left;">惊群效应打满集中式存储网络带宽或 S3 GET 限频</td>
+<td style="text-align: left;">检查存储卷网络流量监控曲线</td>
+<td style="text-align: left;">部署 JuiceFS 本地 NVMe 缓存，开启 P2P 预热机制</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>出图全黑 / 绿屏 / 纯噪点</strong></td>
+<td style="text-align: left;">VAE 损坏、半精度溢出（FP16 NaN）或模型错配</td>
+<td style="text-align: left;">检查日志中是否有 <code>NaN encountered</code></td>
+<td style="text-align: left;">强制使用 <code>--fp16-vae</code> 或加载 <code>vae-ft-mse</code>；检查 CFG 是否过大</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Pod 突然退出 (Exit Code 137)</strong></td>
+<td style="text-align: left;">Linux OOM-Killer 杀死进程（宿主机 RAM 耗尽）</td>
+<td style="text-align: left;">执行 <code>dmesg -T \| grep oom</code> 查看系统日志</td>
+<td style="text-align: left;">确保模型全量使用 <code>.safetensors</code> 格式，配置 RAM 为模型大小的 2 倍</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>跨 Pod 偶发 CUDA OOM 级联崩溃</strong></td>
+<td style="text-align: left;">错误配置了 Time-Slicing 导致多个 Pod 共享显存池</td>
+<td style="text-align: left;">检查 GPU Operator 的 ConfigMap 配置</td>
+<td style="text-align: left;">坚决废除 Time-Slicing，改为单卡单 Pod 或硬件 MIG 分割</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- ==================== Unified Sidebar Drawer Script ==================== -->
+<script id="unified-sidebar-script">
+(function() {
+  const btn = document.getElementById('unifiedNavBtn');
+  const overlay = document.getElementById('unifiedNavOverlay');
+  const closeBtn = document.getElementById('unifiedNavClose');
+  const tocContainer = document.getElementById('unifiedNavToc');
+  if (!btn || !overlay || !closeBtn || !tocContainer) return;
+
+  function openNav() { document.body.classList.add('unified-nav-open'); }
+  function closeNav() { document.body.classList.remove('unified-nav-open'); }
+
+  btn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('unified-nav-open')) closeNav();
+  });
+
+  const links = Array.from(tocContainer.querySelectorAll('a'));
+  links.forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth < 1200) closeNav();
+    });
+  });
+
+  // ScrollSpy
+  const targets = links.map(a => {
+    const id = a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  }).filter(Boolean);
+
+  if (targets.length > 0 && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const cur = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+          if (cur) cur.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0.1 });
+    targets.forEach(t => observer.observe(t));
+  }
+})();
+</script>
+
+</body>
+</html>

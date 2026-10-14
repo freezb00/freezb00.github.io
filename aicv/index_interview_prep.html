@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 绘画产品经理作品集总览 · 出版教育 AIGC 方向 (杭州·云梯科技/书链)</title>
+<style>
+:root {
+  --bg: #f8fafc;
+  --bg-subtle: #f1f5f9;
+  --card-bg: #ffffff;
+  --card-hover: #ffffff;
+  --ink: #0f172a;
+  --ink-secondary: #334155;
+  --ink-muted: #64748b;
+  --line: #e2e8f0;
+  --line-light: #edf2f7;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-light: #eff6ff;
+  --accent-border: #bfdbfe;
+  --emerald: #059669;
+  --emerald-light: #ecfdf5;
+  --purple: #7c3aed;
+  --purple-light: #f5f3ff;
+  --amber: #d97706;
+  --amber-light: #fffbeb;
+  --radius-xl: 18px;
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --radius-sm: 6px;
+  --shadow-xs: 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-sm: 0 2px 6px rgba(15,23,42,0.04);
+  --shadow-md: 0 8px 24px -4px rgba(15,23,42,0.06);
+  --shadow-lg: 0 16px 36px -6px rgba(15,23,42,0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #090d16;
+    --bg-subtle: #0f172a;
+    --card-bg: #111827;
+    --card-hover: #162032;
+    --ink: #f8fafc;
+    --ink-secondary: #cbd5e1;
+    --ink-muted: #94a3b8;
+    --line: #1e293b;
+    --line-light: #283548;
+    --accent: #38bdf8;
+    --accent-hover: #0ea5e9;
+    --accent-light: #082f49;
+    --accent-border: #0284c7;
+    --emerald: #34d399;
+    --emerald-light: #064e3b;
+    --purple: #a78bfa;
+    --purple-light: #2e1065;
+    --amber: #fbbf24;
+    --amber-light: #451a03;
+    --shadow-md: 0 8px 24px -4px rgba(0,0,0,0.45);
+    --shadow-lg: 0 16px 36px -6px rgba(0,0,0,0.55);
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: 96px;
+}
+
+/* Top Hero */
+.hero {
+  position: relative;
+  background: linear-gradient(135deg, #0b1329 0%, #0f172a 60%, #1e1b4b 100%);
+  color: #ffffff;
+  padding: 56px 24px 48px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -150px;
+  right: -100px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(56,189,248,0.18) 0%, rgba(37,99,235,0.08) 50%, transparent 70%);
+  pointer-events: none;
+}
+.hero-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.hero-badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #cbd5e1;
+  backdrop-filter: blur(8px);
+}
+.hero-pill-primary {
+  background: rgba(37,99,235,0.35);
+  border-color: #38bdf8;
+  color: #e0f2fe;
+}
+.hero-pill-corp {
+  background: rgba(16,185,129,0.25);
+  border-color: #34d399;
+  color: #d1fae5;
+}
+.hero-title {
+  font-size: 36px;
+  font-weight: 850;
+  letter-spacing: -0.8px;
+  margin-bottom: 16px;
+  line-height: 1.28;
+}
+.hero-title span {
+  background: linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero-desc {
+  font-size: 16px;
+  color: #94a3b8;
+  max-width: 920px;
+  line-height: 1.75;
+  margin-bottom: 32px;
+}
+.hero-desc strong {
+  color: #f1f5f9;
+  font-weight: 600;
+}
+
+/* Metrics Banner */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+@media (max-width: 860px) {
+  .metrics-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .metrics-row { grid-template-columns: 1fr; }
+}
+.metric-card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  transition: transform .2s, border-color .2s;
+}
+.metric-card:hover {
+  border-color: rgba(56,189,248,0.4);
+  transform: translateY(-2px);
+}
+.metric-num {
+  font-size: 28px;
+  font-weight: 850;
+  color: #38bdf8;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+.metric-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-top: 6px;
+}
+.metric-detail {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+/* Sticky Subnav Bar */
+.sticky-subnav {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--line);
+  box-shadow: var(--shadow-xs);
+  backdrop-filter: blur(12px);
+}
+.subnav-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.subnav-pills {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.subnav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  text-decoration: none;
+  background: var(--bg-subtle);
+  border: 1px solid transparent;
+  transition: all .15s ease;
+}
+.subnav-link:hover {
+  color: var(--accent);
+  background: var(--accent-light);
+  border-color: var(--accent-border);
+}
+.subnav-link.active {
+  color: #ffffff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.search-box-wrap {
+  position: relative;
+  min-width: 260px;
+}
+.search-input {
+  width: 100%;
+  padding: 7px 12px 7px 32px;
+  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+  transition: all .2s;
+}
+.search-input:focus {
+  border-color: var(--accent);
+  background: var(--card-bg);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+/* Main Wrap */
+.wrap {
+  max-width: 1180px;
+  margin: 36px auto 0;
+  padding: 0 24px;
+}
+
+/* Section Titles */
+.section-headline {
+  margin: 44px 0 22px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--line);
+}
+.section-headline-title {
+  font-size: 23px;
+  font-weight: 800;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.4px;
+}
+.section-headline-sub {
+  font-size: 13.5px;
+  color: var(--ink-muted);
+}
+
+/* Module 1: PRD Grid */
+.prd-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 48px;
+}
+@media (max-width: 780px) {
+  .prd-grid { grid-template-columns: 1fr; }
+}
+
+.prd-card {
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+  position: relative;
+}
+.prd-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent);
+}
+.prd-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.prd-badge-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.prd-type-pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-light);
+  border: 1px solid var(--accent-border);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.prd-duty-pill {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  margin-left: auto;
+}
+.prd-card-title {
+  font-size: 17.5px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+.prd-card-title a {
+  color: var(--ink);
+  text-decoration: none;
+  transition: color .15s;
+}
+.prd-card-title a:hover {
+  color: var(--accent);
+}
+.prd-card-desc {
+  font-size: 14px;
+  color: var(--ink-secondary);
+  line-height: 1.65;
+  margin-bottom: 18px;
+  flex: 1;
+}
+.prd-deliv-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+.deliv-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+.deliv-pill {
+  font-size: 11.5px;
+  background: var(--bg-subtle);
+  color: var(--ink-secondary);
+  border: 1px solid var(--line);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.prd-card-footer {
+  margin-top: auto;
+}
+.btn-prd-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-light);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all .18s ease;
+}
+.btn-prd-cta:hover {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+}
+
+/* Module 2: Chapter Block & Report Rows */
+.chapter-card {
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  margin-bottom: 32px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.chapter-card-header {
+  padding: 22px 28px;
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.chap-icon-box {
+  width: 44px;
+  height: 44px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: var(--shadow-xs);
+  flex-shrink: 0;
+}
+.chap-info {
+  flex: 1;
+  min-width: 240px;
+}
+.chap-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.chap-title {
+  font-size: 18.5px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.chap-count-tag {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-light);
+  border: 1px solid var(--accent-border);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.chap-desc {
+  font-size: 13.5px;
+  color: var(--ink-muted);
+  margin-top: 3px;
+}
+.chap-duty-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  padding: 5px 12px;
+  border-radius: 8px;
+}
+
+.chapter-card-body {
+  padding: 8px 16px;
+}
+
+/* Report Row Item */
+.report-item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 12px;
+  border-bottom: 1px solid var(--line-light);
+  transition: background-color .15s ease;
+}
+.report-item:last-child {
+  border-bottom: none;
+}
+.report-item:hover {
+  background-color: var(--bg-subtle);
+  border-radius: var(--radius-md);
+}
+.rep-idx {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink-muted);
+  width: 28px;
+  flex-shrink: 0;
+  text-align: center;
+}
+.rep-content {
+  flex: 1;
+  min-width: 0;
+}
+.rep-header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 5px;
+}
+.rep-title {
+  font-size: 16px;
+  font-weight: 750;
+  color: var(--ink);
+  text-decoration: none;
+  line-height: 1.4;
+  transition: color .15s ease;
+}
+.rep-title:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.rep-slug {
+  font-size: 11.5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--ink-muted);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.rep-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.badge-duty {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-light);
+  border: 1px solid var(--accent-border);
+  padding: 1px 7px;
+  border-radius: 4px;
+}
+.rep-desc {
+  font-size: 13.5px;
+  color: var(--ink-secondary);
+  line-height: 1.6;
+}
+.rep-action {
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+.btn-rep-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.btn-rep-cta:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+  box-shadow: var(--shadow-xs);
+}
+
+@media (max-width: 720px) {
+  .report-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .rep-action {
+    width: 100%;
+    margin-left: 0;
+  }
+  .btn-rep-cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Module 3: JD Mapping Table */
+.matrix-container {
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 48px;
+}
+.matrix-table-wrap {
+  overflow-x: auto;
+}
+table.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  text-align: left;
+}
+.matrix-table th {
+  background: var(--bg-subtle);
+  color: var(--ink);
+  font-weight: 750;
+  padding: 16px 20px;
+  border-bottom: 2px solid var(--line);
+  white-space: nowrap;
+}
+.matrix-table td {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.matrix-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.matrix-table tbody tr:hover {
+  background: var(--bg-subtle);
+}
+.duty-name {
+  font-weight: 800;
+  color: var(--ink);
+  font-size: 14.5px;
+}
+.duty-core {
+  color: var(--ink-secondary);
+  line-height: 1.6;
+}
+.deliv-link-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-light);
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  text-decoration: none;
+  margin-bottom: 6px;
+  transition: all .15s;
+}
+.deliv-link-pill:hover {
+  background: var(--accent);
+  color: #ffffff;
+}
+.rep-links-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rep-links-list li a {
+  color: var(--ink-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  transition: color .15s;
+}
+.rep-links-list li a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* Footer */
+footer.footer {
+  margin-top: 64px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.footer-badge {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+/* Back to top button */
+.back-top {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-secondary);
+  text-decoration: none;
+  font-size: 18px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all .2s;
+  z-index: 80;
+}
+.back-top.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.back-top:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-wrap">
+    <div class="hero-badge-group">
+      <span class="hero-pill hero-pill-primary">🎯 目标岗位：AI 绘画产品经理 / AIGC 图像专家</span>
+      <span class="hero-pill hero-pill-corp">🏢 目标企业：杭州·云梯科技 (书链)</span>
+      <span class="hero-pill">📖 垂直行业：教育出版数字化 · 严肃教材教辅 · 少儿绘本</span>
+      <span class="hero-pill">📍 杭州 / 湖州</span>
+    </div>
+
+    <h1 class="hero-title">AI 绘画产品经理 · <span>数字化出版作品集总览</span></h1>
+    <p class="hero-desc">
+      严格对标招聘需求（<strong>IMG_7851.jpg</strong> & <strong>IMG_7852.jpg</strong>）中要求的 <strong>5 大工作职责</strong> 与 <strong>5 大任职资格</strong>。<br>
+      以<strong>技术底层边界认知（研发底座） × 创作者视觉美学（绘画底色） × 出版工业化落地思维（B端闭环）</strong>三维视角，交付完整业务落地方案与 16 篇第一性原理深度调研报告。
+    </p>
+
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-num">4 份</div>
+        <div class="metric-title">核心 B 端产品方案</div>
+        <div class="metric-detail">PRD架构 · 工作流 · 资产 · 评测</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num">16 篇</div>
+        <div class="metric-title">精选深度调研研报</div>
+        <div class="metric-detail">带侧边导航与第一性原理账本</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num">100%</div>
+        <div class="metric-title">岗位 JD 精准履约</div>
+        <div class="metric-detail">5 大职责与资格全覆盖</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num">全链路</div>
+        <div class="metric-title">出版工业化交付</div>
+        <div class="metric-detail">文稿解读 ➔ 编排 ➔ 评测 ➔ 印制</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Sticky Subnav Bar -->
+<nav class="sticky-subnav" id="subnav">
+  <div class="subnav-inner">
+    <div class="subnav-pills">
+      <a href="#section-prd" class="subnav-link">📦 核心产品方案 (4 份)</a>
+      <a href="#ch1" class="subnav-link">📚 出版业务流程 (4 篇)</a>
+      <a href="#ch2" class="subnav-link">⚡ ComfyUI与工作流 (4 篇)</a>
+      <a href="#ch3" class="subnav-link">🎯 质量评测与前沿 (2 篇)</a>
+      <a href="#ch4" class="subnav-link">🏢 企业尽调与竞品 (6 篇)</a>
+      <a href="#section-matrix" class="subnav-link">📊 JD 履约矩阵</a>
+    </div>
+    <div class="search-box-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="filterInput" class="search-input" placeholder="输入关键词实时筛选方案/研报...">
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- Section 1: 核心产品方案 -->
+  <section id="section-prd">
+    <div class="section-headline">
+      <h2 class="section-headline-title">📦 模块一：核心 B 端产品规划与设计方案 (4 份)</h2>
+      <span class="section-headline-sub">系统化交付 PRD 架构、ComfyUI 编排、算法资产化协同与出版质检风控</span>
+    </div>
+    <div class="prd-grid" id="prdContainer">
+      
+        <article class="prd-card" data-keywords="出版级 AI 绘画产品全链路规划 (PRD 与系统架构) 职责 1 & 4 (方向定义与商业化) · 资格 1 & 4 贯通教辅/绘本从文稿解析、角色绑定、多轮画布重绘到印前合规导出的全流程。交付高保真功能架构图、四层中台时序设计、商业化计费模型与出版降本提效量化测算。">
+          <div class="prd-card-top">
+            <span class="prd-badge-num">01</span>
+            <span class="prd-type-pill">核心架构 · 业务PRD</span>
+            <span class="prd-duty-pill">职责 1 & 4 (方向定义与商业化) · 资格 1 & 4</span>
+          </div>
+          <h3 class="prd-card-title">
+            <a href="prd/01_出版级AI绘画产品全链路规划(PRD与架构).html">出版级 AI 绘画产品全链路规划 (PRD 与系统架构)</a>
+          </h3>
+          <p class="prd-card-desc">贯通教辅/绘本从文稿解析、角色绑定、多轮画布重绘到印前合规导出的全流程。交付高保真功能架构图、四层中台时序设计、商业化计费模型与出版降本提效量化测算。</p>
+          <div class="prd-deliv-wrap">
+            <span class="deliv-label">关键交付要素：</span>
+            <span class="deliv-pill">全流程架构图</span><span class="deliv-pill">B端工作台PRD</span><span class="deliv-pill">四层系统时序</span><span class="deliv-pill">商业化降本测算</span>
+          </div>
+          <div class="prd-card-footer">
+            <a href="prd/01_出版级AI绘画产品全链路规划(PRD与架构).html" class="btn-prd-cta">
+              <span>阅读完整方案 (HTML)</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            </a>
+          </div>
+        </article>
+        <article class="prd-card" data-keywords="出版级 AI 绘画工作流与 ComfyUI 方案设计 职责 2 & 5 (工作流体验与前沿实操) · 资格 2 & 3 攻克跨页角色一致性核心难题，落地 IP-Adapter + FaceID + ControlNet 混合编排管线。设计分层图层解耦画布交互、局部重绘（Inpainting）动线与企业级无状态算力集群调度方案。">
+          <div class="prd-card-top">
+            <span class="prd-badge-num">02</span>
+            <span class="prd-type-pill">工作流编排 · 角色一致性</span>
+            <span class="prd-duty-pill">职责 2 & 5 (工作流体验与前沿实操) · 资格 2 & 3</span>
+          </div>
+          <h3 class="prd-card-title">
+            <a href="prd/02_出版级AI绘画工作流与ComfyUI方案设计.html">出版级 AI 绘画工作流与 ComfyUI 方案设计</a>
+          </h3>
+          <p class="prd-card-desc">攻克跨页角色一致性核心难题，落地 IP-Adapter + FaceID + ControlNet 混合编排管线。设计分层图层解耦画布交互、局部重绘（Inpainting）动线与企业级无状态算力集群调度方案。</p>
+          <div class="prd-deliv-wrap">
+            <span class="deliv-label">关键交付要素：</span>
+            <span class="deliv-pill">IP-Adapter管线</span><span class="deliv-pill">跨页角色拓扑</span><span class="deliv-pill">分层画布交互UX</span><span class="deliv-pill">企业级ComfyUI调度</span>
+          </div>
+          <div class="prd-card-footer">
+            <a href="prd/02_出版级AI绘画工作流与ComfyUI方案设计.html" class="btn-prd-cta">
+              <span>阅读完整方案 (HTML)</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            </a>
+          </div>
+        </article>
+        <article class="prd-card" data-keywords="画风资产定制与算法协同机制 (LoRA 产品化) 职责 3 (画风定制与资产沉淀) · 资格 2 (算法协同) 建立非技术美术友好的 LoRA 资产训练与验收产品闭环。规范 15–50 张正交样本黄金采集法、WD14 结构化打标、过拟合阻断标准以及出版社专属画风资产多租户隔离库。">
+          <div class="prd-card-top">
+            <span class="prd-badge-num">03</span>
+            <span class="prd-type-pill">算法协同 · 资产定制</span>
+            <span class="prd-duty-pill">职责 3 (画风定制与资产沉淀) · 资格 2 (算法协同)</span>
+          </div>
+          <h3 class="prd-card-title">
+            <a href="prd/03_全要素资产中心与算法协同机制(LoRA产品化).html">画风资产定制与算法协同机制 (LoRA 产品化)</a>
+          </h3>
+          <p class="prd-card-desc">建立非技术美术友好的 LoRA 资产训练与验收产品闭环。规范 15–50 张正交样本黄金采集法、WD14 结构化打标、过拟合阻断标准以及出版社专属画风资产多租户隔离库。</p>
+          <div class="prd-deliv-wrap">
+            <span class="deliv-label">关键交付要素：</span>
+            <span class="deliv-pill">15-50张样本规范</span><span class="deliv-pill">结构化打标流程</span><span class="deliv-pill">LoRA验收与过拟合评定</span><span class="deliv-pill">出版社专属资产库</span>
+          </div>
+          <div class="prd-card-footer">
+            <a href="prd/03_全要素资产中心与算法协同机制(LoRA产品化).html" class="btn-prd-cta">
+              <span>阅读完整方案 (HTML)</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            </a>
+          </div>
+        </article>
+        <article class="prd-card" data-keywords="质量评测闭环与出版合规风控体系 职责 4 & 5 (评测体系与前沿合规) · 资格 5 (合规与印制) 构建教辅绘本级评测基准：意识形态红线、学科事实准确度、印刷工程硬指标（300 DPI、CMYK单色黑、出血位）四级漏斗；建立素材可信版权溯源与全生命周期审计留痕。">
+          <div class="prd-card-top">
+            <span class="prd-badge-num">04</span>
+            <span class="prd-type-pill">评测闭环 · 出版印制合规</span>
+            <span class="prd-duty-pill">职责 4 & 5 (评测体系与前沿合规) · 资格 5 (合规与印制)</span>
+          </div>
+          <h3 class="prd-card-title">
+            <a href="prd/04_质量评测闭环与出版合规风控体系.html">质量评测闭环与出版合规风控体系</a>
+          </h3>
+          <p class="prd-card-desc">构建教辅绘本级评测基准：意识形态红线、学科事实准确度、印刷工程硬指标（300 DPI、CMYK单色黑、出血位）四级漏斗；建立素材可信版权溯源与全生命周期审计留痕。</p>
+          <div class="prd-deliv-wrap">
+            <span class="deliv-label">关键交付要素：</span>
+            <span class="deliv-pill">四级评测漏斗</span><span class="deliv-pill">一次通过率(FTR)</span><span class="deliv-pill">300 DPI印前合规</span><span class="deliv-pill">版权区块链留痕</span>
+          </div>
+          <div class="prd-card-footer">
+            <a href="prd/04_质量评测闭环与出版合规风控体系.html" class="btn-prd-cta">
+              <span>阅读完整方案 (HTML)</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            </a>
+          </div>
+        </article>
+    </div>
+  </section>
+
+  <!-- Section 2: 岗位对标调研报告支撑库 -->
+  <section id="section-reports">
+    <div class="section-headline">
+      <h2 class="section-headline-title">🔬 模块二：岗位对标深度调研报告支撑库 (16 篇)</h2>
+      <span class="section-headline-sub">按岗位职责拆解：每篇调研均带侧边栏锚点导航与第一性原理证据账本</span>
+    </div>
+
+    <div id="chaptersContainer">
+      
+        <section class="chapter-card" id="ch1">
+          <header class="chapter-card-header">
+            <div class="chap-icon-box">📚</div>
+            <div class="chap-info">
+              <div class="chap-title-row">
+                <h2 class="chap-title">第一篇章：出版业务与工业化流程</h2>
+                <span class="chap-count-tag">4 篇精选研报</span>
+              </div>
+              <p class="chap-desc">深挖教辅与绘本文稿解读、审稿合规、印制约束三大现实刚性壁垒</p>
+            </div>
+            <div class="chap-duty-badge">对标职责 1 (方向定义) · 资格 5 (合规意识)</div>
+          </header>
+          <div class="chapter-card-body">
+            
+            <div class="report-item" data-keywords="出版业务要求全景解构：通用底线与垂直定制 职责 1 (方向定义与业务要求) · 资格 5 (合规与版权) 深入拆解新闻出版署合规标准、政治导向红线、三审三校及教材教辅刚性业务要求，明确 AI 绘画工程落地的准入红线与底线边界。 publishing-business-requirements">
+              <div class="rep-idx">01</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/publishing-business-requirements/report.html" class="rep-title">出版业务要求全景解构：通用底线与垂直定制</a>
+                  <span class="rep-slug">reports/publishing-business-requirements</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 1 (方向定义与业务要求) · 资格 5 (合规与版权)</span>
+                </div>
+                <p class="rep-desc">深入拆解新闻出版署合规标准、政治导向红线、三审三校及教材教辅刚性业务要求，明确 AI 绘画工程落地的准入红线与底线边界。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/publishing-business-requirements/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="教辅与绘本的文稿解读 · 深度调研报告 职责 1 (文稿解读) · 资格 1 (内容生产经验) 从文稿结构化解析、知识点提取、学科题图映射到绘本分镜解构，建立出版级多模态文稿工业化理解管线与分镜动线。 manuscript-interpretation">
+              <div class="rep-idx">02</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/manuscript-interpretation/report.html" class="rep-title">教辅与绘本的文稿解读 · 深度调研报告</a>
+                  <span class="rep-slug">reports/manuscript-interpretation</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 1 (文稿解读) · 资格 1 (内容生产经验)</span>
+                </div>
+                <p class="rep-desc">从文稿结构化解析、知识点提取、学科题图映射到绘本分镜解构，建立出版级多模态文稿工业化理解管线与分镜动线。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/manuscript-interpretation/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="教辅与绘本文稿的审稿流程 · 深度调研报告 职责 1 (审稿流程) · 资格 5 (出版合规) 审稿流程是一套由行政法规钉死角色资质、互斥关系与计分口径的合规机器；AI 落地重在形式合规与前置质检校验。 manuscript-review-process">
+              <div class="rep-idx">03</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/manuscript-review-process/report.html" class="rep-title">教辅与绘本文稿的审稿流程 · 深度调研报告</a>
+                  <span class="rep-slug">reports/manuscript-review-process</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 1 (审稿流程) · 资格 5 (出版合规)</span>
+                </div>
+                <p class="rep-desc">审稿流程是一套由行政法规钉死角色资质、互斥关系与计分口径的合规机器；AI 落地重在形式合规与前置质检校验。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/manuscript-review-process/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="教辅与绘本文稿的印制流程 · 深度调研报告 职责 1 & 4 (印制规范) · 资格 5 (印前工程) 印制是法规+工价+物理三重硬约束的流水线；攻坚跨页接版 1.5mm 铣背、300 DPI、出血位与出版社印务侧的合规前置校验。 printing-production-workflow">
+              <div class="rep-idx">04</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/printing-production-workflow/report.html" class="rep-title">教辅与绘本文稿的印制流程 · 深度调研报告</a>
+                  <span class="rep-slug">reports/printing-production-workflow</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 1 & 4 (印制规范) · 资格 5 (印前工程)</span>
+                </div>
+                <p class="rep-desc">印制是法规+工价+物理三重硬约束的流水线；攻坚跨页接版 1.5mm 铣背、300 DPI、出血位与出版社印务侧的合规前置校验。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/printing-production-workflow/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="chapter-card" id="ch2">
+          <header class="chapter-card-header">
+            <div class="chap-icon-box">⚡</div>
+            <div class="chap-info">
+              <div class="chap-title-row">
+                <h2 class="chap-title">第二篇章：AI 绘画工作流与 ComfyUI 架构</h2>
+                <span class="chap-count-tag">4 篇精选研报</span>
+              </div>
+              <p class="chap-desc">攻坚出版连续叙事一致性、分层画布人机交互与企业级算力中台调度</p>
+            </div>
+            <div class="chap-duty-badge">对标职责 2 (工作流) & 3 (画风资产) · 资格 2 & 3 (算法与实操)</div>
+          </header>
+          <div class="chapter-card-body">
+            
+            <div class="report-item" data-keywords="面向出版场景的 AI 绘画工作流与创作体验设计 职责 2 (工作流与画布体验) · 资格 4 (B端产品体验) 解构传统文生图无法满足出版连续叙事的痛点，设计多轮人机交互、分层画布编辑、参考图一致性控制与局部重绘动线。 publishing-ai-canvas-workflow-ux">
+              <div class="rep-idx">01</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/publishing-ai-canvas-workflow-ux/report.html" class="rep-title">面向出版场景的 AI 绘画工作流与创作体验设计</a>
+                  <span class="rep-slug">reports/publishing-ai-canvas-workflow-ux</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 2 (工作流与画布体验) · 资格 4 (B端产品体验)</span>
+                </div>
+                <p class="rep-desc">解构传统文生图无法满足出版连续叙事的痛点，设计多轮人机交互、分层画布编辑、参考图一致性控制与局部重绘动线。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/publishing-ai-canvas-workflow-ux/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="ComfyUI 常用工作流与核心节点：聚焦角色一致性与底模生态 职责 2 (一致性攻坚) · 资格 3 (ComfyUI动手实操) 深挖 IP-Adapter + FaceID + ControlNet + LoRA 混合管线，实现跨页角色拓扑面部、发型、服饰与光影的多帧稳定锁定。 comfyui-workflows-character-consistency">
+              <div class="rep-idx">02</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/comfyui-workflows-character-consistency/report.html" class="rep-title">ComfyUI 常用工作流与核心节点：聚焦角色一致性与底模生态</a>
+                  <span class="rep-slug">reports/comfyui-workflows-character-consistency</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 2 (一致性攻坚) · 资格 3 (ComfyUI动手实操)</span>
+                </div>
+                <p class="rep-desc">深挖 IP-Adapter + FaceID + ControlNet + LoRA 混合管线，实现跨页角色拓扑面部、发型、服饰与光影的多帧稳定锁定。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/comfyui-workflows-character-consistency/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="企业级 ComfyUI 的使用方式与生产架构演进深度调研 职责 5 (工程效能) · 资格 2 & 3 (系统架构与算力调度) 企业级 ComfyUI 本质是无状态 DAG 算力引擎；剖析云原生容器化、节点沙箱隔离、GPU 任务排队与高并发调度中台架构。 enterprise-comfyui-architecture">
+              <div class="rep-idx">03</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/enterprise-comfyui-architecture/report.html" class="rep-title">企业级 ComfyUI 的使用方式与生产架构演进深度调研</a>
+                  <span class="rep-slug">reports/enterprise-comfyui-architecture</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 5 (工程效能) · 资格 2 & 3 (系统架构与算力调度)</span>
+                </div>
+                <p class="rep-desc">企业级 ComfyUI 本质是无状态 DAG 算力引擎；剖析云原生容器化、节点沙箱隔离、GPU 任务排队与高并发调度中台架构。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/enterprise-comfyui-architecture/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="AI LoRA 微调在教辅/绘本领域的画风定制：样本准备与工程化落地 职责 3 (画风定制与资产产品化) · 资格 2 (算法协同) 样本纯度远胜于规模，15–50 张高质量正交样本是黄金区间；详尽规范打标策略、过拟合拦截与出版社专属画风资产隔离库。 lora-style-dataset-prep">
+              <div class="rep-idx">04</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/lora-style-dataset-prep/report.html" class="rep-title">AI LoRA 微调在教辅/绘本领域的画风定制：样本准备与工程化落地</a>
+                  <span class="rep-slug">reports/lora-style-dataset-prep</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 3 (画风定制与资产产品化) · 资格 2 (算法协同)</span>
+                </div>
+                <p class="rep-desc">样本纯度远胜于规模，15–50 张高质量正交样本是黄金区间；详尽规范打标策略、过拟合拦截与出版社专属画风资产隔离库。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/lora-style-dataset-prep/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="chapter-card" id="ch3">
+          <header class="chapter-card-header">
+            <div class="chap-icon-box">🎯</div>
+            <div class="chap-info">
+              <div class="chap-title-row">
+                <h2 class="chap-title">第三篇章：质量评测闭环与前沿追踪</h2>
+                <span class="chap-count-tag">2 篇精选研报</span>
+              </div>
+              <p class="chap-desc">颠覆传统指标，构建学科事实硬伤、印前物理合规四级漏斗与全球前沿推演</p>
+            </div>
+            <div class="chap-duty-badge">对标职责 4 (质量评测) & 5 (前沿追踪) · 资格 5 (视觉审美)</div>
+          </header>
+          <div class="chapter-card-body">
+            
+            <div class="report-item" data-keywords="AI 绘画在教辅/绘本业务中的质量评测要求深度调研 职责 4 (质量评测与印制指标) · 资格 5 (视觉审美与合规) 通用开源指标全面失效，构建意识形态红线、学科事实硬伤、印前物理合规（300 DPI、K100单色黑）四级漏斗与一次通过率（FTR）。 ai-illustration-quality-eval">
+              <div class="rep-idx">01</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/ai-illustration-quality-eval/report.html" class="rep-title">AI 绘画在教辅/绘本业务中的质量评测要求深度调研</a>
+                  <span class="rep-slug">reports/ai-illustration-quality-eval</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 4 (质量评测与印制指标) · 资格 5 (视觉审美与合规)</span>
+                </div>
+                <p class="rep-desc">通用开源指标全面失效，构建意识形态红线、学科事实硬伤、印前物理合规（300 DPI、K100单色黑）四级漏斗与一次通过率（FTR）。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/ai-illustration-quality-eval/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="生成式视觉 AI 全景：文生图 × 文生视频 × 评测信任层 职责 5 (前沿追踪与实操验证) · 资格 2 (视觉生成技术理解) 追踪全球主流模型与视觉生成前沿演进，分析生态、算力与评测信任层的产业格局，评估落地教育出版的成本与效能边界。 generative-visual-ai-panorama">
+              <div class="rep-idx">02</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/generative-visual-ai-panorama/report.html" class="rep-title">生成式视觉 AI 全景：文生图 × 文生视频 × 评测信任层</a>
+                  <span class="rep-slug">reports/generative-visual-ai-panorama</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 5 (前沿追踪与实操验证) · 资格 2 (视觉生成技术理解)</span>
+                </div>
+                <p class="rep-desc">追踪全球主流模型与视觉生成前沿演进，分析生态、算力与评测信任层的产业格局，评估落地教育出版的成本与效能边界。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/generative-visual-ai-panorama/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="chapter-card" id="ch4">
+          <header class="chapter-card-header">
+            <div class="chap-icon-box">🏢</div>
+            <div class="chap-info">
+              <div class="chap-title-row">
+                <h2 class="chap-title">第四篇章：目标企业解构与标杆竞品对标</h2>
+                <span class="chap-count-tag">7 篇精选研报</span>
+              </div>
+              <p class="chap-desc">深度剖析杭州/湖州云梯科技（书链）商业飞轮，对标数传集团与垂直标杆工具</p>
+            </div>
+            <div class="chap-duty-badge">对标职责 1 & 4 (商业化、对标与卡位) · 资格 4 (成熟B端业务)</div>
+          </header>
+          <div class="chapter-card-body">
+            
+            <div class="report-item" data-keywords="湖州云梯科技 · 产品矩阵、技术架构与商业化深度调研 职责 1 & 4 (商业化与平台化) · 资格 4 (B端业务理解) 深入解构云梯科技（书链）的出版垂直产业链飞轮与中台架构，剖析教辅入口垄断优势与 AI 绘画工具链的嵌入契机。 huzhou-yunti-product-matrix">
+              <div class="rep-idx">01</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/huzhou-yunti-product-matrix/report.html" class="rep-title">湖州云梯科技 · 产品矩阵、技术架构与商业化深度调研</a>
+                  <span class="rep-slug">reports/huzhou-yunti-product-matrix</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 1 & 4 (商业化与平台化) · 资格 4 (B端业务理解)</span>
+                </div>
+                <p class="rep-desc">深入解构云梯科技（书链）的出版垂直产业链飞轮与中台架构，剖析教辅入口垄断优势与 AI 绘画工具链的嵌入契机。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/huzhou-yunti-product-matrix/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="湖州云梯科技（书链）· 行业竞品全景对比与战略深度调研 职责 1 (战略路线图) · 资格 4 (竞品分析) 深度推演云梯科技（民营流量/工具）与数传集团（国家队/顶层标准）的正面决战与错位竞争，找准出版 AI 的差异化卡位。 huzhou-yunti-competitor-analysis">
+              <div class="rep-idx">02</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/huzhou-yunti-competitor-analysis/report.html" class="rep-title">湖州云梯科技（书链）· 行业竞品全景对比与战略深度调研</a>
+                  <span class="rep-slug">reports/huzhou-yunti-competitor-analysis</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 1 (战略路线图) · 资格 4 (竞品分析)</span>
+                </div>
+                <p class="rep-desc">深度推演云梯科技（民营流量/工具）与数传集团（国家队/顶层标准）的正面决战与错位竞争，找准出版 AI 的差异化卡位。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/huzhou-yunti-competitor-analysis/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="数传集团（RAYS / BOOKSGPT）AI 绘画产品形态与底层逻辑 职责 1 & 4 (对标标的) · 资格 4 (行业对标) 对标出版数字化国家队龙头，拆解 BOOKSGPT 驱动的出版垂直模型能力与现代纸书插画场景的工业落地得失。 shuchuan-group-ai-painting">
+              <div class="rep-idx">03</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/shuchuan-group-ai-painting/report.html" class="rep-title">数传集团（RAYS / BOOKSGPT）AI 绘画产品形态与底层逻辑</a>
+                  <span class="rep-slug">reports/shuchuan-group-ai-painting</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 1 & 4 (对标标的) · 资格 4 (行业对标)</span>
+                </div>
+                <p class="rep-desc">对标出版数字化国家队龙头，拆解 BOOKSGPT 驱动的出版垂直模型能力与现代纸书插画场景的工业落地得失。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/shuchuan-group-ai-painting/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="中文在线（“中文逍遥”大模型）· 在教辅与绘本方向的产品形态 职责 1 & 5 (大模型产品形态) · 资格 1 (IP内容生产) 分析网文 IP 龙头大模型在多模态插画与故事板生成的工业实践，剖析泛娱乐生图无法切入严肃教育出版的底层制约。 chinese-online-xiaoyao-product-features">
+              <div class="rep-idx">04</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/chinese-online-xiaoyao-product-features/report.html" class="rep-title">中文在线（“中文逍遥”大模型）· 在教辅与绘本方向的产品形态</a>
+                  <span class="rep-slug">reports/chinese-online-xiaoyao-product-features</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 1 & 5 (大模型产品形态) · 资格 1 (IP内容生产)</span>
+                </div>
+                <p class="rep-desc">分析网文 IP 龙头大模型在多模态插画与故事板生成的工业实践，剖析泛娱乐生图无法切入严肃教育出版的底层制约。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/chinese-online-xiaoyao-product-features/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="艾绘 AI（AiHui · 一站式商业绘本创作台）· 产品形态与出版对标 职责 2 (画布与分层编辑) · 资格 1 (工具拆解) 拆解本土新锐绘本工具的六步工作流与图层解耦画布编辑器，提炼面向出版工业标准的人机交互改进方案。 aihui-product-features">
+              <div class="rep-idx">05</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/aihui-product-features/report.html" class="rep-title">艾绘 AI（AiHui · 一站式商业绘本创作台）· 产品形态与出版对标</a>
+                  <span class="rep-slug">reports/aihui-product-features</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 2 (画布与分层编辑) · 资格 1 (工具拆解)</span>
+                </div>
+                <p class="rep-desc">拆解本土新锐绘本工具的六步工作流与图层解耦画布编辑器，提炼面向出版工业标准的人机交互改进方案。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/aihui-product-features/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="Readkidz（少儿绘本 AIGC 工具）· 产品形态与出版对标深度调研 职责 2 (极简创作体验) · 资格 1 (海外工具对标) 解构全球少儿绘本 AIGC 标杆工具的极简人机交互与 Amazon KDP 商业闭环，提炼对国内教辅出版工作台的落地启示。 readkidz-product-features">
+              <div class="rep-idx">06</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/readkidz-product-features/report.html" class="rep-title">Readkidz（少儿绘本 AIGC 工具）· 产品形态与出版对标深度调研</a>
+                  <span class="rep-slug">reports/readkidz-product-features</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">职责 2 (极简创作体验) · 资格 1 (海外工具对标)</span>
+                </div>
+                <p class="rep-desc">解构全球少儿绘本 AIGC 标杆工具的极简人机交互与 Amazon KDP 商业闭环，提炼对国内教辅出版工作台的落地启示。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/readkidz-product-features/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看调研报告</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="report-item" data-keywords="AI 绘画实战案例复盘与主流产品深度体验分析 职责 1, 2, 3, 5 · 资格 1, 2, 3, 4 (实战案例与标杆竞品体验) 严格按难点、职责、方案与成果复盘跨页角色一致性与画风LoRA定制两大落地案例；深度横向拆解 Lovart、Liblib.AI、即梦、ChatGPT Images 2.5 等标杆工具。 ai-workflow-cases-and-product-benchmarks">
+              <div class="rep-idx">07</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/ai-workflow-cases-and-product-benchmarks/report.html" class="rep-title">AI 绘画实战案例复盘与主流产品深度体验分析（Lovart / Liblib / 即梦 / ChatGPT）</a>
+                  <span class="rep-slug">reports/ai-workflow-cases-and-product-benchmarks</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">🔥 面试加分项：案例复盘 (难点/职责/方案/成果) + 4大标杆深度体验</span>
+                </div>
+                <p class="rep-desc">系统复盘「多角色跨页一致性」与「画风LoRA资产定制」两大实战案例；横向深度评测 Lovart、Liblib.AI、即梦、ChatGPT Images 2.5，推导出版垂直破局架构。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/ai-workflow-cases-and-product-benchmarks/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看案例与评测</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            <div class="report-item" data-keywords="AI 绘画产品全景深度调研 商业模式 单位经济学 产品矩阵 交互工作流 Midjourney FLUX Leonardo Firefly Canva Krea 美图设计室 Liblib 职责 1, 4, 5 · 资格 1, 4 (商业模式与前沿产品全景) ai-painting-products-landscape">
+              <div class="rep-idx">08</div>
+              <div class="rep-content">
+                <div class="rep-header">
+                  <a href="reports/ai-painting-products-landscape/report.html" class="rep-title">AI 绘画产品全景深度调研：产品矩阵、交互工作流、客群画像与商业模式经济学</a>
+                  <span class="rep-slug">reports/ai-painting-products-landscape</span>
+                </div>
+                <div class="rep-meta-row">
+                  <span class="badge-duty">🌟 行业全景标杆：9大主流产品 + 单图推理成本模型 + 防负毛利爆仓机制</span>
+                </div>
+                <p class="rep-desc">系统拆解 Midjourney、FLUX、Leonardo、Firefly、Canva、Krea、美图设计室、LiblibAI；解构五代交互范式演进，给出单图硬件推理成本模型与商业防爆仓工程三板斧。</p>
+              </div>
+              <div class="rep-action">
+                <a href="reports/ai-painting-products-landscape/report.html" class="btn-rep-cta" title="阅读完整研报">
+                  <span>查看全景调研</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+    </div>
+  </section>
+
+  <!-- Section 3: JD 对标矩阵表 -->
+  <section id="section-matrix">
+    <div class="section-headline">
+      <h2 class="section-headline-title">📊 模块三：岗位 JD 5 大职责与资格履约对照矩阵</h2>
+      <span class="section-headline-sub">精准对标招聘图片中的职责要求与任职资格</span>
+    </div>
+    <div class="matrix-container">
+      <div class="matrix-table-wrap">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th style="width: 220px;">JD 工作职责</th>
+              <th style="width: 290px;">核心痛点与攻坚要求</th>
+              <th style="width: 280px;">核心方案交付物</th>
+              <th>配套深度研报支撑</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="duty-name">1. 方向定义与路线图规划</div>
+              </td>
+              <td>
+                <div class="duty-core">深入调研教辅与绘本文稿解读、审稿及印制流程，结合出版业务制定产品规划</div>
+              </td>
+              <td>
+                <a href="prd/01_出版级AI绘画产品全链路规划(PRD与架构).html" class="deliv-link-pill">
+                  📄 01_出版级AI绘画产品全链路规划.html
+                </a>
+              </td>
+              <td>
+                <ul class="rep-links-list">
+                  <li><a href="reports/publishing-business-requirements/report.html">📖 出版业务要求全景解构：通用底线与垂直定制</a></li>
+                  <li><a href="reports/manuscript-interpretation/report.html">📖 教辅与绘本的文稿解读 · 深度调研报告</a></li>
+                  <li><a href="reports/manuscript-review-process/report.html">📖 教辅与绘本文稿的审稿流程 · 深度调研报告</a></li>
+                  <li><a href="reports/printing-production-workflow/report.html">📖 教辅与绘本文稿的印制流程 · 深度调研报告</a></li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="duty-name">2. 工作流与创作体验设计</div>
+              </td>
+              <td>
+                <div class="duty-core">面向出版场景的 AI 绘画工作流，攻坚参考图理解、画布/局部编辑、分层及多轮修改，保障跨页角色与画风一致性</div>
+              </td>
+              <td>
+                <a href="prd/02_出版级AI绘画工作流与ComfyUI方案设计.html" class="deliv-link-pill">
+                  📄 02_出版级AI绘画工作流与ComfyUI方案设计.html
+                </a>
+              </td>
+              <td>
+                <ul class="rep-links-list">
+                  <li><a href="reports/publishing-ai-canvas-workflow-ux/report.html">📖 面向出版场景的 AI 绘画工作流与创作体验设计</a></li>
+                  <li><a href="reports/comfyui-workflows-character-consistency/report.html">📖 ComfyUI 常用工作流与核心节点：聚焦角色一致性</a></li>
+                  <li><a href="reports/readkidz-product-features/report.html">📖 Readkidz（少儿绘本 AIGC 工具）· 产品形态与出版对标</a></li>
+                  <li><a href="reports/aihui-product-features/report.html">📖 艾绘 AI（AiHui · 一站式商业绘本创作台）· 产品形态</a></li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="duty-name">3. 画风定制与资产产品化</div>
+              </td>
+              <td>
+                <div class="duty-core">协同算法团队完成样本准备、LoRA/微调适配与版本管理，沉淀为客户专属画风资产</div>
+              </td>
+              <td>
+                <a href="prd/03_全要素资产中心与算法协同机制(LoRA产品化).html" class="deliv-link-pill">
+                  📄 03_全要素资产中心与算法协同机制.html
+                </a>
+              </td>
+              <td>
+                <ul class="rep-links-list">
+                  <li><a href="reports/lora-style-dataset-prep/report.html">📖 AI LoRA 微调在教辅/绘本领域的画风定制：样本准备与工程化落地</a></li>
+                  <li style="color:var(--ink-muted);font-size:12px;">• 规范 15–50 张正交样本打标标准、过拟合拦截与资产库隔离</li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="duty-name">4. 质量评测与商业化营收</div>
+              </td>
+              <td>
+                <div class="duty-core">建立知识准确性、印制规范、返修率等评测闭环；推进商家转化与老客续费，对营收负责</div>
+              </td>
+              <td>
+                <a href="prd/04_质量评测闭环与出版合规风控体系.html" class="deliv-link-pill">
+                  📄 04_质量评测闭环与出版合规风控体系.html
+                </a>
+              </td>
+              <td>
+                <ul class="rep-links-list">
+                  <li><a href="reports/ai-illustration-quality-eval/report.html">📖 AI 绘画在教辅/绘本业务中的质量评测要求深度调研</a></li>
+                  <li><a href="reports/huzhou-yunti-product-matrix/report.html">📖 湖州云梯科技 · 产品矩阵、技术架构与商业化深度调研</a></li>
+                  <li><a href="reports/huzhou-yunti-competitor-analysis/report.html">📖 湖州云梯科技（书链）· 行业竞品全景对比与战略深度调研</a></li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="duty-name">5. 前沿追踪与实操验证</div>
+              </td>
+              <td>
+                <div class="duty-core">持续研究多模态、图像生成与设计 Agent 前沿产品，动手搭建实验评估落地效能、成本与价值</div>
+              </td>
+              <td>
+                <a href="prd/02_出版级AI绘画工作流与ComfyUI方案设计.html" class="deliv-link-pill">
+                  📄 02_出版级AI绘画工作流与ComfyUI方案设计.html
+                </a>
+              </td>
+              <td>
+                <ul class="rep-links-list">
+                  <li><a href="reports/enterprise-comfyui-architecture/report.html">📖 企业级 ComfyUI 的使用方式与生产架构演进深度调研</a></li>
+                  <li><a href="reports/generative-visual-ai-panorama/report.html">📖 生成式视觉 AI 全景：文生图 × 文生视频 × 评测信任层</a></li>
+                  <li><a href="reports/chinese-online-xiaoyao-product-features/report.html">📖 中文在线（“中文逍遥”大模型）· 在教辅与绘本方向的产品形态</a></li>
+                  <li><a href="reports/shuchuan-group-ai-painting/report.html">📖 数传集团（RAYS / BOOKSGPT）AI 绘画产品形态与底层逻辑</a></li>
+                  <li><a href="reports/ai-workflow-cases-and-product-benchmarks/report.html" style="font-weight:600;color:var(--accent);">🔥 AI 绘画实战案例复盘与主流产品深度体验（Lovart/Liblib/即梦/ChatGPT）</a></li>
+                  <li><a href="reports/ai-painting-products-landscape/report.html" style="font-weight:600;color:var(--accent);">🌟 AI 绘画产品全景深度调研：产品矩阵、交互工作流、客群画像与商业模式经济学</a></li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>AI 绘画产品经理作品集 · 杭州·云梯科技/书链专项定制 · 2026</p>
+    <span class="footer-badge">涵盖 4 份核心方案 HTML · 18 篇深度调研报告 · 5 大职责全覆盖</span>
+  </footer>
+
+</main>
+
+<a href="#" class="back-top" id="backTop" title="返回顶部">↑</a>
+
+<script>
+// Filter / Search functionality
+const filterInput = document.getElementById('filterInput');
+if (filterInput) {
+  filterInput.addEventListener('input', function() {
+    const query = this.value.trim().toLowerCase();
+    
+    // Filter PRD cards
+    const prdCards = document.querySelectorAll('.prd-card');
+    prdCards.forEach(card => {
+      const text = (card.getAttribute('data-keywords') || '') + ' ' + card.innerText;
+      if (!query || text.toLowerCase().includes(query)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    // Filter report items
+    const reportItems = document.querySelectorAll('.report-item');
+    reportItems.forEach(item => {
+      const text = (item.getAttribute('data-keywords') || '') + ' ' + item.innerText;
+      if (!query || text.toLowerCase().includes(query)) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+
+    // Check each chapter block, hide empty chapters if all items are hidden
+    const chapterCards = document.querySelectorAll('.chapter-card');
+    chapterCards.forEach(chap => {
+      const visibleItems = chap.querySelectorAll('.report-item:not([style*="display: none"])');
+      if (query && visibleItems.length === 0) {
+        chap.style.display = 'none';
+      } else {
+        chap.style.display = '';
+      }
+    });
+  });
+}
+
+// Back to top & active nav spy
+const backTop = document.getElementById('backTop');
+window.addEventListener('scroll', function() {
+  if (window.scrollY > 400) {
+    backTop.classList.add('show');
+  } else {
+    backTop.classList.remove('show');
+  }
+});
+</script>
+
+</body>
+</html>

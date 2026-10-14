@@ -1,0 +1,2342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>01. 出版级 AI 绘画产品全链路规划（PRD 与架构方案） · AI PM 作品集</title>
+<style>
+:root{
+  --bg:#ffffff; --bg-soft:#f7f8fa; --bg-sunk:#f1f3f6;
+  --ink:#1a1d23; --ink-2:#3d4450; --ink-3:#6b7280;
+  --line:#e3e6ea; --line-2:#d0d5dc;
+  --accent:#1a4d8f; --accent-soft:#e8f0fa;
+  --green:#1a7f4b; --green-soft:#e6f4ec;
+  --amber:#a86400; --amber-soft:#fdf3e0;
+  --red:#b03030; --red-soft:#fbeaea;
+  --blue:#1f5f9e; --blue-soft:#e7f0f8;
+  --grey:#5b6470; --grey-soft:#eef0f3;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  font-size:15px; line-height:1.75; -webkit-font-smoothing:antialiased;
+  overflow-x: hidden;
+}
+.wrap{max-width:960px;margin:0 auto;padding:40px 28px 100px}
+h1{font-size:28px;line-height:1.35;margin:0 0 10px;font-weight:700;letter-spacing:-.4px;color:var(--ink)}
+h2{font-size:21px;margin:46px 0 16px;padding-bottom:10px;border-bottom:2px solid var(--line);
+   font-weight:700;letter-spacing:-.2px;scroll-margin-top:20px;color:var(--ink)}
+h3{font-size:17px;margin:28px 0 10px;font-weight:650;color:var(--ink)}
+h4{font-size:15px;margin:20px 0 8px;font-weight:650;color:var(--ink-2)}
+p{margin:12px 0}
+ul,ol{margin:12px 0;padding-left:24px}
+li{margin:6px 0}
+strong{font-weight:650;color:#0d1117}
+code{background:var(--bg-sunk);padding:2px 6px;border-radius:4px;font-size:13.5px;
+  font-family:"SF Mono",Menlo,Consolas,monospace}
+pre{background:var(--bg-sunk);padding:14px 18px;border-radius:6px;overflow-x:auto;border:1px solid var(--line);font-size:13px;line-height:1.6}
+pre code{background:none;padding:0}
+hr{border:0;border-top:1px solid var(--line);margin:36px 0}
+blockquote{margin:16px 0;padding:12px 18px;background:var(--bg-soft);
+  border-left:4px solid var(--accent);color:var(--ink-2);border-radius:0 4px 4px 0}
+blockquote p{margin:4px 0}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:13.5px;
+  border:1px solid var(--line);border-radius:6px;overflow:hidden}
+th{background:var(--bg-sunk);text-align:left;padding:10px 12px;font-weight:650;
+  border-bottom:2px solid var(--line-2);color:var(--ink);font-size:13px}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink-2)}
+tr:last-child td{border-bottom:0}
+tbody tr:nth-child(even){background:#fbfcfd}
+
+/* Badge */
+.b{display:inline-block;padding:1px 7px;border-radius:3px;font-size:11px;
+  font-weight:700;vertical-align:middle;line-height:1.6}
+.bA{background:var(--green-soft);color:var(--green);border:1px solid #bfe3cd}
+.bB{background:var(--blue-soft);color:var(--blue);border:1px solid #c3d9ee}
+.bC{background:var(--grey-soft);color:var(--grey);border:1px solid #d8dce2}
+.bR{background:var(--red-soft);color:var(--red);border:1px solid #f0c4c4}
+.bAmber{background:var(--amber-soft);color:var(--amber);border:1px solid #f0d9ac}
+
+/* 提示块 */
+.note{background:var(--amber-soft);border:1px solid #f0d9ac;border-left:4px solid var(--amber);
+  border-radius:4px;padding:13px 17px;margin:18px 0;font-size:14px;color:#6b4200}
+.good{background:var(--green-soft);border:1px solid #bfe3cd;border-left:4px solid var(--green);
+  border-radius:4px;padding:13px 17px;margin:18px 0;font-size:14px;color:#12512f}
+.bad{background:var(--red-soft);border:1px solid #f0c4c4;border-left:4px solid var(--red);
+  border-radius:4px;padding:13px 17px;margin:18px 0;font-size:14px;color:#7d2020}
+
+/* Footer Nav */
+.doc-footer-nav{
+  display:flex;justify-content:space-between;gap:16px;margin-top:56px;padding-top:24px;border-top:1.5px solid var(--line);
+}
+.nav-card{
+  flex:1;padding:14px 18px;border-radius:6px;border:1px solid var(--line);background:var(--bg-soft);
+  text-decoration:none;transition:all .15s ease;display:flex;flex-direction:column;
+}
+.nav-card:hover{border-color:var(--accent);background:var(--accent-soft)}
+.nav-dir{font-size:11.5px;color:var(--ink-3);margin-bottom:4px;font-weight:600}
+.nav-title{font-size:14px;font-weight:650;color:var(--ink)}
+.nav-card:hover .nav-title{color:var(--accent)}
+
+@media (max-width:768px){
+  .wrap{padding:20px 16px 60px}
+  h1{font-size:22px} h2{font-size:18px}
+  table{font-size:12px} th,td{padding:7px 8px}
+  .doc-footer-nav{flex-direction:column}
+}
+
+/* ==================== High-End Pipeline Comparison Board ==================== */
+.pipeline-showcase {
+  margin: 32px 0 28px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 4px 24px -2px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif;
+  transition: all 0.25s ease;
+}
+
+/* 突破正文 960px 窄版心限制：在桌面端/大屏自适应扩展至 1320px 宽幅全景模式 */
+@media (min-width: 1040px) {
+  .pipeline-showcase {
+    width: min(1320px, calc(100vw - 64px));
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+@media (min-width: 1440px) {
+  .pipeline-showcase {
+    width: min(1380px, calc(100vw - 80px));
+  }
+}
+
+.pipeline-section {
+  padding: 24px 26px 20px;
+}
+.pipeline-section.traditional {
+  background: linear-gradient(180deg, rgba(254, 242, 242, 0.35) 0%, var(--bg) 100%);
+  border-bottom: 1px dashed var(--line);
+}
+.pipeline-section.ai {
+  background: linear-gradient(180deg, rgba(240, 253, 244, 0.4) 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--line);
+}
+.pipeline-section.metrics {
+  background: var(--bg-soft);
+  padding: 22px 26px;
+}
+
+/* Section Header */
+.pipeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.pipeline-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pipeline-num-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+.pipeline-num-badge.trad {
+  background: #e11d48;
+}
+.pipeline-num-badge.ai {
+  background: #16a34a;
+}
+.pipeline-title {
+  font-size: 15.5px;
+  font-weight: 750;
+  color: var(--ink);
+  letter-spacing: -0.2px;
+}
+.pipeline-stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.pipeline-stat-chip.trad {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecdd3;
+}
+.pipeline-stat-chip.ai {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* Cards Flow Row */
+.pipeline-cards-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 8px;
+  scrollbar-width: thin;
+}
+.pipeline-cards-row::-webkit-scrollbar {
+  height: 6px;
+}
+.pipeline-cards-row::-webkit-scrollbar-thumb {
+  background: var(--line-2);
+  border-radius: 4px;
+}
+
+/* Single Step Card */
+.pipeline-card {
+  flex: 1 1 0;
+  min-width: 172px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 13px 12px 11px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+.pipeline-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  border-color: var(--line-2);
+}
+.pipeline-card.trad-card {
+  border-top: 3px solid #f43f5e;
+}
+.pipeline-card.ai-card {
+  border-top: 3px solid #22c55e;
+}
+
+/* Card Top: Stage Badge on left, Role Pill on right */
+.pipeline-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.pipeline-card-badge {
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.2px;
+  flex-shrink: 0;
+}
+.trad-card .pipeline-card-badge {
+  color: #e11d48;
+}
+.ai-card .pipeline-card-badge {
+  color: #16a34a;
+}
+
+.pipeline-card-role {
+  font-size: 10px;
+  font-weight: 650;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  line-height: 1.35;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.trad-role {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fee2e2;
+}
+.ai-role {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.pipeline-card-heading {
+  font-size: 13.5px;
+  font-weight: 750;
+  color: var(--ink);
+  margin-bottom: 2px;
+  line-height: 1.35;
+}
+.pipeline-card-time {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.pipeline-card-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px;
+  flex-grow: 1;
+}
+.pipeline-card-list li {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  margin-bottom: 4px;
+  position: relative;
+  padding-left: 9px;
+}
+.pipeline-card-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--ink-3);
+  font-weight: bold;
+}
+
+.pipeline-card-warn {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 6px;
+  padding: 4px 6px;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.pipeline-card-gate {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 650;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 4px 6px;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  line-height: 1.35;
+}
+.pipeline-card-gate:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+/* Connecting Arrow */
+.pipeline-flow-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--line-2);
+  flex-shrink: 0;
+  font-size: 15px;
+  user-select: none;
+  padding: 0 1px;
+}
+.trad-arrow {
+  color: #fca5a5;
+}
+.ai-arrow {
+  color: #86efac;
+}
+
+/* Bottom Callout Banner */
+.pipeline-banner {
+  margin-top: 14px;
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-size: 12px;
+  line-height: 1.6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pipeline-banner.trad {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
+}
+.pipeline-banner.ai {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #14532d;
+}
+
+/* Dashboard Metrics Section */
+.metrics-title {
+  font-size: 14px;
+  font-weight: 750;
+  color: var(--ink);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.metric-box {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 12px 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.metric-label {
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--ink-3);
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.metric-compare {
+  margin: 3px 0 6px;
+}
+.metric-old {
+  font-size: 12px;
+  color: var(--ink-3);
+  display: block;
+}
+.metric-new {
+  font-size: 14px;
+  font-weight: 800;
+  color: #2563eb;
+  letter-spacing: -0.2px;
+  display: block;
+  margin-top: 2px;
+}
+.metric-pill {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  .pipeline-showcase {
+    background: #0f172a;
+    border-color: #1e293b;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  }
+  .pipeline-section.traditional {
+    background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, #0f172a 100%);
+    border-bottom-color: #334155;
+  }
+  .pipeline-section.ai {
+    background: linear-gradient(180deg, rgba(34, 197, 94, 0.08) 0%, #0f172a 100%);
+    border-bottom-color: #334155;
+  }
+  .pipeline-section.metrics {
+    background: #1e293b;
+  }
+  .pipeline-card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  .pipeline-card:hover {
+    border-color: #475569;
+  }
+  .pipeline-card-list li {
+    color: #cbd5e1;
+  }
+  .pipeline-card-list li::before {
+    color: #64748b;
+  }
+  .trad-role {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.25);
+    color: #fca5a5;
+  }
+  .ai-role {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.25);
+    color: #86efac;
+  }
+  .pipeline-card-warn {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+  }
+  .pipeline-card-prd,
+  .pipeline-card-gate {
+    background: rgba(37, 99, 235, 0.15);
+    border-color: rgba(37, 99, 235, 0.35);
+    color: #93c5fd;
+  }
+  .pipeline-card-prd:hover,
+  .pipeline-card-gate:hover {
+    background: #2563eb;
+    color: #ffffff;
+  }
+  .pipeline-card-time {
+    color: #94a3b8;
+  }
+  .pipeline-banner.trad {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.25);
+    color: #fca5a5;
+  }
+  .pipeline-banner.ai {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.25);
+    color: #86efac;
+  }
+  .metric-box {
+    background: #0f172a;
+    border-color: #334155;
+  }
+  .metric-old {
+    color: #94a3b8;
+  }
+  .metric-new {
+    color: #38bdf8;
+  }
+  .metric-pill {
+    background: rgba(34, 197, 94, 0.18);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #86efac;
+  }
+}
+
+@media (max-width: 900px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   2. 角色协同任务状态机流转 (Workflow State Machine)
+   ========================================================================== */
+.statemachine-container {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px 18px 20px;
+  margin: 16px 0 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+.statemachine-flow {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  position: relative;
+}
+@media (max-width: 960px) {
+  .statemachine-flow {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+  }
+  .sm-node {
+    flex: 0 0 160px;
+  }
+}
+.sm-node {
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 10px 10px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+.sm-node:hover {
+  transform: translateY(-2px);
+  border-color: var(--line-2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* Individual node border-top color schemes */
+.sm-node.node-step1 { border-top: 3px solid #3b82f6; }
+.sm-node.node-step2 { border-top: 3px solid #8b5cf6; }
+.sm-node.node-step3 { border-top: 3px solid #06b6d4; }
+.sm-node.node-step4 { border-top: 3px solid #f59e0b; }
+.sm-node.node-step5 { border-top: 3px solid #f97316; }
+.sm-node.node-step6 { border-top: 3px solid #10b981; }
+
+.sm-node-step {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 7px;
+}
+.sm-step-num {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  flex-shrink: 0;
+}
+.node-step1 .sm-step-num { color: #2563eb; }
+.node-step2 .sm-step-num { color: #7c3aed; }
+.node-step3 .sm-step-num { color: #0891b2; }
+.node-step4 .sm-step-num { color: #d97706; }
+.node-step5 .sm-step-num { color: #ea580c; }
+.node-step6 .sm-step-num { color: #059669; }
+
+.sm-role-tag {
+  font-size: 9.5px;
+  font-weight: 650;
+  padding: 1.5px 6px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.3;
+  border: 1px solid transparent;
+}
+.node-step1 .sm-role-tag { background: #eff6ff; color: #1d4ed8; border-color: #dbeafe; }
+.node-step2 .sm-role-tag { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+.node-step3 .sm-role-tag { background: #ecfeff; color: #0e7490; border-color: #cffafe; }
+.node-step4 .sm-role-tag { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+.node-step5 .sm-role-tag { background: #fff7ed; color: #9a3412; border-color: #ffedd5; }
+.node-step6 .sm-role-tag { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+
+.sm-node-title {
+  font-size: 12.5px;
+  font-weight: 750;
+  color: var(--ink);
+  margin-bottom: 5px;
+  line-height: 1.35;
+}
+.sm-node-desc {
+  font-size: 10.5px;
+  color: var(--ink-2);
+  line-height: 1.4;
+  margin: 0 0 9px;
+  flex-grow: 1;
+}
+
+.sm-node-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 3px 5px;
+  border-radius: 5px;
+  text-align: center;
+  line-height: 1.3;
+  border: 1px solid transparent;
+}
+.node-step1 .sm-node-badge { background: #f0f7ff; color: #1d4ed8; border-color: #dbeafe; }
+.node-step2 .sm-node-badge { background: #faf5ff; color: #6d28d9; border-color: #ede9fe; }
+.node-step3 .sm-node-badge { background: #f0fdfa; color: #0e7490; border-color: #ccfbf1; }
+.node-step4 .sm-node-badge { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+.node-step5 .sm-node-badge { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+.node-step6 .sm-node-badge { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+
+.sm-feedback-bar {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 9px;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px dashed rgba(239, 68, 68, 0.28);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #991b1b;
+}
+.sm-feedback-icon {
+  font-weight: 800;
+  font-size: 13px;
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   3. 出版级数据实体模型 (Data Entity Schema Cards)
+   ========================================================================== */
+.schema-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 18px 0 26px;
+}
+@media (max-width: 1000px) {
+  .schema-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 580px) {
+  .schema-container {
+    grid-template-columns: 1fr;
+  }
+}
+.schema-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+.schema-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--line-2);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+.schema-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.schema-level-pill {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+.schema-card.l1 { border-top: 3px solid #2563eb; }
+.schema-card.l1 .schema-level-pill { background: #eff6ff; color: #1d4ed8; }
+.schema-card.l2 { border-top: 3px solid #0891b2; }
+.schema-card.l2 .schema-level-pill { background: #ecfeff; color: #0e7490; }
+.schema-card.l3 { border-top: 3px solid #7c3aed; }
+.schema-card.l3 .schema-level-pill { background: #f5f3ff; color: #6d28d9; }
+.schema-card.l4 { border-top: 3px solid #059669; }
+.schema-card.l4 .schema-level-pill { background: #ecfdf5; color: #047857; }
+
+.schema-entity-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.schema-entity-scope {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-bottom: 12px;
+}
+.schema-props-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex-grow: 1;
+}
+.schema-prop-item {
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 6px 9px;
+  font-size: 11px;
+}
+.schema-prop-key {
+  font-weight: 750;
+  color: var(--ink);
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  margin-bottom: 1px;
+}
+.schema-prop-val {
+  color: var(--ink-2);
+  line-height: 1.35;
+  display: block;
+  font-size: 10.5px;
+}
+.schema-rel-tag {
+  margin-top: 10px;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ==========================================================================
+   4. 产品整体架构设计 (AI 出版创作工作台 3 层驱动架构)
+   ========================================================================== */
+.arch-system {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 18px 0 28px;
+}
+.arch-tier {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 20px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+.arch-tier:hover {
+  border-color: var(--line-2);
+}
+.arch-tier-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.arch-tier-title-group {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.arch-tier-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+}
+.tier-1 .arch-tier-badge { background: #eff6ff; color: #1d4ed8; }
+.tier-2 .arch-tier-badge { background: #faf5ff; color: #7e22ce; }
+.tier-3 .arch-tier-badge { background: #f0fdf4; color: #15803d; }
+
+.arch-tier-title {
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--ink);
+}
+.arch-tier-desc {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+.arch-bus-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 0;
+}
+.arch-bus-line {
+  height: 1px;
+  flex-grow: 1;
+  background: dashed 1px var(--line);
+}
+
+/* Tier 1 Grid: 6 Web modules (3x2) */
+.arch-t1-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media (max-width: 820px) {
+  .arch-t1-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 520px) {
+  .arch-t1-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.arch-module-card {
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 12px 11px 10px;
+  display: flex;
+  flex-direction: column;
+}
+.arch-mod-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+.arch-mod-num {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent);
+}
+.arch-mod-name {
+  font-size: 12.5px;
+  font-weight: 750;
+  color: var(--ink);
+}
+.arch-mod-role {
+  margin-left: auto;
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--ink-3);
+  border: 1px solid var(--line);
+}
+.arch-mod-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 11px;
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.arch-mod-features li {
+  position: relative;
+  padding-left: 9px;
+  margin-bottom: 2px;
+}
+.arch-mod-features li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--ink-3);
+}
+
+/* Tier 2 & 3 Grids: 4 feature cards */
+.arch-t2-grid,
+.arch-t3-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+@media (max-width: 900px) {
+  .arch-t2-grid,
+  .arch-t3-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 520px) {
+  .arch-t2-grid,
+  .arch-t3-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.arch-sub-card {
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 12px 11px;
+}
+.arch-sub-title {
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--ink);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.arch-sub-desc {
+  font-size: 11px;
+  color: var(--ink-2);
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Dark mode for newly added cards */
+@media (prefers-color-scheme: dark) {
+  .statemachine-container,
+  .schema-card,
+  .arch-tier {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  .sm-node,
+  .schema-prop-item,
+  .arch-module-card,
+  .arch-sub-card {
+    background: #0f172a;
+    border-color: #334155;
+  }
+  .sm-role-tag {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+  }
+  .node-step1 .sm-step-num { color: #60a5fa; }
+  .node-step2 .sm-step-num { color: #a78bfa; }
+  .node-step3 .sm-step-num { color: #22d3ee; }
+  .node-step4 .sm-step-num { color: #fbbf24; }
+  .node-step5 .sm-step-num { color: #fb923c; }
+  .node-step6 .sm-step-num { color: #34d399; }
+
+  .node-step1 .sm-role-tag { background: rgba(37, 99, 235, 0.15); color: #93c5fd; border-color: rgba(37, 99, 235, 0.3); }
+  .node-step2 .sm-role-tag { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border-color: rgba(139, 92, 246, 0.3); }
+  .node-step3 .sm-role-tag { background: rgba(6, 182, 212, 0.15); color: #67e8f9; border-color: rgba(6, 182, 212, 0.3); }
+  .node-step4 .sm-role-tag { background: rgba(245, 158, 11, 0.15); color: #fde68a; border-color: rgba(245, 158, 11, 0.3); }
+  .node-step5 .sm-role-tag { background: rgba(249, 115, 22, 0.15); color: #fdba74; border-color: rgba(249, 115, 22, 0.3); }
+  .node-step6 .sm-role-tag { background: rgba(16, 185, 129, 0.15); color: #a7f3d0; border-color: rgba(16, 185, 129, 0.3); }
+
+  .node-step1 .sm-node-badge { background: rgba(37, 99, 235, 0.2); color: #93c5fd; border-color: rgba(37, 99, 235, 0.4); }
+  .node-step2 .sm-node-badge { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border-color: rgba(139, 92, 246, 0.4); }
+  .node-step3 .sm-node-badge { background: rgba(6, 182, 212, 0.2); color: #67e8f9; border-color: rgba(6, 182, 212, 0.4); }
+  .node-step4 .sm-node-badge { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border-color: rgba(245, 158, 11, 0.4); }
+  .node-step5 .sm-node-badge { background: rgba(249, 115, 22, 0.2); color: #fdba74; border-color: rgba(249, 115, 22, 0.4); }
+  .node-step6 .sm-node-badge { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.4); }
+
+  .sm-feedback-bar {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+  }
+  .tier-1 .arch-tier-badge { background: rgba(37, 99, 235, 0.2); color: #93c5fd; }
+  .tier-2 .arch-tier-badge { background: rgba(147, 51, 234, 0.2); color: #d8b4fe; }
+  .tier-3 .arch-tier-badge { background: rgba(22, 163, 74, 0.2); color: #86efac; }
+  .arch-mod-role {
+    background: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
+  }
+}
+</style>
+
+<!-- ==================== Unified Sidebar Drawer Navigation ==================== -->
+<style id="unified-sidebar-style">
+:root {
+  --unified-nav-width: 300px;
+}
+.unified-nav-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 9999;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.unified-nav-btn:hover {
+  background: #f8fafc;
+  color: #1a4d8f;
+  border-color: #1a4d8f;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(26, 77, 143, 0.15);
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-btn {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  }
+  .unified-nav-btn:hover {
+    background: #0f172a;
+    color: #38bdf8;
+    border-color: #38bdf8;
+  }
+}
+body.unified-nav-open .unified-nav-btn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 无蒙版模式：打开导航时保持正文完全清晰、无遮罩与高斯模糊 */
+.unified-nav-overlay {
+  display: none !important;
+}
+body.unified-nav-open .unified-nav-overlay {
+  display: none !important;
+}
+
+aside.unified-nav-drawer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--unified-nav-width);
+  max-width: 86vw;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  padding: 22px 16px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  z-index: 10001;
+  box-shadow: 8px 0 28px rgba(0, 0, 0, 0.12);
+  transform: translateX(-100%);
+  transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  box-sizing: border-box;
+}
+@media (prefers-color-scheme: dark) {
+  aside.unified-nav-drawer {
+    background: #0f172a;
+    border-right-color: #1e293b;
+    box-shadow: 8px 0 28px rgba(0, 0, 0, 0.45);
+  }
+}
+body.unified-nav-open aside.unified-nav-drawer {
+  transform: translateX(0);
+}
+
+.unified-nav-drawer .drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-header { border-bottom-color: #1e293b; }
+}
+.unified-nav-drawer .drawer-brand {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-brand { color: #f8fafc; }
+}
+.unified-nav-drawer .drawer-brand span {
+  color: #1a4d8f;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-brand span { color: #38bdf8; }
+}
+.unified-nav-drawer .drawer-close-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  font-size: 18px;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: all .15s;
+}
+.unified-nav-drawer .drawer-close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-close-btn:hover {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+  }
+}
+
+.unified-nav-drawer .drawer-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-shortcuts { border-bottom-color: #1e293b; }
+}
+.unified-nav-drawer .shortcut-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all .15s ease;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .shortcut-btn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+  }
+}
+.unified-nav-drawer .shortcut-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1a4d8f;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .shortcut-btn:hover {
+    background: #0369a133;
+    border-color: #0284c7;
+    color: #38bdf8;
+  }
+}
+
+.unified-nav-drawer .toc-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.6px;
+  margin: 6px 0 10px 4px;
+}
+.unified-nav-drawer .drawer-toc {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.unified-nav-drawer .drawer-toc a {
+  font-size: 13px;
+  color: #475569;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: all .15s ease;
+  border-left: 3px solid transparent;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-toc a { color: #94a3b8; }
+}
+.unified-nav-drawer .drawer-toc a:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-toc a:hover {
+    color: #f8fafc;
+    background: #1e293b;
+  }
+}
+.unified-nav-drawer .drawer-toc a.active {
+  color: #1a4d8f;
+  background: #eff6ff;
+  border-left-color: #1a4d8f;
+  font-weight: 600;
+}
+@media (prefers-color-scheme: dark) {
+  .unified-nav-drawer .drawer-toc a.active {
+    color: #38bdf8;
+    background: #0369a126;
+    border-left-color: #38bdf8;
+  }
+}
+@media print {
+  .unified-nav-btn, aside.unified-nav-drawer, .unified-nav-overlay, .doc-footer-nav {
+    display: none !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Unified Sidebar Drawer HTML -->
+<button class="unified-nav-btn" id="unifiedNavBtn" title="展开目录导航">☰</button>
+<div class="unified-nav-overlay" id="unifiedNavOverlay"></div>
+<aside class="unified-nav-drawer" id="unifiedNavDrawer">
+  <div class="drawer-header">
+    <div class="drawer-brand">作品集方案 · <span>出版级 AI PM</span></div>
+    <button class="drawer-close-btn" id="unifiedNavClose" title="收起导航">✕</button>
+  </div>
+  <div class="drawer-shortcuts">
+    <a href="../index.html" class="shortcut-btn">🏠 返回作品集总览</a>
+    <a href="01_出版级AI绘画产品全链路规划(PRD与架构).html" class="shortcut-btn" style="border-left:3px solid var(--accent);font-weight:600;">01 全链路规划 (PRD与架构)</a>
+    <a href="02_出版级AI绘画工作流与ComfyUI方案设计.html" class="shortcut-btn">02 工作流与 ComfyUI 设计</a>
+    <a href="03_全要素资产中心与算法协同机制(LoRA产品化).html" class="shortcut-btn">03 全要素资产中心与算法协同</a>
+    <a href="04_质量评测闭环与出版合规风控体系.html" class="shortcut-btn">04 质量评测与合规风控</a>
+  </div>
+  <div class="toc-section-title">方案目录 (Contents)</div>
+  <nav class="drawer-toc" id="unifiedNavToc">
+    <a href="#sec-1" title="一、 业务现状与核心矛盾调研">一、 业务现状与核心矛盾调研</a>
+    <a href="#sec-2" title="二、 用户角色与多方协同流转矩阵 (RBAC)">二、 用户角色与多方协同流转矩阵 (RBAC)</a>
+    <a href="#sec-3" title="三、 出版级数据实体模型 (Data Entity Schema)">三、 出版级数据实体模型 (Data Entity Schema)</a>
+    <a href="#sec-4" title="四、 产品整体架构设计 (AI 出版创作工作台)">四、 产品整体架构设计 (AI 出版创作工作台)</a>
+    <a href="#sec-5" title="五、 核心业务模块与功能规划 (PRD 核心设计)">五、 核心业务模块与功能规划 (PRD 核心设计)</a>
+    <a href="#sec-6" title="六、 产品演进路线图 (Roadmap 与优先级定义)">六、 产品演进路线图 (Roadmap 与优先级定义)</a>
+    <a href="#sec-7" title="七、 B 端商业化与数据指标闭环">七、 B 端商业化与数据指标闭环</a>
+  </nav>
+</aside>
+
+<div class="wrap">
+  <h1>01. 出版级 AI 绘画产品全链路规划（PRD 与架构方案）</h1>
+
+  <h2 id="sec-1">一、 业务现状与核心矛盾调研</h2>
+
+  <h3>1. 传统出版插画生产链路 vs AI 赋能工业化链路</h3>
+  <p>在传统教育出版与绘本制作中，一本 32 页的彩色儿童绘本或教辅插画的生产流程存在显著的周期长、成本高、风格易漂移等业务痛点：</p>
+
+  <!-- 全链路生产模式对比与效益看板 (高保真工业级看板) -->
+  <div class="pipeline-showcase">
+    <!-- Row 1: 传统出版插画生产链路 -->
+    <div class="pipeline-section traditional">
+      <div class="pipeline-header">
+        <div class="pipeline-title-group">
+          <span class="pipeline-num-badge trad">1</span>
+          <div>
+            <div class="pipeline-title">传统出版插画生产链路 (Traditional Publishing Workflow)</div>
+          </div>
+        </div>
+        <div class="pipeline-stat-chip trad">周期长达 2~3 个月 · 综合成本 ¥1.5万~¥2.5万/本</div>
+      </div>
+
+      <div class="pipeline-cards-row">
+        <!-- Stage 1 -->
+        <div class="pipeline-card trad-card">
+          <div>
+            <div class="pipeline-card-top">
+              <span class="pipeline-card-badge">阶段 01</span>
+              <span class="pipeline-card-role trad-role">👤 文编 / 画师</span>
+            </div>
+            <div class="pipeline-card-heading">文稿终审与约稿</div>
+            <div class="pipeline-card-time">⏱️ 周期：7~10天</div>
+            <ul class="pipeline-card-list">
+              <li>文字编辑终审文稿</li>
+              <li>物色风格契合画师</li>
+              <li>商务沟通与排期签约</li>
+            </ul>
+          </div>
+          <span class="pipeline-card-warn">⚠️ 外部沟通链条长、响应慢</span>
+        </div>
+
+        <div class="pipeline-flow-arrow trad-arrow">➔</div>
+
+        <!-- Stage 2 -->
+        <div class="pipeline-card trad-card">
+          <div>
+            <div class="pipeline-card-top">
+              <span class="pipeline-card-badge">阶段 02</span>
+              <span class="pipeline-card-role trad-role">👤 画师 / 美编</span>
+            </div>
+            <div class="pipeline-card-heading">草图线稿审样</div>
+            <div class="pipeline-card-time">⏱️ 周期：10~15天</div>
+            <ul class="pipeline-card-list">
+              <li>画师手工单页画草图</li>
+              <li>人物比例与构图磨合</li>
+              <li>跨部门多次提意见</li>
+            </ul>
+          </div>
+          <span class="pipeline-card-warn">⚠️ 人工磨合、修改反馈长</span>
+        </div>
+
+        <div class="pipeline-flow-arrow trad-arrow">➔</div>
+
+        <!-- Stage 3 -->
+        <div class="pipeline-card trad-card">
+          <div>
+            <div class="pipeline-card-top">
+              <span class="pipeline-card-badge">阶段 03</span>
+              <span class="pipeline-card-role trad-role">👤 画师 (单兵)</span>
+            </div>
+            <div class="pipeline-card-heading">样稿上色铺光</div>
+            <div class="pipeline-card-time">⏱️ 周期：15~20天</div>
+            <ul class="pipeline-card-list">
+              <li>画师手工逐张铺色</li>
+              <li>跨页色差与光影漂移</li>
+              <li>画面常填满难留文字</li>
+            </ul>
+          </div>
+          <span class="pipeline-card-warn">⚠️ 逐张铺色、跨页易漂移</span>
+        </div>
+
+        <div class="pipeline-flow-arrow trad-arrow">➔</div>
+
+        <!-- Stage 4 -->
+        <div class="pipeline-card trad-card">
+          <div>
+            <div class="pipeline-card-top">
+              <span class="pipeline-card-badge">阶段 04</span>
+              <span class="pipeline-card-role trad-role">👤 责编 / 终审</span>
+            </div>
+            <div class="pipeline-card-heading">三审三校反复修改</div>
+            <div class="pipeline-card-time">⏱️ 周期：20~30天</div>
+            <ul class="pipeline-card-list">
+              <li>责编/美编交叉多轮审</li>
+              <li>政治红线与知识点勘误</li>
+              <li>牵一发动全身大面积改</li>
+            </ul>
+          </div>
+          <span class="pipeline-card-warn">⚠️ 扁平图难拆层、返修极重</span>
+        </div>
+
+        <div class="pipeline-flow-arrow trad-arrow">➔</div>
+
+        <!-- Stage 5 -->
+        <div class="pipeline-card trad-card">
+          <div>
+            <div class="pipeline-card-top">
+              <span class="pipeline-card-badge">阶段 05</span>
+              <span class="pipeline-card-role trad-role">👤 印务 / 制版</span>
+            </div>
+            <div class="pipeline-card-heading">手工印前分色</div>
+            <div class="pipeline-card-time">⏱️ 周期：7~10天</div>
+            <ul class="pipeline-card-list">
+              <li>RGB 直转 CMYK 发灰</li>
+              <li>纯黑正文字手工套印</li>
+              <li>出血位与中缝手工校正</li>
+            </ul>
+          </div>
+          <span class="pipeline-card-warn">⚠️ 纯黑套印与出血易翻车</span>
+        </div>
+      </div>
+
+      <div class="pipeline-banner trad">
+        <span>📕</span>
+        <div><strong>传统作坊式死穴：</strong>单张插画制作费 ¥300~¥800（整书外包 ¥1.5万~¥2.5万） · 返工周期长（整书 60~90 天） · 角色易走样、画风跨页漂移 · 物理印刷退印风险大</div>
+      </div>
+    </div>
+
+    <!-- Row 2: AI 赋能工业化生产链路 -->
+    <div class="pipeline-section ai">
+      <div class="pipeline-header">
+        <div class="pipeline-title-group">
+          <span class="pipeline-num-badge ai">2</span>
+          <div>
+            <div class="pipeline-title">AI 赋能工业化生产链路 (AI-Powered Industrial Pipeline)</div>
+          </div>
+        </div>
+        <div class="pipeline-stat-chip ai">出片周期 3~5 天 · 综合成本 ¥1500~¥3000/本 · 降本 80%+</div>
+      </div>
+
+      <div class="pipeline-cards-row">
+        <!-- Module 1 -->
+        <div class="pipeline-card ai-card">
+          <div>
+            <div class="pipeline-card-top">
+              <span class="pipeline-card-badge">模块 1 · 脚本室</span>
+              <span class="pipeline-card-role ai-role">👤 文字编辑</span>
+            </div>
+            <div class="pipeline-card-heading">文稿智能解析</div>
+            <div class="pipeline-card-time">⚡ 极速：10~30分钟</div>
+            <ul class="pipeline-card-list">
+              <li>LLM 结构化提取文稿</li>
+              <li>知识点/画面实体映射</li>
+              <li>预留文字安全区排版</li>
+              <li>生成结构化分镜脚本</li>
+            </ul>
+          </div>
+          <a href="#sec-5" class="pipeline-card-gate" title="查看文稿解析 PRD 模块">🛡️ 门禁：审定分镜 ➔ PRD 01</a>
+        </div>
+
+        <div class="pipeline-flow-arrow ai-arrow">➔</div>
+
+        <!-- Module 2 -->
+        <div class="pipeline-card ai-card">
+          <div>
+            <div class="pipeline-card-top">
+              <span class="pipeline-card-badge">模块 2 · 资产库</span>
+              <span class="pipeline-card-role ai-role">👤 主美 / 责编</span>
+            </div>
+            <div class="pipeline-card-heading">全要素资产锁定</div>
+            <div class="pipeline-card-time">⚡ 周期：1~2天定型</div>
+            <ul class="pipeline-card-list">
+              <li>角色三视图与FaceID绑定</li>
+              <li>专属画风LoRA与LUT曲线</li>
+              <li>场景空间与核心道具归档</li>
+              <li>开本边距与印刷规范绑定</li>
+            </ul>
+          </div>
+          <a href="03_全要素资产中心与算法协同机制(LoRA产品化).html" class="pipeline-card-gate" title="查看资产库与 LoRA 方案">🛡️ 门禁：签批母本 ➔ PRD 03</a>
+        </div>
+
+        <div class="pipeline-flow-arrow ai-arrow">➔</div>
+
+        <!-- Module 3 -->
+        <div class="pipeline-card ai-card">
+          <div>
+            <div class="pipeline-card-top">
+              <span class="pipeline-card-badge">模块 3 · 概念台</span>
+              <span class="pipeline-card-role ai-role">👤 美术编辑</span>
+            </div>
+            <div class="pipeline-card-heading">多分镜快速打样</div>
+            <div class="pipeline-card-time">⚡ 周期：10分钟定版</div>
+            <ul class="pipeline-card-list">
+              <li>并发生成低算力分镜</li>
+              <li>页面构图节奏全局速览</li>
+              <li>文字排版占位预校验</li>
+              <li>美编 10 分钟圈选定版</li>
+            </ul>
+          </div>
+          <a href="02_出版级AI绘画工作流与ComfyUI方案设计.html" class="pipeline-card-gate" title="查看工作流与打样方案">🛡️ 门禁：圈选构图 ➔ PRD 02</a>
+        </div>
+
+        <div class="pipeline-flow-arrow ai-arrow">➔</div>
+
+        <!-- Module 4 -->
+        <div class="pipeline-card ai-card">
+          <div>
+            <div class="pipeline-card-top">
+              <span class="pipeline-card-badge">模块 4 · 编辑器</span>
+              <span class="pipeline-card-role ai-role">👤 画师 / 美编</span>
+            </div>
+            <div class="pipeline-card-heading">分层画布精修</div>
+            <div class="pipeline-card-time">⚡ 周期：1~2天精修</div>
+            <ul class="pipeline-card-list">
+              <li>图层解耦(人物/景/物)</li>
+              <li>精准局部重绘Inpainting</li>
+              <li>ControlNet 姿态微调</li>
+              <li>跨页角色特征精准重投影</li>
+            </ul>
+          </div>
+          <a href="02_出版级AI绘画工作流与ComfyUI方案设计.html" class="pipeline-card-gate" title="查看画布编辑器设计">🎨 共创：验收分层 ➔ PRD 02</a>
+        </div>
+
+        <div class="pipeline-flow-arrow ai-arrow">➔</div>
+
+        <!-- Module 5 -->
+        <div class="pipeline-card ai-card">
+          <div>
+            <div class="pipeline-card-top">
+              <span class="pipeline-card-badge">模块 5 · 质检台</span>
+              <span class="pipeline-card-role ai-role">👤 责任编辑</span>
+            </div>
+            <div class="pipeline-card-heading">VLM 质检审校</div>
+            <div class="pipeline-card-time">⚡ 周期：0.5天闭环</div>
+            <ul class="pipeline-card-list">
+              <li>意识形态/政治红线机审</li>
+              <li>学科事实/科学常识校验</li>
+              <li>留白区合规自动告警</li>
+              <li>在线协同批注驳回工单</li>
+            </ul>
+          </div>
+          <a href="04_质量评测闭环与出版合规风控体系.html" class="pipeline-card-gate" title="查看质量风控 PRD">🛡️ 门禁：终审签章 ➔ PRD 04</a>
+        </div>
+
+        <div class="pipeline-flow-arrow ai-arrow">➔</div>
+
+        <!-- Module 6 -->
+        <div class="pipeline-card ai-card">
+          <div>
+            <div class="pipeline-card-top">
+              <span class="pipeline-card-badge">模块 6 · 出片台</span>
+              <span class="pipeline-card-role ai-role">👤 印务专家</span>
+            </div>
+            <div class="pipeline-card-heading">印前预检出片</div>
+            <div class="pipeline-card-time">⚡ 周期：0.5天出片</div>
+            <ul class="pipeline-card-list">
+              <li>300 DPI 超放大(ESRGAN)</li>
+              <li>CMYK 分色与纯黑K100</li>
+              <li>1.5mm 铣背出血位校验</li>
+              <li>分层 PSD 与版权留痕出片</li>
+            </ul>
+          </div>
+          <a href="04_质量评测闭环与出版合规风控体系.html" class="pipeline-card-gate" title="查看印刷出片合规规范">🛡️ 门禁：物理出片 ➔ PRD 04</a>
+        </div>
+      </div>
+
+      <div class="pipeline-banner ai">
+        <span>💡</span>
+        <div><strong>工业化破局效益：</strong>生产周期压缩至 3~5 天（缩短 90%+） · 综合成本降至 ¥1500~¥3000/本（降本 80%+） · 跨页角色漂移率 &lt; 8% · 三审三校一次通过率 (FTR) ≥ 85%</div>
+      </div>
+    </div>
+
+    <!-- Row 3: 效益指标对比看板 -->
+    <div class="pipeline-section metrics">
+      <div class="metrics-title">
+        <span>📊</span>
+        <span>生产模式质变效益核心指标对比看板 (Key Metrics Comparison)</span>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="metric-label">⏱️ 全流程出书周期</div>
+          <div class="metric-compare">
+            <span class="metric-old">传统 60 ~ 90 天</span>
+            <span class="metric-new">➔ AI 3 ~ 5 天</span>
+          </div>
+          <span class="metric-pill">缩短 90%+ · 提速15倍</span>
+        </div>
+
+        <div class="metric-box">
+          <div class="metric-label">💰 单本整书插画成本</div>
+          <div class="metric-compare">
+            <span class="metric-old">传统 ¥1.5万 ~ ¥2.5万</span>
+            <span class="metric-new">➔ AI ¥1500 ~ ¥3000</span>
+          </div>
+          <span class="metric-pill">降低 80%+ · 节省开销</span>
+        </div>
+
+        <div class="metric-box">
+          <div class="metric-label">🎯 跨页角色一致性</div>
+          <div class="metric-compare">
+            <span class="metric-old">手绘漂移率 &gt; 35%</span>
+            <span class="metric-new">➔ 算法特征锁定 &lt; 8%</span>
+          </div>
+          <span class="metric-pill">面部拓扑稳定连贯</span>
+        </div>
+
+        <div class="metric-box">
+          <div class="metric-label">📋 三审三校一次通过率 (FTR)</div>
+          <div class="metric-compare">
+            <span class="metric-old">返工轮次高 (FTR &lt; 40%)</span>
+            <span class="metric-new">➔ 前置质检漏斗 ≥ 85%</span>
+          </div>
+          <span class="metric-pill">合规直出零退印</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="good">
+    <strong>💡 业务效益质变</strong>：通过“角色/画风资产预先微调绑定”与“画布分层局部确定性重绘”，综合成本降低 <strong>80%+</strong>（单本外包 1.2~2.5 万元 ➔ 平台综合 1500~3000 元），整书出片周期压缩至 <strong>3~5 天</strong>，单页平均返修轮次控制在 <strong>≤ 2.5 次</strong>。
+  </div>
+
+  <div class="note" style="background:#f8fafc; border:1px solid var(--line); border-left:4px solid var(--accent); padding:14px 18px; margin:18px 0; border-radius:0 8px 8px 0; font-size:13.5px; line-height:1.7;">
+    <strong style="color:var(--accent);">📌 方案推演闭环 · 初始角色资产的三大真实来源（严禁盲目假定凭空生成）</strong><br>
+    在实际出版业务中，角色资产绝非凭空产生，也不是靠无休止地盲盒抽卡，而是通过以下 3 条工程路径在 1~2 天内完成定型入库：
+    <ul style="margin:8px 0 0; padding-left:18px; color:var(--ink-2);">
+      <li><strong>路径 A · 存量系列 IP 资产化（成本为 0）</strong>：针对已出版的历史童书、经典教辅续作，直接导入往期 5~15 张高清原图，半天内提取 IP-Adapter / FaceID 拓扑向量与 LoRA 权重，即刻完成全书资产绑定。</li>
+      <li><strong>路径 B · 原创重磅新书 —— 美编/画师仅出 1 张核心母版（降本核心）</strong>：画师从“画整本 32 页重复苦力”转为“美术指导”；仅需绘制 1~2 张主角正面 Anchor 基准概念图（耗时 1~2 天），系统自动提取潜空间特征并投射至全书 30+ 页面，后续全由系统继承。</li>
+      <li><strong>路径 C · 低客单价教辅 —— 多维属性受控打样（拒绝纯抽卡）</strong>：编辑通过年龄、发型、服饰与画风属性选择器，结合标准站姿 ControlNet 预处理器，并发生成 4~8 组标准三视图候选卡；编辑仅需 1 次决策勾选“设为全书主角”，后续分镜全部强约束复用。</li>
+    </ul>
+  </div>
+
+  <div class="note" style="background:#f0fdf4; border:1px solid #bbf7d0; border-left:4px solid #16a34a; padding:14px 18px; margin:18px 0; border-radius:0 8px 8px 0; font-size:13.5px; line-height:1.7; color:#14532d;">
+    <strong style="color:#15803d;">🛡️ 工业化核心机制 · 为什么每个流程都必须设立「人工校验门禁 (Stage-Gate)」？</strong><br>
+    严肃出版的工业化流水线绝非“无人驾驶黑盒”，而是标准的 <strong>Human-in-the-loop（人机协同门禁制）</strong>：
+    <ul style="margin:8px 0 0; padding-left:18px; color:#166534;">
+      <li><strong>法律与终身责权不可委托</strong>：出版实行“三审三校”与责编终身责任制，AI 无法律主体资格；政治红线、常识勘误必须由人类编辑签字签章背书。</li>
+      <li><strong>阻断错误级联扩散 (Error Cascade)</strong>：前序环节（如分镜或角色设色）若偏差 5%，后续 32 页将全线报废；工段门禁确保“未经人类验收，下游流水线决不启动”。</li>
+      <li><strong>人类角色质变（从画画苦力 ➔ 决策机长）</strong>：AI 承担 85% 繁琐耗时的生成与图层运算（体力劳动），人类专家仅在每个 Gate 节点花费 5~15 分钟进行“圈选、微调、签字放行”，实现真正的低摩擦交付。</li>
+    </ul>
+  </div>
+
+  <h3>2. 核心业务矛盾深度剖析</h3>
+  <ol>
+    <li><strong>“泛娱乐生图”与“出版严肃性”的矛盾</strong>：C 端产品（如 Midjourney、原生 WebUI）追求单张图片的“惊艳感”与发散性，依赖抽卡；而出版业要求<strong>“高度确定性”</strong>（角色跨页同一性、生物与科学知识准确性、色彩空间 CMYK、3mm 出血位及 4mm 跨页中缝接版规范）。</li>
+    <li><strong>“非专业编辑”与“底层复杂参数”的矛盾</strong>：图书文字编辑不懂复杂的 Prompt、采样步数、CFG、Denoise 与 ControlNet 预处理器；系统必须将技术复杂性沉淀在底层工作流，前台提供结构化的文稿解析与“所见即所得”的画板交互。</li>
+    <li><strong>“图文割裂”与“版面排版协同”的矛盾</strong>：传统 AI 生图往往“把画面画得太满”，导致文字对话框与课文正文无处安放；出版级产品必须在文稿解析阶段即锁定<strong>版面意图（Layout Intent）与文字安全区（Text Safe Area）</strong>。</li>
+  </ol>
+
+  <hr>
+
+  <h2 id="sec-2">二、 用户角色与多方协同流转矩阵 (RBAC)</h2>
+
+  <p>针对严肃出版业务的分工体系与法律责任制，系统定义五类核心业务角色，并在工作流状态机中实现细粒度权限与任务流转隔离：</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:20%;">角色类型</th>
+        <th style="width:26%;">核心职责</th>
+        <th style="width:30%;">系统功能权限</th>
+        <th style="width:24%;">关键交付物</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>文字编辑 (Text Editor)</strong></td>
+        <td>文稿录入、内容解析、选定角色与画风资产</td>
+        <td>文稿解析室、分镜脚本编辑、角色库选择、批量草图打样触发</td>
+        <td>结构化分镜脚本、角色绑定卡</td>
+      </tr>
+      <tr>
+        <td><strong>美术编辑 / 插画监修 (Art Editor)</strong></td>
+        <td>画面构图微调、分层涂抹重绘、画风浓郁度微调</td>
+        <td>画布编辑器、Inpainting、ControlNet 姿态重定向、分层透明图层导出</td>
+        <td>高精确定性画面、分层 PSD</td>
+      </tr>
+      <tr>
+        <td><strong>三审三校责任编辑 (Review Editor)</strong></td>
+        <td>初审初校、政治导向审核、科学事实挑错、合规评测确认</td>
+        <td>在线批注审校看板、VLM 质检告警复核、驳回返修工单</td>
+        <td>审校批注文档、复核通过工单</td>
+      </tr>
+      <tr>
+        <td><strong>终审主编 / 社长 (Chief Editor)</strong></td>
+        <td>出版终审、版权合规最终核准、出版签发与重大内容裁决</td>
+        <td>终审签发控制台、版权追溯日志、电子签章审批流、全局熔断权限</td>
+        <td>终审合格签章、出片授权令</td>
+      </tr>
+      <tr>
+        <td><strong>印制排版人员 (Print Technician)</strong></td>
+        <td>出血位校对、CMYK 软打样、单色黑提纯、拼版导出</td>
+        <td>印刷预检工作台、ICC 色彩转换引擎、超分出片导出</td>
+        <td>印刷级 TIFF / PDF 文件 (300 DPI)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 角色协同任务状态机流转 卡片流 -->
+  <div class="statemachine-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+      <div style="font-size: 13.5px; font-weight: 750; color: var(--ink); display: flex; align-items: center; gap: 7px;">
+        <span>🔄</span> <strong>角色协同任务状态机闭环 (End-to-End Workflow State Machine)</strong>
+      </div>
+      <span style="font-size: 11px; color: var(--ink-3); background: var(--bg-soft); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--line);">串行流转 + 门禁熔断机制</span>
+    </div>
+
+    <div class="statemachine-flow">
+      <!-- 节点 1 -->
+      <div class="sm-node node-step1">
+        <div class="sm-node-step">
+          <span class="sm-step-num">STEP 01</span>
+          <span class="sm-role-tag">👤 文字编辑</span>
+        </div>
+        <div class="sm-node-title">文稿录入与分镜解析</div>
+        <div class="sm-node-desc">上传出版书稿，LLM 结构化抽取分镜脚本、角色特征与文字排版安全区。</div>
+        <div class="sm-node-badge">状态：[分镜脚本待确认]</div>
+      </div>
+
+      <!-- 节点 2 -->
+      <div class="sm-node node-step2">
+        <div class="sm-node-step">
+          <span class="sm-step-num">STEP 02</span>
+          <span class="sm-role-tag">⚡ 算法中台</span>
+        </div>
+        <div class="sm-node-title">异步批量打样出图</div>
+        <div class="sm-node-desc">ComfyUI 推理集群装配 LoRA + ControlNet 骨骼线，多方案并行生成候选草图。</div>
+        <div class="sm-node-badge">状态：[候选图批次生成中]</div>
+      </div>
+
+      <!-- 节点 3 -->
+      <div class="sm-node node-step3">
+        <div class="sm-node-step">
+          <span class="sm-step-num">STEP 03</span>
+          <span class="sm-role-tag">👤 美术编辑</span>
+        </div>
+        <div class="sm-node-title">分层精修与画布控制</div>
+        <div class="sm-node-desc">锁定角色基底，通过分层透明通道、局部 Inpainting 消除畸变并校正笔触风格。</div>
+        <div class="sm-node-badge">状态：[美编精修锁定]</div>
+      </div>
+
+      <!-- 节点 4 -->
+      <div class="sm-node node-step4">
+        <div class="sm-node-step">
+          <span class="sm-step-num">STEP 04</span>
+          <span class="sm-role-tag">👤 责任编辑</span>
+        </div>
+        <div class="sm-node-title">VLM 辅助三审三校</div>
+        <div class="sm-node-desc">大模型检测历史事实、政治红线与角色漂移；人工责编进行批注与修改工单派发。</div>
+        <div class="sm-node-badge">门禁：[二审初校复核]</div>
+      </div>
+
+      <!-- 节点 5 -->
+      <div class="sm-node node-step5">
+        <div class="sm-node-step">
+          <span class="sm-step-num">STEP 05</span>
+          <span class="sm-role-tag">👤 终审主编</span>
+        </div>
+        <div class="sm-node-title">出版终审与电子签章</div>
+        <div class="sm-node-desc">全局跨页通读核查，确认文图版权与书号规范，签发出版级合格出片指令。</div>
+        <div class="sm-node-badge">门禁：[终审合规签发]</div>
+      </div>
+
+      <!-- 节点 6 -->
+      <div class="sm-node node-step6">
+        <div class="sm-node-step">
+          <span class="sm-step-num">STEP 06</span>
+          <span class="sm-role-tag">👤 印务排版</span>
+        </div>
+        <div class="sm-node-title">工业印刷预检出片</div>
+        <div class="sm-node-desc">RGB 转 CMYK (FOGRA39)、300 DPI 超分、出血位校验、单色黑提纯与拼版导出。</div>
+        <div class="sm-node-badge">完成：[交付印刷打样]</div>
+      </div>
+    </div>
+
+    <div class="sm-feedback-bar">
+      <span class="sm-feedback-icon">↺ 熔断与返修反向链路：</span>
+      <span>任意审校节点（责编/主编）发现画面瑕疵或常识违规，一键生成<strong>“修改返工工单 (Rejection Ticket)”</strong>，状态自动回滚至美编画布，保留图层历史与修改痕迹。</span>
+    </div>
+  </div>
+
+  <hr>
+
+  <h2 id="sec-3">三、 出版级数据实体模型 (Data Entity Schema)</h2>
+
+  <p>为支撑“整本图书”维度的资产继承、画风锁死与版本管理，系统抽象出严格级联的 <strong>四层出版级数据实体模型</strong>：</p>
+
+  <!-- 出版级数据实体模型 网格卡片 (4 列) -->
+  <div class="schema-container">
+    <!-- Level 1: Project -->
+    <div class="schema-card l1">
+      <div class="schema-card-header">
+        <span class="schema-level-pill">Level 1 · 工程级</span>
+        <span style="font-size: 16px;">📚</span>
+      </div>
+      <div class="schema-entity-name">Project</div>
+      <div class="schema-entity-scope">整本图书顶层工程实体</div>
+      <ul class="schema-props-list">
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Book_Meta</span>
+          <span class="schema-prop-val">书名、ISBN 书号、目标读者年龄段、责任编辑团队</span>
+        </li>
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Print_Spec</span>
+          <span class="schema-prop-val">开本规格 (大度16开/32开)、成品尺寸、3mm 出血位标准</span>
+        </li>
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Global_Style_LoRA</span>
+          <span class="schema-prop-val">全书默认画风 LoRA UID、全局触发词、调色曲线 LUT</span>
+        </li>
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Color_Profile</span>
+          <span class="schema-prop-val">印刷色彩配置标准 (ISO Coated v2 / FOGRA39 CMYK)</span>
+        </li>
+      </ul>
+      <div class="schema-rel-tag">
+        <span>↳ 级联包含：1 : N Spreads 印张</span>
+      </div>
+    </div>
+
+    <!-- Level 2: Spreads / Pages -->
+    <div class="schema-card l2">
+      <div class="schema-card-header">
+        <span class="schema-level-pill">Level 2 · 印张级</span>
+        <span style="font-size: 16px;">📖</span>
+      </div>
+      <div class="schema-entity-name">Spreads / Pages</div>
+      <div class="schema-entity-scope">跨页 / 单页印张实体</div>
+      <ul class="schema-props-list">
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Page_Number</span>
+          <span class="schema-prop-val">逻辑页码与物理页码 (P01~P32)、单双页偶奇属性</span>
+        </li>
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Gutter_Margin</span>
+          <span class="schema-prop-val">跨页中缝装订避让区 (跨页预留 4~6mm 视觉防挤压安全线)</span>
+        </li>
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Bleed_Boundary</span>
+          <span class="schema-prop-val">外扩 3mm 物理裁剪出血线 Mask 区域</span>
+        </li>
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Spread_Type</span>
+          <span class="schema-prop-val">单页插画 / 左右跨页全景图 (Double Spread) / 图文环绕</span>
+        </li>
+      </ul>
+      <div class="schema-rel-tag">
+        <span>↳ 级联包含：1 : N Shot 分镜单元</span>
+      </div>
+    </div>
+
+    <!-- Level 3: Shot / Frame -->
+    <div class="schema-card l3">
+      <div class="schema-card-header">
+        <span class="schema-level-pill">Level 3 · 分镜级</span>
+        <span style="font-size: 16px;">🎬</span>
+      </div>
+      <div class="schema-entity-name">Shot / Frame</div>
+      <div class="schema-entity-scope">单幅分镜与画面构图单元</div>
+      <ul class="schema-props-list">
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Camera_Framing</span>
+          <span class="schema-prop-val">景别规格 (全景远景 / 叙事中景 / 特写表情 / 俯视仰角)</span>
+        </li>
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Bound_Characters</span>
+          <span class="schema-prop-val">绑定出场角色资产 UID 列表 (主控 IP LoRA / 特征向量)</span>
+        </li>
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Text_Safe_Zone</span>
+          <span class="schema-prop-val">排版留白遮罩 (30%~45% 文字占位区负向生成引导)</span>
+        </li>
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Prompt_Assembly</span>
+          <span class="schema-prop-val">装配后正反向提示词、ControlNet 骨骼/线稿权重组合</span>
+        </li>
+      </ul>
+      <div class="schema-rel-tag">
+        <span>↳ 级联包含：1 : 1 Canvas 会话</span>
+      </div>
+    </div>
+
+    <!-- Level 4: Canvas Session -->
+    <div class="schema-card l4">
+      <div class="schema-card-header">
+        <span class="schema-level-pill">Level 4 · 资产渲染级</span>
+        <span style="font-size: 16px;">🎨</span>
+      </div>
+      <div class="schema-entity-name">Canvas Session</div>
+      <div class="schema-entity-scope">分层画布渲染与出片会话</div>
+      <ul class="schema-props-list">
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Base_Background</span>
+          <span class="schema-prop-val">背景环境图层 (环境 Outpainting 完整全景图)</span>
+        </li>
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Foreground_Subjects</span>
+          <span class="schema-prop-val">独立主体角色图层 (BiRefNet 抠图 RGBA 透明通道)</span>
+        </li>
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Inpaint_Version_Chain</span>
+          <span class="schema-prop-val">历史重绘图层链 (局部涂抹修正、手部修复差异 Mask)</span>
+        </li>
+        <li class="schema-prop-item">
+          <span class="schema-prop-key">Export_Master_Bundle</span>
+          <span class="schema-prop-val">工业导出包 (300 DPI 分层 PSD / CMYK 嵌入式 TIFF)</span>
+        </li>
+      </ul>
+      <div class="schema-rel-tag">
+        <span>↳ 终审归档：进入印刷印制库</span>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h2 id="sec-4">四、 产品整体架构设计 (AI 出版创作工作台)</h2>
+
+  <p>系统采用高内聚、低耦合的 <strong>“三层驱动架构”</strong>，打通从前端业务交互、中台工作流调度到异构算力引擎的全链路支撑：</p>
+
+  <!-- 产品整体架构设计 3 层卡片系统 -->
+  <div class="arch-system">
+    <!-- 第 1 层：业务交互层 (B端 Web 工作台) -->
+    <div class="arch-tier tier-1">
+      <div class="arch-tier-header">
+        <div class="arch-tier-title-group">
+          <span class="arch-tier-badge">TIER 1 · 业务交互层</span>
+          <span class="arch-tier-title">出版创作 Web 工作台集群 (Collaborative Web Studio)</span>
+        </div>
+        <span class="arch-tier-desc">面向文编、美编、责编与印务的 6 大协同作业功能室</span>
+      </div>
+
+      <div class="arch-t1-grid">
+        <!-- 模块 1 -->
+        <div class="arch-module-card">
+          <div class="arch-mod-head">
+            <span class="arch-mod-num">01</span>
+            <span class="arch-mod-name">文稿智能解析室</span>
+            <span class="arch-mod-role">文字编辑</span>
+          </div>
+          <ul class="arch-mod-features">
+            <li>Word/TXT 一键导入与长文本智能分句</li>
+            <li>LLM 抽取环境/光影/角色要素并生成分镜脚本</li>
+            <li>文字安全区与版面排版留白引导标记</li>
+          </ul>
+        </div>
+
+        <!-- 模块 2 -->
+        <div class="arch-module-card">
+          <div class="arch-mod-head">
+            <span class="arch-mod-num">02</span>
+            <span class="arch-mod-name">全书出版级资产库</span>
+            <span class="arch-mod-role">美术主管</span>
+          </div>
+          <ul class="arch-mod-features">
+            <li>角色三视图、专属画风 LoRA 与调色 LUT 标准库</li>
+            <li>场景空间 (环境/光影) 与核心道具/器物资产绑定</li>
+            <li>版式网格模板 (出血位/文字安全区) 与印刷标准 ICC</li>
+          </ul>
+        </div>
+
+        <!-- 模块 3 -->
+        <div class="arch-module-card">
+          <div class="arch-mod-head">
+            <span class="arch-mod-num">03</span>
+            <span class="arch-mod-name">导演级分镜概念台</span>
+            <span class="arch-mod-role">文编 / 美编</span>
+          </div>
+          <ul class="arch-mod-features">
+            <li>全书 32 页跨页缩略图全局网格看板</li>
+            <li>单分镜 1:4 / 1:8 并发方案极速打样对比</li>
+            <li>景别视角 (远/中/特写) 与镜头节奏动态编排</li>
+          </ul>
+        </div>
+
+        <!-- 模块 4 -->
+        <div class="arch-module-card">
+          <div class="arch-mod-head">
+            <span class="arch-mod-num">04</span>
+            <span class="arch-mod-name">分层画布精修编辑器</span>
+            <span class="arch-mod-role">美术编辑</span>
+          </div>
+          <ul class="arch-mod-features">
+            <li>主体与背景智能自动抠图分离 (RGBA 透明图层)</li>
+            <li>局部涂抹 Inpainting 手部修复与表情精修微调</li>
+            <li>跨页中缝 4mm 避让线与 3mm 出血位辅助标尺</li>
+          </ul>
+        </div>
+
+        <!-- 模块 5 -->
+        <div class="arch-module-card">
+          <div class="arch-mod-head">
+            <span class="arch-mod-num">05</span>
+            <span class="arch-mod-name">VLM 审校与知识质检台</span>
+            <span class="arch-mod-role">责任编辑</span>
+          </div>
+          <ul class="arch-mod-features">
+            <li>画面涉政/涉暴/少儿读物合规红线大模型筛查</li>
+            <li>历史常识、自然科学事实多模态 RAG 交叉核验</li>
+            <li>角色服饰特征跨章节漂移报警与返工工单系统</li>
+          </ul>
+        </div>
+
+        <!-- 模块 6 -->
+        <div class="arch-module-card">
+          <div class="arch-mod-head">
+            <span class="arch-mod-num">06</span>
+            <span class="arch-mod-name">工业印刷预检与出片台</span>
+            <span class="arch-mod-role">印务排版</span>
+          </div>
+          <ul class="arch-mod-features">
+            <li>RGB 转 FOGRA39 / JapanColor CMYK 软打样</li>
+            <li>出版级 300 DPI 矢量无损超分上采样引擎</li>
+            <li>文字单色黑 K100 提纯、总墨量限制与分层 PSD 导出</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 中间总线连接指示 -->
+    <div class="arch-bus-connector">
+      <div class="arch-bus-line"></div>
+      <span>▼ 双向 WebSocket 实时长任务订阅 · RESTful 参数装配总线</span>
+      <div class="arch-bus-line"></div>
+    </div>
+
+    <!-- 第 2 层：任务编排与调度中台 -->
+    <div class="arch-tier tier-2">
+      <div class="arch-tier-header">
+        <div class="arch-tier-title-group">
+          <span class="arch-tier-badge">TIER 2 · 调度与中台层</span>
+          <span class="arch-tier-title">任务编排与调度中台 (Agent Workflow Orchestration)</span>
+        </div>
+        <span class="arch-tier-desc">负责状态机扭转、Prompt 装配、算力路由与印刷规则约束</span>
+      </div>
+
+      <div class="arch-t2-grid">
+        <div class="arch-sub-card">
+          <div class="arch-sub-title">🔄 任务协同状态机引擎</div>
+          <p class="arch-sub-desc">驱动草图生成 ➔ 分镜确认 ➔ 上色精修 ➔ VLM审核 ➔ 出版签发的串行与返修逆流分支。</p>
+        </div>
+        <div class="arch-sub-card">
+          <div class="arch-sub-title">⚙️ 参数装配与模板中台</div>
+          <p class="arch-sub-desc">根据出版开本规格，动态组装 Prompt、LoRA 权重配比、ControlNet 预处理器与采样参数。</p>
+        </div>
+        <div class="arch-sub-card">
+          <div class="arch-sub-title">📐 版面意图与构图约束器</div>
+          <p class="arch-sub-desc">自动解析文字排版区安全坐标，反向生成负向注意力 Mask，防止插画主体穿透正文排版区。</p>
+        </div>
+        <div class="arch-sub-card">
+          <div class="arch-sub-title">🚀 异构 GPU 弹性调度集群</div>
+          <p class="arch-sub-desc">自适应分级队列（即时单图 vs 批量整本生成）、显存切片优化与长时间长连接进度上报。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 中间总线连接指示 -->
+    <div class="arch-bus-connector">
+      <div class="arch-bus-line"></div>
+      <span>▼ ComfyUI Headless 节点驱动 · 推理集群标准化 API</span>
+      <div class="arch-bus-line"></div>
+    </div>
+
+    <!-- 第 3 层：模型与算法引擎层 -->
+    <div class="arch-tier tier-3">
+      <div class="arch-tier-header">
+        <div class="arch-tier-title-group">
+          <span class="arch-tier-badge">TIER 3 · 模型与算法层</span>
+          <span class="arch-tier-title">核心模型与推理引擎层 (Inference & Foundation Models)</span>
+        </div>
+        <span class="arch-tier-desc">出版级一致性控制、高保真图像修复与印刷级超分算法矩阵</span>
+      </div>
+
+      <div class="arch-t3-grid">
+        <div class="arch-sub-card">
+          <div class="arch-sub-title">🧠 出版级生图大底模</div>
+          <p class="arch-sub-desc">Flux.1 Schnell/Dev + SDXL 出版细分品类（绘本/教材/水墨）定制精调 Checkpoints。</p>
+        </div>
+        <div class="arch-sub-card">
+          <div class="arch-sub-title">🎯 角色一致性控制矩阵</div>
+          <p class="arch-sub-desc">IP-Adapter-Plus 脸部特征注入 + Regional Prompting 多角色分区独立控制 + InstantID 骨骼绑定。</p>
+        </div>
+        <div class="arch-sub-card">
+          <div class="arch-sub-title">🎨 全书画风对齐与保持</div>
+          <p class="arch-sub-desc">StyleAlign 跨镜头自注意力特征共享 + LoRA 动态合并，杜绝不同章节画风浓淡割裂。</p>
+        </div>
+        <div class="arch-sub-card">
+          <div class="arch-sub-title">🔍 工业级修复与超分上采样</div>
+          <p class="arch-sub-desc">BiRefNet 高精度透明抠图 + Tile Inpainting 局部无损修正 + Real-ESRGAN 出版级 300 DPI 超分。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h2 id="sec-5">五、 核心业务模块与功能规划 (PRD 核心设计)</h2>
+
+  <h3>1. 文稿智能解析与分镜提取模块 (Text-to-Storyboard)</h3>
+  <ul>
+    <li><strong>用户输入</strong>：上传 Word/PDF 或纯文本（例：“小明背着蓝色的书包，走在洒满阳光的银杏树大道上，树旁有一只正在捉蝴蝶的橘猫”）。</li>
+    <li><strong>LLM 抽取与结构化装配引擎</strong>：
+      <ul>
+        <li><strong>场景要素拆解</strong>：时间（晴天上午）、环境（银杏树道、金黄落叶）、主体（小明：男童/蓝书包）、辅体（橘猫/蝴蝶）。</li>
+        <li><strong>构图与视角建议</strong>：自动建议构图镜头（如：全景远景/侧面中景）。</li>
+        <li><strong>版面留白约束注入（Layout Constraint）</strong>：识别插画所在版面的正文排版区（如：上方留白 35% 用于排版文字），自动在 ControlNet / 生成指令中注入构图限制，防止主体穿透文字区。</li>
+        <li><strong>结构化参数输出</strong>：转化为与后台图像模型直接绑定的结构化 Prompt、Negative Prompt 与姿态骨骼线。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>2. 出版级全要素资产中心与产品化 (Multi-Dimensional Asset Hub)</h3>
+  <p>严肃出版物并非孤立生成单图，而是依赖严谨的<strong>“全要素资产继承网络”</strong>。系统将零散的生成参数沉淀为五大类出版专属资产，支持全局跨章节引用与强一致性继承：</p>
+  
+  <ul>
+    <li><strong>角色资产（Character Asset）</strong>：
+      <ul>
+        <li><strong>多视角基准图与特征锚定</strong>：建立主角正/侧/背三视图与面部特征向量（Face Embedding / IP-Adapter），保证全书面容完全一致。</li>
+        <li><strong>差分状态集</strong>：配置喜怒哀乐表情库、特定年龄阶段、四季服饰预设与标准色标。</li>
+        <li><strong>唯一 UID 绑定</strong>：在分镜提示词中输入 <code>@主角UID</code> 即可自动装配特征向量与姿态骨骼约束。</li>
+      </ul>
+    </li>
+    <li><strong>画风与笔触资产（Style Asset）</strong>：
+      <ul>
+        <li><strong>定制专属画风 LoRA</strong>：支持出版社/工作室上传 15~30 张版权插画自动微调，沉淀出版社私有画风模型。</li>
+        <li><strong>笔触与质感保持</strong>：水彩晕染度、国画白描线稿、油画肌理质感等关键参数严格锁死。</li>
+        <li><strong>全书调色曲线 (LUT)</strong>：统一整本书的色彩饱和度与明度区间，杜绝不同章节画风浓淡割裂。</li>
+      </ul>
+    </li>
+    <li><strong>场景与空间资产（Scene / Environment Asset）</strong>：
+      <ul>
+        <li><strong>固定三维空间透视</strong>：对故事常驻环境（如“主角书房”、“森林木屋”、“学校教室”）建立固定地标与空间透视关系。</li>
+        <li><strong>光影天气模板</strong>：预设晴昼、黄昏金光、雨夜等标准环境光照与 Depth 深度控制模板。</li>
+        <li><strong>跨页全景延续</strong>：支持单环境在跨页（Double Spread）接缝处透视与比例无缝衔接。</li>
+      </ul>
+    </li>
+    <li><strong>核心道具与器物资产（Prop / Object Asset）</strong>：
+      <ul>
+        <li><strong>关键叙事器物</strong>：固定传家宝佩剑、特定科学实验仪器、专属交通工具等形态，杜绝前后章节形制变形。</li>
+        <li><strong>历史文物与科学图解还原</strong>：结合 ControlNet 线稿对齐特定历史朝代文物形制或现代精密结构。</li>
+        <li><strong>手持交互标准化</strong>：预置角色持握道具的标准姿态骨骼与遮挡蒙版。</li>
+      </ul>
+    </li>
+    <li><strong>版式模版与印前规格资产（Layout & Color Spec Asset）</strong>：
+      <ul>
+        <li><strong>开本与物理边距模板</strong>：大度16开/大度32开出血位（3mm）、跨页中缝（4~6mm）避让线、天头地脚安全区网格预设。</li>
+        <li><strong>图文排版留白遮罩库</strong>：针对左图右文、上图下文、跨页压图、环绕排版等不同版式，提供文字安全区负向注意遮罩。</li>
+        <li><strong>目标印刷色彩标准 (ICC Profile)</strong>：绑定 FOGRA39 / JapanColor 2001 色彩配置文件与油墨总量 (TAC &lt; 300%) 极限参数。</li>
+      </ul>
+    </li>
+    <li><strong>多层级资产权限与物理隔离</strong>：
+      <ul>
+        <li><strong>社级公共资产库 (Enterprise Library)</strong>：集团出版社经典 IP 角色与公版插画画风，跨编辑室共享。</li>
+        <li><strong>书目专属私有库 (Project Private Bucket)</strong>：单本图书立项专属的角色微调模型、场景与线稿，租户级加密隔离，结项后支持打包归档，确保版权绝对安全。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>3. 多分镜画板与局部编辑交互 (Canvas Editor)</h3>
+  <ul>
+    <li><strong>分镜连环画板模式</strong>：一屏展示整本图书的 16/32 个页面分镜，保证整体视觉节奏统一。</li>
+    <li><strong>局部确定性编辑</strong>：
+      <ul>
+        <li><strong>选区重绘（Brush Inpainting）</strong>：画笔涂抹不满意区域（如手部、道具），结合局部提示词重新生成，保持其余背景 100% 像素不动。</li>
+        <li><strong>参考图替换（Reference Swap）</strong>：允许编辑上传特定道具照片（如特定型号显微镜、特定历史时期军装），通过局部 ControlNet 精确替换。</li>
+        <li><strong>分层输出（Layer Export）</strong>：前景人物、背景环境、文字图层分离输出，前景抽离后自动执行背景空洞填补，便于美编后期进入 InDesign/Photoshop 调整排版。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>4. VLM 知识质检与三审三校在线协同 (Review & Inspection)</h3>
+  <ul>
+    <li><strong>多模态机审漏斗</strong>：VLM（多模态大模型）针对生成画面执行三重自动质检：
+      <ul>
+        <li><strong>意识形态与风控红线</strong>：政治地图完整性、民族服饰合规性、宗教禁忌与少儿安全审查。</li>
+        <li><strong>学科常识与科学事实</strong>：动植物生理结构（如昆虫足数、叶脉走势）、物理常识硬伤校验。</li>
+        <li><strong>文字遮挡告警</strong>：自动对比文稿文字安全区 Mask 与插画主体轮廓，发现重叠遮挡立即弹窗预警。</li>
+      </ul>
+    </li>
+    <li><strong>在线审校流转与工单闭环</strong>：支持责编在画面上“划线批注”，系统自动将批注位置、修改意见绑定回对应画布工程，支持一键发起驳回返修工单。详细技术方案见 <a href="04_质量评测闭环与出版合规风控体系.html">PRD 04</a>。</li>
+  </ul>
+
+  <h3>5. 工业级印刷预检与色彩出片引擎 (Pre-Press & Color Engine)</h3>
+  <ul>
+    <li><strong>出版级超分辨率重建</strong>：针对 1024px 底稿，集成 Tile-ESRGAN / SUPIR 上采样算法，一键超分至 <strong>300 DPI 印刷级高精输出</strong>（单页物理像素达到 4000×5600 以上）。</li>
+    <li><strong>物理印刷标准合规套件</strong>：
+      <ul>
+        <li><strong>CMYK 分色与软打样</strong>：挂载标准印刷 ICC 配置文件（如 Japan Color / ISOcoated），提供屏幕软打样偏色预警。</li>
+        <li><strong>正文字纯黑 K100 提纯</strong>：防止黑字被四色套印导致重影模糊，纯黑文字通道自动剥离提纯。</li>
+        <li><strong>出血位与裁切校正</strong>：自动校验四周 3mm 印刷出血位与 1.5mm 铣背裁切装订线，最终导出印刷级分层 PSD 与合规 TIFF。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <hr>
+
+  <h2 id="sec-6">六、 产品演进路线图 (Roadmap 与优先级定义)</h2>
+
+  <p>采用 <strong>“先验证闭环 ➔ 再深耕体验 ➔ 最后平台规模化”</strong> 的敏捷路线：</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:18%;">阶段</th>
+        <th style="width:12%;">规划周期</th>
+        <th style="width:25%;">核心目标</th>
+        <th style="width:27%;">关键功能规划</th>
+        <th style="width:18%;">预期验收指标</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="b bR">P0 (MVP 闭环期)</span></td>
+        <td>1~2个月</td>
+        <td>打通从文稿到单本绘本出片全流程</td>
+        <td>• 核心 ComfyUI 出版级工作流封装为 API<br>• 基础角色一致性（单角色跨页锁定）<br>• Web 端基础画布与重绘功能</td>
+        <td>• 制作周期缩短 60%<br>• 单张图一次可用率 ≥ 65%</td>
+      </tr>
+      <tr>
+        <td><span class="b bAmber">P1 (提效与定制)</span></td>
+        <td>3~4个月</td>
+        <td>支撑出版社定制化画风与审稿流程</td>
+        <td>• 客户专属 LoRA 自助化打标与训练平台<br>• 三审三校在线标注与修订历史<br>• 印刷规范自动化检查（DPI/色彩空间/出血位）</td>
+        <td>• 试点出版社样书共创与测试 ≥ 10 套<br>• 返修率降低至 20% 以下</td>
+      </tr>
+      <tr>
+        <td><span class="b bB">P2 (生态规模化)</span></td>
+        <td>5~6个月</td>
+        <td>形成多模态资产中台与商业闭环</td>
+        <td>• 文稿 Agent 自动化排版与自适应文字留白<br>• 一键衍生音视频、动态绘本（多模态互通）<br>• B 端按量计费/企业订阅账单体系</td>
+        <td>• 目标客户续费率预期 ≥ 85%<br>• 规模化降低出版制图边际成本</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <h2 id="sec-7">七、 B 端商业化与数据指标闭环</h2>
+
+  <h3>1. 商业化模式（面向出版客户）</h3>
+  <ul>
+    <li><strong>SaaS 席位费 + 算力包模式</strong>：
+      <ul>
+        <li><strong>基础席位包</strong>：按编辑账号收取年费（含基础模型调用与存储空间）。</li>
+        <li><strong>专属模型定制包</strong>：按套收取出版社专属画风/角色 LoRA 训练与微调服务费。</li>
+        <li><strong>算力资源阶梯包</strong>：按生成张数/高精度超分算力点数充值。</li>
+      </ul>
+    </li>
+    <li><strong>商业 ROI 对比与可行性测算</strong>：
+      <ul>
+        <li>传统外包：一套 30 页绘本外包美术成本 1.2~2.5 万元，周期 45 天；</li>
+        <li>本方案推演测算：综合成本有望降至 1500~3000 元（含人工精修与算力成本），周期压缩至 3~5 天，测算降本 <strong>80%+ 综合制作成本</strong>。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>2. 关键业务数据看板 (Data Metrics)</h3>
+  <ul>
+    <li><strong>效率与质量指标</strong>：
+      <ul>
+        <li><strong>首绘采纳率（First-Pass Acceptance Rate）</strong>：无需局部修改直接被编辑采纳的比例。</li>
+        <li><strong>平均返修轮次（Iteration Turns per Page）</strong>：单页达到出片标准所需的修改次数（目标 ≤ 2.5 次）。</li>
+      </ul>
+    </li>
+    <li><strong>客户健康度指标</strong>：
+      <ul>
+        <li><strong>DAU/MAU 活跃时长</strong>：编辑在画板上的平均停留时长与导出频次。</li>
+        <li><strong>老客续约率（Renewal Rate）</strong>与<strong>增购算力比例（Expansion MRR）</strong>。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="doc-footer-nav">
+    <div style="flex:1;"></div>
+    <a href="02_出版级AI绘画工作流与ComfyUI方案设计.html" class="nav-card" style="text-align:right;">
+      <span class="nav-dir">下一篇方案 →</span>
+      <span class="nav-title">02. 出版级 AI 绘画工作流与 ComfyUI 方案设计</span>
+    </a>
+  </div>
+</div>
+
+<!-- ==================== Unified Sidebar Drawer Script ==================== -->
+<script id="unified-sidebar-script">
+(function() {
+  const btn = document.getElementById('unifiedNavBtn');
+  const overlay = document.getElementById('unifiedNavOverlay');
+  const closeBtn = document.getElementById('unifiedNavClose');
+  const tocContainer = document.getElementById('unifiedNavToc');
+  if (!btn || !overlay || !closeBtn || !tocContainer) return;
+
+  function openNav() { document.body.classList.add('unified-nav-open'); }
+  function closeNav() { document.body.classList.remove('unified-nav-open'); }
+
+  btn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('unified-nav-open')) closeNav();
+  });
+
+  const links = Array.from(tocContainer.querySelectorAll('a'));
+  links.forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth < 1200) closeNav();
+    });
+  });
+
+  // ScrollSpy
+  const targets = links.map(a => {
+    const id = a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  }).filter(Boolean);
+
+  if (targets.length > 0 && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const cur = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+          if (cur) cur.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0.1 });
+    targets.forEach(t => observer.observe(t));
+  }
+})();
+</script>
+
+</body>
+</html>

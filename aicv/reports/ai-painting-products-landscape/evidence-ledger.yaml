@@ -1,0 +1,126 @@
+# evidence-ledger.yaml — AI 绘画产品全景调研证据账本
+# 遵循 Research Compiler 规范：fact / inference / action 分层与口径审计
+
+metadata:
+  topic: ai-painting-products-landscape
+  audited_at: "2026-10-12"
+  compiler_version: "v1.0.3"
+  lead_researcher: "LeadResearcher & ResearchCompiler"
+
+records:
+  - id: EV-MJ-01
+    kind: estimate
+    claim: "Midjourney 保持极高人效比，在完全零外部 VC 融资的情况下年营收突破 5-6 亿美元"
+    metric: 500-600
+    unit: "百万美元 (Million USD)"
+    timepoint: "2025-2026"
+    scope: "全球订阅制收入（估算）"
+    source_url: "https://aibusiness.vc / https://revenuememo.com"
+    quote: "Midjourney is 100% self-funded with estimated revenues reaching $500M to $600M in 2025-2026, operating with a lean team of under 100 people without marketing spend or sales reps."
+    source_grade: B
+    used_for: "第一性约束与商业价值捕获证明"
+    risk: "未公开审计财务报表，系行业分析机构依据 Discord 活跃订阅者及支付网关逆向测算"
+
+  - id: EV-MJ-02
+    kind: hard_fact
+    claim: "Midjourney 采用基于 GPU 算力时长（Fast Hours）与动态排队（Relax Mode）的双轨订阅定价体系，并设立大客户收入门槛"
+    metric: 10/30/60/120
+    unit: "美元/月"
+    timepoint: "2026"
+    scope: "官方公开发布订阅体系"
+    source_url: "https://midjourney.com"
+    quote: "Basic $10 (3.3h fast), Standard $30 (15h fast + unlimited relax), Pro $60 (30h fast + stealth + unlimited relax), Mega $120 (60h fast). Gross revenue > $1,000,000/yr must purchase Pro or Mega."
+    source_grade: A
+    used_for: "商业模式与单位经济学防爆仓机制"
+    risk: "无，官方 Terms of Service 明确条款"
+
+  - id: EV-CANVA-01
+    kind: hard_fact
+    claim: "Canva 于 2024 年 7 月全资收购澳大利亚生成式视觉 AI 平台 Leonardo.ai，强化设计操作系统生态"
+    metric: 100
+    unit: "% 股权收购"
+    timepoint: "2024-07"
+    scope: "全球设计独角兽对 AI 绘画中间层的战略整合"
+    source_url: "https://businesswire.com"
+    quote: "Canva acquired generative AI platform Leonardo.ai in July 2024 to bolster its suite of visual AI tools, integrating its Phoenix foundation model and creative engine."
+    source_grade: A
+    used_for: "行业二阶受益方证明（设计操作系统吞噬单一生成工具）"
+    risk: "收购对价未官方逐项披露，行业估算在数亿美元区间"
+
+  - id: EV-CANVA-02
+    kind: hard_fact
+    claim: "Canva 月活用户超 2.65 亿，年化收入（ARR）于 2025-2026 年突破 40 亿美元，AI 成为留存与付费升级的核心抓手"
+    metric: 4000
+    unit: "百万美元 (Million USD) ARR"
+    timepoint: "2025-2026"
+    scope: "全球 SaaS ARR 统计"
+    source_url: "https://businesswire.com / Canva Annual Business Review"
+    quote: "Canva reached over 265 million monthly active users, achieving an ARR of $4 billion driven by enterprise adoption and Magic Studio."
+    source_grade: A
+    used_for: "二阶受益方：设计协同平台捕获 AI 溢价"
+    risk: "ARR 包含全量设计订阅，非仅 AI 单一模块产生的增量"
+
+  - id: EV-ADOBE-01
+    kind: hard_fact
+    claim: "Adobe Firefly 累计生成资产超 220 亿件，AI-first ARR 突破 5 亿美元，企业版具备知识产权完全免责赔偿（IP Indemnification）"
+    metric: 22000
+    unit: "百万件 (Million assets generated)"
+    timepoint: "2025-2026"
+    scope: "全球 Creative Cloud 及 Firefly 平台"
+    source_url: "https://companieshistory.com / https://marketscale.com"
+    quote: "Firefly generated over 22 billion assets globally. AI-first ARR surpassed $500M with Adobe offering full enterprise intellectual property indemnification."
+    source_grade: A
+    used_for: "技术护城河与合规商业壁垒"
+    risk: "AI-first ARR 部分来自捆绑销售的积分包和企业合同样本"
+
+  - id: EV-BFL-01
+    kind: hard_fact
+    claim: "Black Forest Labs (FLUX) 采用开源基础权重与闭源商业 API 分层策略，API 成本在 Schnell/Dev/Pro 呈现 10 倍以上阶梯差"
+    metric: 0.003 / 0.025 / 0.040
+    unit: "美元/张图 (USD/image)"
+    timepoint: "2026"
+    scope: "主流 API 聚合平台 Fal.ai 与 Replicate 官方公开标准费率"
+    source_url: "https://fal.ai / https://replicate.com / https://bfl.ml"
+    quote: "FLUX.1 [schnell] ~$0.003, FLUX.1 [dev] ~$0.025, FLUX.1.1 [pro] ~$0.040 per 1024x1024 generation."
+    source_grade: A
+    used_for: "单位经济学底座成本测算"
+    risk: "批量采购或包月独占云实例有额外折扣折让"
+
+  - id: EV-MAGNIFIC-01
+    kind: hard_fact
+    claim: "设计素材巨头 Freepik 于 2024 年 5 月收购高清放大与增强工具 Magnific AI，并于 2026 年正式宣布品牌整体重塑升级为 Magnific"
+    metric: 100
+    unit: "万+ (1M+ paid subscribers)"
+    timepoint: "2026"
+    scope: "全球数字创意资产与生成平台合并"
+    source_url: "https://magnific.com / https://thenextweb.com"
+    quote: "Freepik officially rebranded as Magnific in 2026 after acquiring the AI image upscaler startup in May 2024, merging stock assets with generative tech for over 1M subscribers."
+    source_grade: A
+    used_for: "传统资产库向 AI 视觉增强升级的变现案例"
+    risk: "品牌升级后原有平价素材订阅与高阶 AI 积分存在结构调整"
+
+  - id: EV-LIBLIB-01
+    kind: estimate
+    claim: "国内开源模型生态社区 LiblibAI（演语科技）估值达 20 亿美元量级，以‘开源模型与工作流中间商’聚合 C 端订阅与 B 端行业方案"
+    metric: 2000
+    unit: "百万美元 (Million USD) 投后估值"
+    timepoint: "2025-2026"
+    scope: "国内大模型应用独角兽多轮风险投资"
+    source_url: "36氪 / 投资界 / 演语科技融资披露"
+    quote: "LiblibAI 获得红杉、源码、高榕、腾讯、阿里/蚂蚁等投资，估值突破 20 亿美元，月度活跃生成量在本土模型社区中位居第一梯队。"
+    source_grade: B
+    used_for: "国内社区生态型产品定位与商业模式"
+    risk: "非上市公司财报，估值反映一级市场投后定价，实际净利润受高额算力补贴挤压"
+
+  - id: EV-MEITU-01
+    kind: hard_fact
+    claim: "美图公司影像与设计产品收入占比超 75%，美图设计室通过‘AI商拍+电商设计’垂直场景实现‘订阅+算力消耗’双轮驱动"
+    metric: 75
+    unit: "% 营收占比"
+    timepoint: "2025-2026"
+    scope: "香港上市公司美图公司（01357.HK）经审计业绩公告"
+    source_url: "美图公司（01357.HK）官方财报"
+    quote: "影像与设计产品业务为美图核心支柱，贡献超过75%的收入；美图设计室深耕电商卖家生产力场景，推动付费渗透率持续提升。"
+    source_grade: A
+    used_for: "垂直电商设计场景的变现真实性与可持续性"
+    risk: "美图整体收入包含部分海外轻量影像修图工具，电商商拍属于高增长子分部"

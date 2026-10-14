@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生成式视觉AI全景 — 深度调研报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style id="enterprise-standard-style">
+:root{
+  --bg:#fafaf9; --ink:#1c1917; --mute:#78716c; --line:#e7e5e4; --soft:#f5f5f4;
+  --accent:#2563eb; --accent-hover:#1d4ed8; --warn:#b45309; --bad:#b91c1c; --ok:#15803d;
+  --side: 280px;
+  --unified-nav-width: 300px;
+
+  /* 兼容映射变量 */
+  --bg-soft: var(--soft);
+  --bg-sunk: #eeedea;
+  --ink-2: #292524;
+  --ink-3: var(--mute);
+  --line-2: #d6d3d1;
+  --accent-soft: rgba(37, 99, 235, 0.08);
+  --green: var(--ok);
+  --green-soft: rgba(21, 128, 61, 0.1);
+  --amber: var(--warn);
+  --amber-soft: rgba(180, 83, 9, 0.1);
+  --red: var(--bad);
+  --red-soft: rgba(185, 28, 28, 0.1);
+  --blue: var(--accent);
+  --blue-soft: rgba(37, 99, 235, 0.1);
+  --grey: var(--mute);
+  --grey-soft: var(--soft);
+}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f172a; --ink:#f8fafc; --mute:#94a3b8; --line:#1e293b; --soft:#1e293b;
+    --accent:#38bdf8; --accent-hover:#0ea5e9; --warn:#f59e0b; --bad:#ef4444; --ok:#10b981;
+    --bg-soft: #1e293b;
+    --bg-sunk: #0b1120;
+    --ink-2: #cbd5e1;
+    --ink-3: #94a3b8;
+    --line-2: #334155;
+    --accent-soft: rgba(56, 189, 248, 0.12);
+    --green: #10b981;
+    --green-soft: rgba(16, 185, 129, 0.12);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245, 158, 11, 0.12);
+    --red: #ef4444;
+    --red-soft: rgba(239, 68, 68, 0.12);
+    --blue: #38bdf8;
+    --blue-soft: rgba(56, 189, 248, 0.12);
+    --grey: #94a3b8;
+    --grey-soft: #1e293b;
+  }
+}
+
+*{box-sizing:border-box;}
+html{scroll-padding-top:24px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%;}
+body{
+  margin:0; background:var(--bg); color:var(--ink); line-height:1.75;
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14.5px; transition:background .2s,color .2s; overflow-x: hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+.container, .wrap{
+  max-width:980px; margin:0 auto; padding:40px 24px 96px;
+}
+@media (max-width:768px){
+  .container, .wrap{ padding:24px 16px 64px; }
+}
+
+header.report-header{ padding-bottom: 24px; border-bottom: 2px solid var(--line); margin-bottom: 32px; }
+.header-badge{ display: inline-block; font-size: 11.5px; font-weight: 700; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+h1{ font-size:28px; line-height:1.35; margin:0 0 12px; color:var(--ink); font-weight:800; letter-spacing:-0.02em; }
+.subtitle{ font-size: 15.5px; color: var(--mute); line-height: 1.6; margin: 0 0 20px; }
+h2{ font-size:21px; margin:44px 0 18px; padding-bottom:10px; border-bottom:1.5px solid var(--line); color:var(--ink); font-weight:750; letter-spacing:-0.01em; scroll-margin-top:24px; }
+h3{ font-size:16.5px; margin:26px 0 12px; color:var(--ink); font-weight:700; }
+h4{ font-size:15px; margin:20px 0 8px; color:var(--ink); font-weight:650; }
+p, li{ font-size:14.5px; color:var(--ink); line-height:1.8; }
+ul, ol{ padding-left:22px; margin:12px 0; }
+li{ margin:6px 0; }
+strong{ color:var(--ink); font-weight:650; }
+a{ color:var(--accent); text-decoration:none; transition: color .15s; }
+a:hover{ color:var(--accent-hover); text-decoration:underline; }
+hr{ border:0; border-top:1px solid var(--line); margin:36px 0; }
+
+code{
+  background:var(--soft); color:var(--accent); padding:2px 6px; border-radius:4px;
+  font-size:13px; font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+pre{
+  background:var(--soft); border:1px solid var(--line); padding:16px; border-radius:8px;
+  overflow-x:auto; font-size:13px; line-height:1.6; margin:18px 0;
+  font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+pre code{ background:transparent; padding:0; color:var(--ink); }
+
+.architecture-diagram{
+  background: var(--soft); border: 1px solid var(--line); padding: 18px 20px;
+  border-radius: 8px; overflow-x: auto; font-size: 12.5px; line-height: 1.32;
+  font-family: 'JetBrains Mono', monospace; margin: 20px 0;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+}
+
+table{
+  width:100%; border-collapse:collapse; margin:18px 0; font-size:13px;
+  border:1px solid var(--line); border-radius:8px; overflow:hidden;
+}
+th, td{
+  border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; color:var(--ink);
+}
+th{
+  background:var(--soft); font-weight:650; color:var(--ink); position:sticky; top:0;
+}
+tr:nth-child(even){ background:rgba(0,0,0,0.015); }
+@media (prefers-color-scheme:dark){
+  tr:nth-child(even){ background:rgba(255,255,255,0.02); }
+}
+.tablewrap{ overflow-x:auto; margin:20px 0; border:1px solid var(--line); border-radius:8px; }
+.tablewrap table{ margin:0; border:none; }
+
+.badge, .b{ display:inline-block; padding:2px 9px; border-radius:6px; font-size:12px; font-weight:600; line-height:1.5; }
+.badge-pass, .bA{ background:var(--green-soft); color:var(--ok); border:1px solid rgba(21,128,61,0.25); }
+.badge-pending, .bB{ background:var(--accent-soft); color:var(--accent); border:1px solid rgba(37,99,235,0.25); }
+.badge-gray, .bC{ background:var(--soft); color:var(--mute); border:1px solid var(--line); }
+.badge-fail{ background:var(--red-soft); color:var(--bad); border:1px solid rgba(185,28,28,0.25); }
+.badge-amber{ background:var(--amber-soft); color:var(--warn); border:1px solid rgba(180,83,9,0.25); }
+.badge-blue{ background:var(--accent-soft); color:var(--accent); border:1px solid rgba(37,99,235,0.25); }
+.badge-green{ background:var(--green-soft); color:var(--ok); border:1px solid rgba(21,128,61,0.25); }
+.badge-purple{ background:rgba(147, 51, 234, 0.1); color:#9333ea; border:1px solid rgba(147, 51, 234, 0.25); }
+
+.thesis-box{
+  background:#eff6ff; border:1.5px solid #bfdbfe; border-left:5px solid var(--accent);
+  border-radius:8px; padding:20px 22px; margin:20px 0 24px;
+}
+.thesis-box strong.title{ display:block; font-size:15.5px; color:#1e40af; margin-bottom:8px; letter-spacing:0.5px; }
+.thesis-box p{ color:#1e3a8a; margin:0; font-size:14.5px; line-height:1.75; }
+@media (prefers-color-scheme:dark){
+  .thesis-box{ background:rgba(56, 189, 248, 0.08); border-color:rgba(56, 189, 248, 0.25); }
+  .thesis-box strong.title{ color:#38bdf8; }
+  .thesis-box p{ color:#e2e8f0; }
+}
+
+.grid-3{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin:20px 0; }
+.card{ background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,0.02); }
+.card .k{ font-size:12px; color:var(--mute); font-weight:600; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px; }
+.card .v{ font-size:24px; font-weight:750; color:var(--accent); line-height:1.2; margin-bottom:6px; }
+.card .d{ font-size:13px; color:var(--mute); line-height:1.5; }
+
+.callout{ border-left:4px solid var(--accent); background:var(--soft); padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; }
+.callout.warn, .note{ border-left:4px solid var(--warn); background:#fffbeb; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.warn strong, .note strong{ color:var(--warn); }
+.callout.danger, .bad{ border-left:4px solid var(--bad); background:#fef2f2; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.danger strong, .bad strong{ color:var(--bad); }
+.callout.good, .good{ border-left:4px solid var(--ok); background:#f0fdf4; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; color:var(--ink); }
+.callout.good strong, .good strong{ color:var(--ok); }
+@media (prefers-color-scheme:dark){
+  .callout.warn, .note{ background:rgba(245, 158, 11, 0.1); }
+  .callout.danger, .bad{ background:rgba(239, 68, 68, 0.1); }
+  .callout.good, .good{ background:rgba(16, 185, 129, 0.1); }
+}
+
+blockquote{ margin:16px 0; padding:12px 18px; background:var(--soft); border-left:4px solid var(--accent); color:var(--ink); border-radius:0 8px 8px 0; }
+blockquote p{ margin:4px 0; }
+
+.meta-box{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px 20px; margin:20px 0 32px; }
+.meta-box .item{ display:inline-block; margin-right:24px; font-size:13px; color:var(--mute); }
+.meta-box .item strong{ color:var(--ink); font-weight:600; }
+.source-tag{ font-size: 12px; color: var(--mute); display: block; margin-top: 6px; }
+
+/* 业务特有组件适配 */
+.stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:18px 0; }
+.stat-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+.stat-val{ font-size:20px; font-weight:750; color:var(--accent); }
+.stat-lbl{ font-size:12px; color:var(--mute); margin-top:4px; }
+
+.prod-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin:16px 0; }
+.prod-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.prod-title{ font-size:16px; font-weight:700; color:var(--ink); margin:0; }
+.prod-tag{ font-size:12px; padding:2px 8px; border-radius:4px; background:var(--accent-soft); color:var(--accent); }
+.pros-cons{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px; }
+@media (max-width:640px){ .pros-cons{ grid-template-columns:1fr; } }
+.pros-box{ background:rgba(21,128,61,0.06); border:1px solid rgba(21,128,61,0.2); border-radius:6px; padding:12px; }
+.cons-box{ background:rgba(185,28,28,0.06); border:1px solid rgba(185,28,28,0.2); border-radius:6px; padding:12px; }
+.box-title{ font-weight:700; font-size:13px; margin-bottom:6px; }
+.pros-box .box-title{ color:var(--ok); }
+.cons-box .box-title{ color:var(--bad); }
+
+.formula-box{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px; margin:16px 0; }
+.formula-header{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.formula-badge{ font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px; background:var(--accent-soft); color:var(--accent); }
+.formula-sub{ font-size:12px; color:var(--mute); }
+.formula-content{ overflow-x:auto; padding:8px 0; }
+
+.scenario-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:20px 0; }
+.scenario-card{ background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:16px; }
+
+.meta-header{ background:var(--soft); border-radius:8px; margin:16px 0 28px; overflow:hidden; border:1px solid var(--line); }
+.meta-header summary{ padding:10px 16px; cursor:pointer; font-weight:600; font-size:13.5px; color:var(--mute); list-style:none; }
+.meta-header summary::-webkit-details-marker{ display:none; }
+.meta-header summary::before{ content:"▸ "; }
+.meta-header[open] summary::before{ content:"▾ "; }
+.meta-header dl{ padding:0 16px 14px; margin:0; font-size:13px; }
+.meta-header dt{ font-weight:600; color:var(--mute); margin-top:8px; }
+.meta-header dd{ margin:2px 0 0 16px; color:var(--ink); }
+.ai-disclaimer{ font-size:12px; color:var(--mute); padding:8px 16px; border-top:1px solid var(--line); }
+
+footer, .footer{ margin-top:60px; padding-top:20px; border-top:1px solid var(--line); font-size:13px; color:var(--mute); text-align:center; }
+
+/* ==================== 抽屉侧边栏统一标准导航 ==================== */
+.unified-nav-btn{
+  position:fixed; top:16px; left:16px; z-index:9999;
+  width:40px; height:40px; border-radius:8px;
+  border:1px solid var(--line); background:var(--bg); color:var(--ink);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:20px; box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  transition:all .2s cubic-bezier(0.4,0,0.2,1);
+}
+.unified-nav-btn:hover{
+  background:var(--soft); color:var(--accent); border-color:var(--accent);
+  transform:scale(1.05); box-shadow:0 4px 14px rgba(37,99,235,0.15);
+}
+body.unified-nav-open .unified-nav-btn{ opacity:0; pointer-events:none; }
+.unified-nav-overlay{ display:none !important; }
+
+aside.unified-nav-drawer{
+  position:fixed; left:0; top:0; bottom:0;
+  width:var(--unified-nav-width); max-width:86vw;
+  background:var(--soft); border-right:1px solid var(--line);
+  padding:24px 16px 20px; overflow-y:auto; display:flex; flex-direction:column;
+  z-index:10001; box-shadow:4px 0 24px rgba(0,0,0,0.08);
+  transform:translateX(-100%);
+  transition:transform .25s ease-in-out;
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme:dark){
+  aside.unified-nav-drawer{ box-shadow:4px 0 24px rgba(0,0,0,0.4); }
+}
+body.unified-nav-open aside.unified-nav-drawer{ transform:translateX(0); }
+
+.unified-nav-drawer .drawer-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding-bottom:14px; border-bottom:1px solid var(--line); margin-bottom:14px;
+}
+.unified-nav-drawer .drawer-brand{
+  font-size:14.5px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:6px;
+}
+.unified-nav-drawer .drawer-brand span{ color:var(--accent); }
+.unified-nav-drawer .drawer-close-btn{
+  background:transparent; border:none; font-size:18px; color:var(--mute);
+  cursor:pointer; padding:6px; border-radius:6px; line-height:1; transition:all .15s;
+}
+.unified-nav-drawer .drawer-close-btn:hover{ background:var(--bg); color:var(--ink); }
+
+.unified-nav-drawer .drawer-shortcuts{
+  display:flex; flex-direction:column; gap:6px; margin-bottom:14px;
+  padding-bottom:14px; border-bottom:1px dashed var(--line);
+}
+.unified-nav-drawer .shortcut-btn{
+  display:flex; align-items:center; gap:8px; padding:7px 12px;
+  border-radius:6px; font-size:13px; font-weight:500; color:var(--ink);
+  text-decoration:none; background:var(--bg); border:1px solid var(--line);
+  transition:all .15s ease;
+}
+.unified-nav-drawer .shortcut-btn:hover{
+  background:var(--line); color:var(--accent); border-color:var(--accent);
+}
+
+.unified-nav-drawer .toc-section-title{
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--mute); margin:6px 0 8px; padding:0 4px;
+}
+.unified-nav-drawer .drawer-toc{
+  display:flex; flex-direction:column; gap:3px; flex:1;
+}
+.unified-nav-drawer .drawer-toc a{
+  display:block; padding:7px 10px; border-radius:6px;
+  font-size:13px; color:var(--mute); text-decoration:none;
+  line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  transition:background .15s, color .15s;
+}
+.unified-nav-drawer .drawer-toc a:hover{
+  color:var(--ink); background:var(--line);
+}
+.unified-nav-drawer .drawer-toc a.active{
+  color:var(--accent); background:var(--bg); font-weight:600;
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== Unified Sidebar Drawer HTML ==================== -->
+<button class="unified-nav-btn" id="unifiedNavBtn" title="展开目录导航">☰</button>
+<div class="unified-nav-overlay" id="unifiedNavOverlay"></div>
+<aside class="unified-nav-drawer" id="unifiedNavDrawer">
+  <div class="drawer-header">
+    <div class="drawer-brand">作品集研报 · <span>出版教育 AI PM</span></div>
+    <button class="drawer-close-btn" id="unifiedNavClose" title="收起导航">✕</button>
+  </div>
+  <div class="drawer-shortcuts">
+    <a href="../../index.html" class="shortcut-btn">🏠 返回作品集总览</a>
+
+  </div>
+  <div class="toc-section-title">报告目录 (Contents)</div>
+  <nav class="drawer-toc" id="unifiedNavToc">
+    <a href="#sec-1" title="1. 核心结论">1. 核心结论</a>
+<a href="#sec-2" title="2. 关键工作流程 / 商业模式 / 技术路径">2. 关键工作流程 / 商业模式 / 技术路径</a>
+<a href="#sec-3" title="3. 可借鉴设计点 / 可复用经验">3. 可借鉴设计点 / 可复用经验</a>
+<a href="#sec-4" title="4. 局限与失败模式">4. 局限与失败模式</a>
+<a href="#sec-5" title="5. 对手对比表">5. 对手对比表</a>
+<a href="#sec-6" title="附录 A：参考来源">附录 A：参考来源</a>
+<a href="#sec-7" title="附录 B：举一反三维度执行情况">附录 B：举一反三维度执行情况</a>
+<a href="#sec-8" title="附录 C：立场对照（魔鬼代言人）">附录 C：立场对照（魔鬼代言人）</a>
+<a href="#sec-9" title="附录 D：情景与证伪信号">附录 D：情景与证伪信号</a>
+<a href="#sec-10" title="附录 E：本次未达成项">附录 E：本次未达成项</a>
+
+  </nav>
+</aside>
+
+
+<div class="container">
+
+<h1>生成式视觉AI全景：文生图 × 文生视频 × 生成质量评测 × AI评测产业</h1>
+
+<div class="thesis-box">
+  <strong>核心 thesis</strong><br>
+  2025-2026 生成式视觉AI的胜负手已从"模型画质 ELO 竞赛"切换为"生态 × 算力 × 评测信任层"三维竞争：文生图质量已收敛到统计噪声、文生视频国内由字节一家独大（护城河是抖音+剪映生态与算力、而非模型参数）、而 AI 评测与合规标识正成为新的价值捕获层。
+</div>
+
+<h2 id="sec-1">1. 核心结论</h2>
+
+<h3>结论 1：文生图质量已"收敛到噪声"，画质本身不再是护城河</h3>
+<p><strong>核心数据</strong>：Artificial Analysis T2I 盲测榜（2026-07）GPT Image 2(high) Elo 1370、FLUX.2[max] 1225，头部高度密集；Midjourney V8 <strong>不参加任何 arena</strong>（无公开 API），其"艺术第一"来自评审定性判断而非盲测 Elo。</p>
+<p><strong>判断</strong>：文生图进入"多强鼎立、质量趋同"，差异化转向 API/商用授权/可控性/成本。</p>
+<p><strong>来源依据</strong>：[C001][C022][C023]</p>
+
+<h3>结论 2：文生视频头部 ELO 同样收敛，国内已事实一家独大</h3>
+<p><strong>核心数据</strong>：Video Arena（2026）Seedance 2.0 ≈1269-1280、Kling 3.0 Pro ≈1248-1249、Runway Gen-4.5 ≈1247（无音频榜第一）、Veo 3.1 ≈1226、Sora 2 ≈1205；前五差 &lt;80 Elo。国内：即梦（字节）2026Q1 MAU <strong>1352.5 万</strong> 居首；可灵 2025 营收 <strong>≈10.4 亿元 RMB</strong>；Seedance 2.0 2026.05 营收 &gt;10 亿 RMB、ARR &gt;17 亿美元。</p>
+<p><strong>来源依据</strong>：[C002][C005][C006][C007][C019][C020]</p>
+
+<h3>结论 3：国内护城河在"生态 + 算力"，不在模型参数</h3>
+<p><strong>核心数据</strong>：字节 2026 capex 计划 <strong>≈2000 亿元</strong>，快手 ≈260 亿元（可灵为主），约 <strong>8 倍</strong>差距；即梦与抖音/剪映/豆包/火山引擎深度打通。</p>
+<p><strong>判断</strong>：可灵技术先发却被反超，根因是算力供给与生态体量而非算法代差。</p>
+<p><strong>来源依据</strong>：[C005][C007][C008]</p>
+
+<h3>结论 4：生成质量评测体系已分层——从"像不像"到"真不真"</h3>
+<p><strong>核心数据</strong>：VBench（CVPR2024）16 维；VBench++（TPAMI2025）加 I2V/Long/Trustworthiness；VBench-2.0（2025）进到 <strong>intrinsic faithfulness</strong>（物理/人体解剖/常识一致性）。传统 FID/FVD/CLIPScore 已证与人类感知偏差大。</p>
+<p><strong>来源依据</strong>：[C017][C018]</p>
+
+<h3>结论 5：AI 评测产业正成为独立价值捕获层（本次最大增量发现）</h3>
+<p><strong>核心数据</strong>：LMArena/Arena 估值 10 个月涨 3 倍——种子 $100M@$600M(2025.05) → A轮 $150M@$1.7B(2026.01) → B轮 $200M@$3.1B(2026.10)，ARR 2026.06 破 <strong>$100M</strong>；Mercor C轮 $350M@<strong>$10B</strong>(2025.10)，管理 3 万+承包商。</p>
+<p><strong>判断</strong>：模型越收敛越贵，买方越需独立第三方"裁判"——评测先于模型厂商兑现，典型"卖铲子"层。</p>
+<p><strong>来源依据</strong>：[C009][C010][C013][C014]</p>
+
+<h3>结论 6：评测方法论受"测试集污染"硬约束，动态/盲测才是可信信号</h3>
+<p><strong>核心数据</strong>：LiveBench（ICLR2025 Spotlight）用近期来源+客观 ground-truth+月度刷新抗污染，top 模型准确率仍 <strong>&lt;70%</strong>；静态 benchmark（MMLU/GSM8K）泄题失效成共识。</p>
+<p><strong>来源依据</strong>：[C011][C012]</p>
+
+<h3>结论 7：合规标识成为政策硬约束，催生"水印/合规"刚需层</h3>
+<p><strong>核心数据</strong>：中国 <strong>GB 45438-2025</strong> 强制国标 2025-09-01 实施，生成内容须<strong>显式+隐式双标识</strong>（图片文字≥最短边5%、视频标识≥2秒）；EU AI Act Art.50、美国 C2PA 自愿+各州立法。</p>
+<p><strong>来源依据</strong>：[C015][C016][C024]</p>
+
+<h3>结论 8：市场规模"口径即结论"——务必按口径读，勿跨口径相加</h3>
+<p><strong>核心数据</strong>：窄口径"AI 视频生成"2025≈21.9 亿→2034≈33.3 亿美元（CAGR 35.3%）；广义"AIGC 内容"2025≈95 亿→2034≈1188 亿美元（CAGR 32.4%）；中间还有 Research&Markets $17.3B、pmarketresearch $12.5B 等不同口径。</p>
+<p><strong>判断</strong>：赛道多大取决于选哪个口径，面试讲"市场规模"必须先说清 scope。</p>
+<p><strong>来源依据</strong>：[C003][C004][C021]</p>
+
+<h2 id="sec-2">2. 关键工作流程 / 商业模式 / 技术路径</h2>
+<p><strong>旧共识链</strong>：模型更强 → 榜单 ELO 更高 → 先发即护城河 → 赢家通吃。</p>
+<p><strong>新变量链</strong>：ELO 头部收敛 → 质量不再单维决胜 → 国内靠生态×算力重排（字节独大）→ 评测受污染约束需动态盲测 → 独立评测成收费层 → 政策强制双标识 → 合规/水印成刚需层 → 评测体系从美学进到忠实度（决定 B 端能否落地）。</p>
+<p><strong>技术路径</strong>：文生图主流 DiT/扩散Transformer + 开放权重（FLUX.2 Klein、SD 3.5）；文生视频 Sora(2024) 验证 DiT，Runway Gen-4.5 用 <strong>A2D（自回归到扩散）</strong> 实现多镜头一致性。架构差异仍在，但已不是唯一胜负手。</p>
+
+<h2 id="sec-3">3. 可借鉴设计点 / 可复用经验</h2>
+<ul>
+  <li><strong>把"评测"当产品护城河</strong>：Arena/Artificial Analysis/LiveBench 崛起说明质量趋同时，中立评测=信任=定价权；可内置第三方评测接入作差异化。</li>
+  <li><strong>生态分发 &gt; 裸模型</strong>：即梦靠抖音+剪映反超可灵，是"能力×渠道×算力"乘积极值 &gt; 单点技术领先。做 AI 产品先想"在哪触达用户"。</li>
+  <li><strong>合规内嵌是成本也是壁垒</strong>：GB 45438-2025 双标识强制，率先做"生成即合规"（角标+水印+元数据）可作 To B 卖点。</li>
+  <li><strong>质量收敛后的差异化四张牌</strong>：文生图=API稳定/商用授权/可控性/成本；文生视频=多镜头一致性+原生音频+可控参考输入。</li>
+  <li><strong>卖铲子策略</strong>：在胜负未定赛道押注评测/数据/合规/算力等"无论谁赢都受益"的中间层，风险更分散。</li>
+</ul>
+
+<h2 id="sec-4">4. 局限与失败模式</h2>
+<ul>
+  <li><strong>市场口径混用（最高危）</strong>：不同机构"AI 视频/AIGC/GenAI内容"口径差 5-10 倍；本报告均标 scope，主叙事只用窄口径创意生成。</li>
+  <li><strong>Elo 不可跨榜比较</strong>：AA/LMArena/llm-stats 三家 scale 不同，只看榜内排序；Midjourney 无任何盲测 Elo。</li>
+  <li><strong>Sora 2 已实质退场</strong>：消费者 App 2026.04 关停、API 2026.09 关停，名次将持续掉出——勿把旧榜当现状。</li>
+  <li><strong>ARR/估值多为公司自报</strong>：LMArena、Mercor 非审计财报（citations 标 warn）。</li>
+  <li><strong>待确认项</strong>：<span class="pending">[待确认]</span> 万相（阿里 HappyHorse）海外可用率与确切 API 价；<span class="pending">[待确认]</span> GB 45438-2025 首例执法案例；<span class="pending">[待确认]</span> Seedance 国内"日消耗 80%"份额口径（本节改用 MAU/营收交叉验证，未采单点份额）。</li>
+</ul>
+
+<h2 id="sec-5">5. 对手对比表</h2>
+
+<h3>表 5.1 文生图（T2I）主流模型（2026 盲测快照，榜内可比）</h3>
+<table>
+  <thead><tr><th>模型</th><th>厂商</th><th>Elo(AA 2026-07)</th><th>API</th><th>开放权重</th><th>定位</th></tr></thead>
+  <tbody>
+    <tr><td>GPT Image 2</td><td>OpenAI</td><td>1370</td><td>✅</td><td>✗</td><td>综合/文字渲染第一</td></tr>
+    <tr><td>FLUX.2 [max]</td><td>Black Forest Labs</td><td>1225</td><td>✅</td><td>[dev]/[klein]</td><td>写实/产品图</td></tr>
+    <tr><td>Nano Banana 2</td><td>Google</td><td>~1254</td><td>✅</td><td>✗</td><td>性价比</td></tr>
+    <tr><td>Seedream 5.0 Pro</td><td>字节</td><td>1280</td><td>✅</td><td>✗</td><td>国内生态</td></tr>
+    <tr><td>Qwen-Image 3.0 Pro</td><td>阿里</td><td>1283</td><td>✅</td><td>✗</td><td>国内生态</td></tr>
+    <tr><td>Midjourney V8</td><td>Midjourney</td><td>不在榜</td><td>✗</td><td>✗</td><td>艺术审美（无API）</td></tr>
+    <tr><td>Stable Diffusion 3.5</td><td>Stability</td><td>~1085</td><td>✅</td><td>✅(Apache2)</td><td>定制/成本</td></tr>
+    <tr><td>Recraft V4</td><td>Recraft</td><td>~1219</td><td>✅</td><td>✗</td><td>矢量/品牌</td></tr>
+  </tbody>
+</table>
+
+<h3>表 5.2 文生视频（T2V）主流模型（2026 盲测快照，含/不含音频名次不同）</h3>
+<table>
+  <thead><tr><th>模型</th><th>厂商</th><th>Elo(Video Arena)</th><th>原生音频</th><th>最大分辨率</th><th>定位</th></tr></thead>
+  <tbody>
+    <tr><td>Seedance 2.0/2.5</td><td>字节</td><td>1269-1280</td><td>✅(8+语)</td><td>2K</td><td>多镜头叙事/生态</td></tr>
+    <tr><td>Kling 3.0</td><td>快手</td><td>1248-1249</td><td>✅(6语)</td><td>4K</td><td>画质/一致性</td></tr>
+    <tr><td>Runway Gen-4.5</td><td>Runway</td><td>1247(无音频#1)</td><td>✗</td><td>1080p</td><td>影视控制/工作流</td></tr>
+    <tr><td>Veo 3.1</td><td>Google</td><td>~1226</td><td>✅</td><td>4K</td><td>写实/企业云</td></tr>
+    <tr><td>Sora 2</td><td>OpenAI</td><td>~1205→退榜</td><td>✅</td><td>1080p</td><td>物理/已退场</td></tr>
+    <tr><td>Hailuo 2.3</td><td>MiniMax</td><td>中端</td><td>✗</td><td>1080p</td><td>速度/情绪</td></tr>
+    <tr><td>Wan 2.x</td><td>阿里</td><td>~1200</td><td>✗</td><td>720p-2K</td><td>开放权重</td></tr>
+  </tbody>
+</table>
+
+<h3>表 5.3 AI 评测产业关键玩家</h3>
+<table>
+  <thead><tr><th>玩家</th><th>类型</th><th>关键数据</th><th>角色</th></tr></thead>
+  <tbody>
+    <tr><td>LMArena/Arena</td><td>盲测榜+企业评测</td><td>B轮 $3.1B(2026.10)，ARR&gt;$100M</td><td>中立裁判/采购入口</td></tr>
+    <tr><td>Artificial Analysis</td><td>独立第三方榜</td><td>T2I/T2V Elo 标准参考</td><td>横向对标</td></tr>
+    <tr><td>LiveBench</td><td>学术动态榜</td><td>ICLR2025，抗污染，top&lt;70%</td><td>能力上限标尺</td></tr>
+    <tr><td>Mercor</td><td>人类评估网络</td><td>C轮 $10B，3万+承包商</td><td>评测人力供给</td></tr>
+    <tr><td>SuperCLUE / 方升(信通院)</td><td>国内榜/标准</td><td>中文大模型评测/行业标准</td><td>国内合规参照</td></tr>
+    <tr><td>Scale SEAL / Epoch AI</td><td>企业评测/学术</td><td>SEAL；FrontierMath 争议</td><td>前沿评测</td></tr>
+  </tbody>
+</table>
+
+<h2 id="sec-6">附录 A：参考来源</h2>
+<table>
+  <thead>
+    <tr><th>#</th><th>来源</th><th>类型</th><th>等级</th><th>URL</th><th>直接引文</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>Artificial Analysis T2I</td><td>独立第三方榜</td><td class="grade-b">B</td><td><a href="https://artificialanalysis.ai/image/leaderboard/text-to-image">链接</a></td><td>"GPT Image 2 (high) 1370; FLUX.2 [max] 1225"</td></tr>
+    <tr><td>2</td><td>中邮证券 AI视频研报</td><td>券商研报</td><td class="grade-b">B</td><td><a href="https://ima.qq.com/wiki/?shareId=3b6c560967a9e646d7d8aada50dde3003a456bf06969b5d2863f0502826e69ce">链接</a></td><td>"2025年2.19亿、2034年33.32亿美元，CAGR 35.32%"</td></tr>
+    <tr><td>3</td><td>腾讯证券 可灵</td><td>财经媒体</td><td class="grade-b">B</td><td><a href="https://gu.qq.com/resources/shy/news/detail-v2/index.html?t=1#/index?_tentrees_trans=0&id=SN2026071211431497a19452">链接</a></td><td>"即梦MAU 1352.5万；Seedance 2.0 营收>10亿、ARR>17亿"</td></tr>
+    <tr><td>4</td><td>科创板日报 可灵IPO</td><td>财经媒体</td><td class="grade-b">B</td><td><a href="https://www.cls.cn/detail/2368359">链接</a></td><td>"可灵全年约10.4亿元；2025.12 ARR 2.4亿美元"</td></tr>
+    <tr><td>5</td><td>网易财经 可灵</td><td>财经媒体</td><td class="grade-b">B</td><td><a href="https://www.163.com/dy/article/KSOA0V1R055616EC.html">链接</a></td><td>"字节capex约2000亿，是快手近8倍"</td></tr>
+    <tr><td>6</td><td>saascity Arena</td><td>行业分析</td><td class="grade-b">B</td><td><a href="https://saascity.io/blog/arena-ai-leaderboard-3-1-billion-valuation-2026">链接</a></td><td>"Series A $150M@$1.7B; ARR>$100M; Series B $3.1B"</td></tr>
+    <tr><td>7</td><td>ICLR LiveBench</td><td>学术论文</td><td class="grade-a">A</td><td><a href="https://proceedings.iclr.cc/paper_files/paper/2025/hash/e4a46394ba5378b3f9a186a5b4c650d1-Abstract-Conference.html">链接</a></td><td>"resistant to test set contamination; top<70%"</td></tr>
+    <tr><td>8</td><td>CNBC Mercor</td><td>主流媒体</td><td class="grade-a">A</td><td><a href="https://www.cnbc.com/2025/10/27/ai-hiring-startup-mercor-funding.html">链接</a></td><td>"$350M Series C at $10B; 30,000+ contractors"</td></tr>
+    <tr><td>9</td><td>网信办 CAC</td><td>政府法规</td><td class="grade-a">A</td><td><a href="https://www.cac.gov.cn/2025-03/14/c_1743654684782215.htm">链接</a></td><td>"文件元数据添加隐式标识；导出须含显式标识"</td></tr>
+    <tr><td>10</td><td>广西标准院 GB45438</td><td>标准机构</td><td class="grade-a">A</td><td><a href="https://www.gxzl.org.cn/contents/198/20075.html">链接</a></td><td>"2025.9.1 强制国标实施；显式+隐式双标识"</td></tr>
+    <tr><td>11</td><td>CVPR VBench</td><td>学术论文</td><td class="grade-a">A</td><td><a href="https://aiconfpaper.com/paper/cvpr-2024-30230">链接</a></td><td>"VBench comprises 16 dimensions"</td></tr>
+    <tr><td>12</td><td>VBench GitHub</td><td>官方代码库</td><td class="grade-a">A</td><td><a href="https://github.com/Tianhao-Qi/VBench">链接</a></td><td>"VBench++ I2V/Long/Trust; VBench-2.0 intrinsic faithfulness"</td></tr>
+    <tr><td>13</td><td>newzv 视频测评</td><td>独立测评</td><td class="grade-b">B</td><td><a href="https://www.newzv.com/video-ai/best-ai-video-generators-2026-ranked/">链接</a></td><td>"Runway Gen-4.5 uses A2D; tops at 1247"</td></tr>
+    <tr><td>14</td><td>morphed Elo表</td><td>独立测评</td><td class="grade-b">B</td><td><a href="https://morphed.app/blog/kling-alternatives">链接</a></td><td>"Seedance 1269; Kling 1248; Runway 1247; Veo 1226"</td></tr>
+    <tr><td>15</td><td>Dataintelo AIGC</td><td>市场机构</td><td class="grade-b">B</td><td><a href="https://dataintelo.com/report/ai-generated-content-market">链接</a></td><td>"$9.5B→$118.8B CAGR 32.4%; ElevenLabs>$500M"</td></tr>
+    <tr><td>16</td><td>app-lab 图像</td><td>独立测评</td><td class="grade-b">B</td><td><a href="https://app-lab.ai/blog/best-ai-for-image-generation-2026">链接</a></td><td>"FLUX 2 Pro 1156; MJ V8 1142; GPT Image 2 1098"</td></tr>
+  </tbody>
+</table>
+
+<h2 id="sec-7">附录 B：举一反三维度执行情况</h2>
+<ul>
+  <li>✅ 主流厂商/玩家（文生图、文生视频、AI评测三表全覆盖）</li>
+  <li>✅ 技术演进路径（Diffusion→DiT→A2D；评测 16维→忠实度）</li>
+  <li>✅ 商业模式与定价（图 $0.011-0.211/张；视频 $13.4-22.4/分钟；C端订阅+B端API）</li>
+  <li>✅ 生成质量评测体系（VBench 家族 + FID/CLIPScore 局限）</li>
+  <li>✅ AI 评测产业（LMArena/Mercor/LiveBench/SuperCLUE）</li>
+  <li>✅ 开源 vs 闭源（SD3.5/FLUX Klein/Wan 开放；Midjourney/Seedream 闭源）</li>
+  <li>✅ 国内外差异（国内字节独大+生态；海外 Arena/Mercor 评测层）</li>
+  <li>✅ PM 机会（评测即护城河/合规内嵌/卖铲子）</li>
+  <li>✅ 融资大事件（LMArena $3.1B、Mercor $10B、可灵分拆IPO传闻）</li>
+  <li>✅ 风险与监管（GB 45438-2025 / EU AI Act / C2PA）</li>
+</ul>
+
+<h2 id="sec-8">附录 C：立场对照（魔鬼代言人）</h2>
+<ul>
+  <li><strong>反方 1（质量仍是护城河）</strong>：若 2026Q4 头部 Elo 重拉 &gt;100，则"收敛"叙事不成立 → 已设证伪信号。</li>
+  <li><strong>反方 2（生态护城河可稀释）</strong>：政策限大厂导流 / 开源追平 → 字节算力优势弱化。</li>
+  <li><strong>反方 3（评测非刚需）</strong>：买方若不愿为评测付费，LMArena/Mercor 估值逻辑崩 → 盯 2027H1 ARR。</li>
+  <li><strong>反方 4（合规成本压采用）</strong>：双标识增成本，中小平台退出 → 反而利好头部合规能力。</li>
+</ul>
+
+<h2 id="sec-9">附录 D：情景与证伪信号</h2>
+<div class="scenario-grid">
+  <div class="scenario-card"><strong>Bear 25%</strong><br>质量不达影视级、B端停滞、合规压采用。触发：2026Q4 可用率&lt;90%、API失速。</div>
+  <div class="scenario-card"><strong>Base 50%</strong><br>视频生成成素材标配、字节独大+快手第二、评测独立成赛道。触发：可用率≥90%、LMArena ARR 翻倍。</div>
+  <div class="scenario-card"><strong>Bull 25%</strong><br>质量突破、影视级规模化、评测成采购强制入口、国内全球反超。</div>
+</div>
+<p><strong>证伪信号</strong>：①2026Q4 国内 B 端可用率/收入 ②2027H1 LMArena ARR ③头部 Elo 重拉&gt;100 ④2026.09 后 GB45438 执法案例。</p>
+
+<h2 id="sec-10">附录 E：本次未达成项</h2>
+<ul>
+  <li><span class="pending">[待确认]</span> 万相（阿里 HappyHorse）海外可用率与确切 API 价</li>
+  <li><span class="pending">[待确认]</span> GB 45438-2025 首例执法案例时间</li>
+  <li><span class="pending">[待确认]</span> Seedance 国内"日消耗 80%"份额口径（已改用 MAU/营收交叉验证）</li>
+</ul>
+
+</div>
+
+<!-- ==================== Unified Sidebar Drawer Script ==================== -->
+<script id="unified-sidebar-script">
+(function() {
+  const btn = document.getElementById('unifiedNavBtn');
+  const overlay = document.getElementById('unifiedNavOverlay');
+  const closeBtn = document.getElementById('unifiedNavClose');
+  const tocContainer = document.getElementById('unifiedNavToc');
+  if (!btn || !overlay || !closeBtn || !tocContainer) return;
+
+  function openNav() { document.body.classList.add('unified-nav-open'); }
+  function closeNav() { document.body.classList.remove('unified-nav-open'); }
+
+  btn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('unified-nav-open')) closeNav();
+  });
+
+  const links = Array.from(tocContainer.querySelectorAll('a'));
+  links.forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth < 1200) closeNav();
+    });
+  });
+
+  // ScrollSpy
+  const targets = links.map(a => {
+    const id = a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  }).filter(Boolean);
+
+  if (targets.length > 0 && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const cur = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+          if (cur) cur.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0.1 });
+    targets.forEach(t => observer.observe(t));
+  }
+})();
+</script>
+
+</body>
+</html>

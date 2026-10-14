@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S5 PRD 核心规约</title>
+<style>
+:root{
+--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e3e3df;--card:#fff;
+--accent:#0f52ba;--accent-light:#eef4fc;--ok:#2f6b45;--bad:#a12a2a;--warn:#a8761f;--code:#f2f2ef;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+--bg:#131312;--fg:#e8e8e4;--muted:#96968f;--line:#2b2b28;--card:#191918;
+--accent:#4d8bf0;--accent-light:#192538;--ok:#7ab88f;--bad:#e08585;--warn:#d6a75a;--code:#202020;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:15.5px/1.75 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:24px 24px 0}
+h1{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-.01em;font-weight:700}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 12px}
+h2{font-size:16px;margin:56px 0 16px;padding-bottom:9px;border-bottom:1px solid var(--line);
+letter-spacing:.02em;font-weight:700}
+h2 .n{background:var(--accent);color:#fff;font-size:11px;padding:2px 6px;border-radius:4px;margin-right:8px;}
+h3{font-size:15px;margin:28px 0 10px;font-weight:600}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 14px;padding-left:20px}li{margin:6px 0}
+strong{font-weight:600}
+em{font-style:normal;color:var(--accent);font-weight:600}
+.lead{font-size:16.5px;line-height:1.65;border-left:3px solid var(--accent);
+padding:4px 0 4px 18px;margin:28px 0 34px;background:var(--accent-light);border-radius:0 6px 6px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px 22px;margin:0 0 18px}
+.card h4{margin:0 0 12px;font-size:14px;letter-spacing:.02em;color:var(--fg);font-weight:600;border-bottom:1px dashed var(--line);padding-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 18px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+th{font-weight:600;font-size:12.5px;color:var(--muted);letter-spacing:.03em;background:var(--code)}
+td.c,th.c{text-align:center;font-variant-numeric:tabular-nums}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.wn{color:var(--warn);font-weight:600}
+code{background:var(--code);padding:2px 6px;border-radius:4px;font-size:13px;
+font-family:ui-monospace,"SF Mono",Menlo,monospace;color:var(--accent)}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border:1px solid var(--line);
+border-radius:20px;color:var(--muted);margin-right:6px}
+.tag.a{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.tag.status{border-radius:4px;font-weight:600;padding:2px 6px;font-size:11px;text-transform:uppercase}
+.status-warn{background:rgba(168,118,31,0.1);color:var(--warn);border:1px solid var(--warn)}
+.status-bad{background:rgba(161,42,42,0.1);color:var(--bad);border:1px solid var(--bad)}
+.status-ok{background:rgba(47,107,69,0.1);color:var(--ok);border:1px solid var(--ok)}
+.q{border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin:0 0 16px;background:var(--card);border-left:4px solid var(--warn)}
+.q b{display:block;margin-bottom:6px;font-size:14.5px;color:var(--fg)}
+.q span{color:var(--muted);font-size:13.5px}
+hr{border:0;border-top:1px solid var(--line);margin:48px 0}
+.nav-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.nav-link{font-size:13px;color:var(--muted);text-decoration:none}
+.nav-link:hover{color:var(--accent)}
+</style>
+</head><body><div class="wrap">
+
+<div class="nav-bar">
+  <a href="index.html" style="font-weight:700;font-size:14px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:6px;">← 返回目录 (Index)</a>
+  <div style="display:flex;gap:14px;font-size:13px">
+    <a href="s0-project-brief.html" class="nav-link">S0 Brief</a>
+    <a href="s1-target-hypothesis.html" class="nav-link">S1 目标假说</a>
+    <a href="s2-competitive-evidence.html" class="nav-link">S2 竞品实测</a>
+    <a href="s3-architecture-adr.html" class="nav-link">S3 架构ADR</a>
+    <a href="s5-prd-v0.1.html" class="nav-link" style="color:var(--accent);font-weight:600">S5 PRD</a>
+  </div>
+</div>
+
+<div style="background:var(--accent-light);border:1px solid rgba(15,82,186,0.25);border-radius:8px;padding:14px 18px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+  <div>
+    <span style="font-size:11.5px;color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase">核心规约 PRD · S5</span>
+    <p style="margin:4px 0 0;font-size:13px;color:var(--muted)">抛弃流水账，聚焦任务状态机、异常边界处理与降级容错机制。</p>
+  </div>
+  <span class="tag a">S5 Milestone</span>
+</div>
+
+<h1>AI 出图自动化平台 核心 PRD (v0.1 草案)</h1>
+<p class="sub">一份高级 PM 的 PRD 不仅仅写“正常流程怎么走”，更要写“系统崩了怎么办”。</p>
+
+<div class="lead">
+  本 PRD 定义了 AI 出图自动化平台 (电商视觉 AIGC 交付引擎) 的 <strong>全量核心功能模块</strong>。<br>
+  作为一个企业级 B2B SaaS，我们的产品不是一个单一的“聊天框”，而是一个由 <strong>四大业务模块</strong> 组成的流水线：数据资产接入 ➔ 企划编排 ➔ 无头渲染 ➔ 质检与人工兜底。
+</div>
+
+<h2><span class="n">01</span> 产品全局功能架构 (Feature Matrix)</h2>
+
+<p>整个系统面向电商视觉主管与美工，提供以下全链路功能：</p>
+
+<div class="card">
+  <h4>模块一：数字资产库与数据摄入 (Asset & Data Layer)</h4>
+  <ul>
+    <li><strong>SKU 原片管理池</strong>：支持从本地拖拽或绑定云盘，批量导入白底图/实拍原图，自动提取 SKU 唯一标识。</li>
+    <li><strong>内置轻量级数据引擎 (Data Table)</strong>：摒弃沉重的 ERP 直连，提供类似 Airtable 的内置数据面板。运营人员直接上传 Excel/CSV 快照，在系统内部维护“促销价、满减规则”，极速开展批处理。</li>
+    <li><strong>断开外部强依赖</strong>：规避漫长的 IT 接口对接，业务人员对自己上传的活动数据拥有 完整管理权，随时修改，即刻重绘。</li>
+    <li><strong>品牌矢量资产库</strong>：支持企业上传具有独家版权的 `.otf / .ttf` 字体包及矢量 Logo，确保最终图文排版的品牌一致性。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h4>模块二：多模态企划引擎 (Planner Agent)</h4>
+  <ul>
+    <li><strong>大促策略画布</strong>：运营通过简单的文本描述（如：“双11秋季上新，主打法式清冷感，小红书 3:4 比例”），Planner Agent 自动将意图转化为结构化的渲染参数。</li>
+    <li><strong>竞品舆情爬取与卖点生成</strong>：输入竞品链接，Agent 自动抓取差评与痛点，反向生成当前 SKU 的文案 Hook（如：“别买起球的毛衣，看这件纯羊毛”）。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h4>模块三：Agentic 核心自动化流水线 (Execution Pipeline)</h4>
+  <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">流水线完全基于实际调试跑通的工作流（ComfyUI + 多智能体协同）构建，不含任何不可落地的黑盒：</p>
+  <ul>
+    <li><strong>1. 前置质检 (Agent.QC)</strong>：使用轻量级视觉 Agent 自动拦截画质过低、角度奇葩的商品原图，阻止脏数据进入下游。</li>
+    <li><strong>2. 精确抠图 (SAM 3)</strong>：纯后台静默运行，对商品主体进行 100% 像素级物理边缘剥离，拒绝模型幻觉和特征变形。</li>
+    <li><strong>3. 场景生成 (ComfyUI)</strong>：基于企划意图，动态调用 ComfyUI 工作流底座，生成符合商品几何透视的真实电商场景。</li>
+    <li><strong>4. 阴影重建 (NormalMap)</strong>：通过法线贴图与深度信息，重构商品与背景的接触阴影 (Contact Shadow) 和环境光反射，消除“抠图悬空感”。</li>
+    <li><strong>5. 动态排版 (SVG DOM)</strong>：放弃 AI 画字，调用底层无头浏览器，将 ERP 传来的实时价格标签以矢量形式绝对精准地叠加在画面安全区。</li>
+    <li><strong>6. 合规风控 (Agent.Critic)</strong>：多模态审查 Agent 在出图前进行最后一道体检，拦截形变、六根手指、违禁词与 UI 碰撞。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h4>模块四：人工兜底工作台 (Human-in-the-loop Dashboard)</h4>
+  <ul>
+    <li><strong>跨平台 UI 死区碰撞检测</strong>：内置抖音/淘宝/小红书的前端 UI 蒙版参数。一旦生成的文字落入“购物车”或“评论区”按键范围，引发碰撞，系统即刻打回。</li>
+    <li><strong>广告法 OCR 违禁词扫描</strong>：在出图前进行最后一次字符扫描，包含“全网第一”、“最强”等极限词自动阻断。</li>
+    <li><strong>人工兜底工作台 (Dashboard)</strong>：将上述环节中重试失败的任务（约占 1%）挂起，在 UI 侧显示醒目的红点。美工在此工作台中，可直接拖动错位的文字层或替换价格，保存后即算完结。</li>
+    <li><strong>资产一键分发与打包</strong>：审核完毕的任务，支持导出为 <code>合并 JPG</code> 用于直接上架，同时导出 <code>保留文本图层的 PSD</code>，有效保留设计师的后续修改权。</li>
+  </ul>
+</div>
+
+
+<h2><span class="n">02</span> 核心业务流转管线 (Business Pipeline)</h2>
+<p>以下是大促期间，运营与设计团队基于平台协同作业的全链路业务流：</p>
+
+<div style="background:#fff; padding:32px 24px; border-radius:12px; border:1px solid var(--line); margin-bottom:48px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); overflow-x:auto; display:flex; justify-content:center;">
+<svg width="800" height="730" viewBox="0 0 800 730" xmlns="http://www.w3.org/2000/svg" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+        </marker>
+        <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"/>
+        </marker>
+        <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981"/>
+        </marker>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f52ba" flood-opacity="0.08"/>
+        </filter>
+        <filter id="shadow-sm" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000" flood-opacity="0.05"/>
+        </filter>
+    </defs>
+
+    <!-- Paths / Lines -->
+    <g fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)">
+        <path d="M 380 64 L 380 94" />
+        <path d="M 380 138 L 380 168" />
+        <path d="M 380 212 L 380 227 L 240 227 L 240 242" />
+        <path d="M 380 212 L 380 227 L 520 227 L 520 242" />
+        <path d="M 240 286 L 240 301 L 380 301 L 380 316" /> <!-- N4a to N_Debug -->
+        <path d="M 520 286 L 520 301 L 380 301 L 380 316" /> <!-- N4b to N_Debug -->
+        <path d="M 380 360 L 380 390" /> <!-- N_Debug to N5 -->
+        <path d="M 380 434 L 380 449 L 89 449 L 89 514" /> <!-- N5 to B1 -->
+
+        <!-- Pipeline internal paths (+74 to Y) -->
+        <path d="M 137 544 L 154 544" />
+        <path d="M 254 544 L 271 544" />
+        <path d="M 371 544 L 388 544" />
+        <path d="M 488 544 L 505 544" />
+        <path d="M 605 544 L 622 544" />
+    </g>
+
+    <!-- Exception Paths (+74 to Y) -->
+    <g fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrow-red)">
+        <path d="M 89 574 L 89 604 L 220 604 L 220 650" />
+        <path d="M 654 574 L 654 624 L 220 624 L 220 650" />
+    </g>
+
+    <!-- Success Path (+74 to Y) -->
+    <g fill="none" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-green)">
+        <path d="M 674 574 L 674 650" />
+    </g>
+
+    <!-- Nodes -->
+    <!-- N1 -->
+    <rect x="240" y="20" width="280" height="44" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="380" y="47" font-size="13" font-weight="600" fill="#334155" text-anchor="middle">📤 运营：上传商品原片 &amp; CSV营销数据</text>
+
+    <!-- N2 -->
+    <rect x="240" y="94" width="280" height="44" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="380" y="121" font-size="13" font-weight="600" fill="#334155" text-anchor="middle">⚙️ 系统：自动完成 SKU 资产与变量映射</text>
+
+    <!-- N3 -->
+    <rect x="240" y="168" width="280" height="44" rx="22" fill="#eff6ff" stroke="#3b82f6" stroke-width="2" filter="url(#shadow)"/>
+    <text x="380" y="195" font-size="14" font-weight="700" fill="#1e40af" text-anchor="middle">✨ Agent 编排业务意图</text>
+
+    <!-- N4a -->
+    <rect x="140" y="242" width="200" height="44" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="240" y="269" font-size="13" font-weight="600" fill="#475569" text-anchor="middle">🛍️ 加载 1:1 货架电商管线模版</text>
+
+    <!-- N4b -->
+    <rect x="420" y="242" width="200" height="44" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="520" y="269" font-size="13" font-weight="600" fill="#475569" text-anchor="middle">🎵 加载 3:4 内容电商管线模版</text>
+
+    <!-- N_Debug (NEW) -->
+    <rect x="260" y="316" width="240" height="44" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="380" y="343" font-size="13" font-weight="700" fill="#b45309" text-anchor="middle">🛠️ 管线首图打样与参数微调 (Dry Run)</text>
+
+    <!-- N5 -->
+    <rect x="260" y="390" width="240" height="44" rx="8" fill="#1e293b" stroke="#0f172a" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="380" y="417" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">▶ 确认无误，启动并发执行大盘</text>
+
+    <!-- Big Box -->
+    <rect x="20" y="464" width="720" height="135" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <text x="40" y="489" font-size="12" font-weight="700" fill="#64748b" letter-spacing="1">核心自动化流水线 (AGENTIC PIPELINE)</text>
+
+    <!-- Inner Nodes B1-B6 -->
+    <!-- B1 -->
+    <rect x="41" y="514" width="96" height="60" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="89" y="540" font-size="12" font-weight="700" fill="#334155" text-anchor="middle">1. 前置质检</text>
+    <text x="89" y="558" font-size="10" font-weight="500" fill="#64748b" text-anchor="middle">(Agent.QC)</text>
+
+    <!-- B2 -->
+    <rect x="158" y="514" width="96" height="60" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="206" y="540" font-size="12" font-weight="700" fill="#334155" text-anchor="middle">2. 精确抠图</text>
+    <text x="206" y="558" font-size="10" font-weight="500" fill="#64748b" text-anchor="middle">(SAM 3)</text>
+
+    <!-- B3 -->
+    <rect x="275" y="514" width="96" height="60" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="323" y="540" font-size="12" font-weight="700" fill="#334155" text-anchor="middle">3. 场景生成</text>
+    <text x="323" y="558" font-size="10" font-weight="500" fill="#64748b" text-anchor="middle">(ComfyUI)</text>
+
+    <!-- B4 -->
+    <rect x="392" y="514" width="96" height="60" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="440" y="540" font-size="12" font-weight="700" fill="#334155" text-anchor="middle">4. 阴影重建</text>
+    <text x="440" y="558" font-size="10" font-weight="500" fill="#64748b" text-anchor="middle">(NormalMap)</text>
+
+    <!-- B5 -->
+    <rect x="509" y="514" width="96" height="60" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="557" y="540" font-size="12" font-weight="700" fill="#334155" text-anchor="middle">5. 动态排版</text>
+    <text x="557" y="558" font-size="10" font-weight="500" fill="#64748b" text-anchor="middle">(SVG DOM)</text>
+
+    <!-- B6 -->
+    <rect x="626" y="514" width="96" height="60" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="674" y="540" font-size="12" font-weight="700" fill="#334155" text-anchor="middle">6. 合规风控</text>
+    <text x="674" y="558" font-size="10" font-weight="500" fill="#64748b" text-anchor="middle">(Agent.Critic)</text>
+
+    <!-- N6 (Exception) -->
+    <rect x="110" y="654" width="220" height="44" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="220" y="681" font-size="13" font-weight="700" fill="#b91c1c" text-anchor="middle">⚠️ 转入人工兜底工作台微调</text>
+
+    <!-- N7 (Success) -->
+    <rect x="564" y="654" width="220" height="44" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5" filter="url(#shadow-sm)"/>
+    <text x="674" y="681" font-size="13" font-weight="700" fill="#047857" text-anchor="middle">✅ 批量输出高转化电商主图与海报</text>
+
+    <!-- Edge Labels (+74 to Y) -->
+    <rect x="99" y="590" width="100" height="20" rx="4" fill="#fff" stroke="#fca5a5" stroke-width="1"/>
+    <text x="149" y="604" font-size="10" font-weight="600" fill="#ef4444" text-anchor="middle">形变或光影异常</text>
+
+    <rect x="424" y="610" width="130" height="20" rx="4" fill="#fff" stroke="#fca5a5" stroke-width="1"/>
+    <text x="489" y="624" font-size="10" font-weight="600" fill="#ef4444" text-anchor="middle">UI碰撞 / 违禁词 (重试超限)</text>
+
+    <rect x="684" y="610" width="60" height="20" rx="4" fill="#fff" stroke="#6ee7b7" stroke-width="1"/>
+    <text x="714" y="624" font-size="10" font-weight="600" fill="#10b981" text-anchor="middle">通过风控</text>
+</svg>
+</div>
+<h2><span class="n">03</span> 核心调度状态机 (Core State Machine)</h2>
+
+<p>对于模块三与模块四之间的批处理流转，我们定义了极其严苛的异常处理状态机，确保无人值守时的稳定性：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态 (Status)</th>
+      <th>触发条件与系统行为</th>
+      <th>下一步流向</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="tag status status-warn">Queued (排队中)</span></td>
+      <td>接收到 ERP 价格数据和商品主图，等待 GPU 算力池空闲。</td>
+      <td>➔ <code>Generating</code> (算力就绪)</td>
+    </tr>
+    <tr>
+      <td><span class="tag status status-warn">Generating (生成中)</span></td>
+      <td>调用后端无头管线生成背景、阴影，排版引擎合成文字。</td>
+      <td>➔ <code>Auditing</code> (等待质检)</td>
+    </tr>
+    <tr>
+      <td><span class="tag status status-warn">Auditing (质检中)</span></td>
+      <td>触发 Critic Agent（广告法扫描 + UI蒙版碰撞检测）。</td>
+      <td>➔ <code>Success</code> (通过)<br>➔ <code>Critic_Failed</code> (不通过)</td>
+    </tr>
+    <tr>
+      <td><span class="tag status status-bad">Critic_Failed (打回重试)</span></td>
+      <td>被 Critic 拦截。系统会<strong>自动携带修改参数</strong>（如缩小字号 10% 或下移 50px）触发自动重排，重试上限 3 次。</td>
+      <td>➔ <code>Generating</code> (重试 &lt; 3次)<br>➔ <code>Human_Review</code> (重试超限)</td>
+    </tr>
+    <tr>
+      <td><span class="tag status status-bad">Human_Review (人工兜底)</span></td>
+      <td>机器三次重试失败（如文字极长无法避让），任务挂起，进入人工干预工作台。</td>
+      <td>➔ <code>Success</code> (美工手动拖拽完成)</td>
+    </tr>
+    <tr>
+      <td><span class="tag status status-ok">Success (可导出)</span></td>
+      <td>合规且通过质检。生成打包好的分层 PSD，归档。</td>
+      <td>➔ <code>Archived</code> (归档)</td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
+</div></body></html>

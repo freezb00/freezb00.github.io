@@ -1,0 +1,2838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>出版级 AI 绘画工作台 · 工业级交互沙盒原型 (Interactive Simulator · Light Edition)</title>
+<style>
+/* ==================== 1. 设计系统与亮色主题设计变量 (Design Tokens) ==================== */
+:root {
+  --bg-app: #f8fafc;           /* 整体工作台浅灰底色 Slate-50 */
+  --bg-panel: #ffffff;         /* 顶栏、侧边栏、检查器卡片纯白 */
+  --bg-subtle: #f1f5f9;        /* 浅灰二级底色 Slate-100 */
+  --bg-hover: #e2e8f0;         /* 悬停高亮 Slate-200 */
+  --border: #e2e8f0;           /* 基础边框灰 */
+  --border-strong: #cbd5e1;    /* 强调边框灰 */
+  --border-focus: #3b82f6;     /* 聚焦高亮蓝 */
+  
+  --text-main: #0f172a;        /* 主文字纯黑 Slate-900 */
+  --text-body: #334155;        /* 正文文字 Slate-700 */
+  --text-muted: #64748b;       /* 辅助说明灰 Slate-500 */
+  --text-dim: #94a3b8;         /* 占位与弱化灰 Slate-400 */
+  
+  --accent: #2563eb;           /* 核心品牌蓝 Blue-600 */
+  --accent-hover: #1d4ed8;     /* 悬停深蓝 Blue-700 */
+  --accent-light: #eff6ff;     /* 浅蓝底色 Blue-50 */
+  --accent-border: #bfdbfe;    /* 浅蓝边框 Blue-200 */
+  
+  --success: #059669;          /* 成功绿 Emerald-600 */
+  --success-light: #ecfdf5;    /* 成功淡绿 Emerald-50 */
+  --success-border: #a7f3d0;   /* 成功边框 */
+  
+  --warn: #d97706;             /* 警告橙 Amber-600 */
+  --warn-light: #fffbeb;       /* 警告淡黄 */
+  --warn-border: #fde68a;      /* 警告边框 */
+  
+  --danger: #dc2626;           /* 错误红 Red-600 */
+  --danger-light: #fef2f2;     /* 错误淡红 */
+  --danger-border: #fecdd3;     /* 错误边框 */
+  
+  --purple: #7c3aed;           /* 资产紫 Violet-600 */
+  --purple-light: #f5f3ff;     /* 资产淡紫 */
+  
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-artboard: 0 12px 36px -4px rgba(15, 23, 42, 0.12), 0 4px 14px -2px rgba(15, 23, 42, 0.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", sans-serif;
+  background: var(--bg-app);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==================== 2. 顶栏 Global Header ==================== */
+.top-bar {
+  height: 58px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  z-index: 50;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb, #6366f1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 800; color: #fff;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+}
+.brand-title {
+  font-size: 14.5px; font-weight: 750; display: flex; align-items: center; gap: 8px;
+  color: var(--text-main); letter-spacing: -0.2px;
+}
+.brand-tag {
+  background: var(--accent-light); color: var(--accent); font-size: 11px;
+  padding: 2px 7px; border-radius: 4px; font-weight: 700; border: 1px solid var(--accent-border);
+}
+.tenant-pill {
+  background: var(--bg-subtle); color: var(--text-body); font-size: 12px; padding: 4px 10px;
+  border-radius: 6px; border: 1px solid var(--border); display: flex; align-items: center; gap: 6px;
+  font-weight: 600;
+}
+.tenant-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+
+/* RBAC 分段控制胶囊 Segmented Control */
+.role-segmented-control {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-subtle); border: 1px solid var(--border);
+  padding: 3px; border-radius: 8px;
+}
+.role-segmented-title { font-size: 11.5px; color: var(--text-muted); font-weight: 600; padding: 0 6px; }
+.role-btn {
+  padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--text-muted); background: transparent; border: none;
+}
+.role-btn:hover { color: var(--text-main); }
+.role-btn.active {
+  background: var(--bg-panel); color: var(--accent); font-weight: 750;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.1);
+}
+
+.top-actions {
+  display: flex; align-items: center; gap: 10px;
+}
+.token-stat {
+  font-size: 12px; color: var(--text-body); background: var(--bg-subtle);
+  padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 6px;
+}
+.token-stat strong { color: var(--warn); font-weight: 750; }
+
+.btn-header {
+  background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-body);
+  padding: 6px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+.btn-header:hover { background: var(--bg-subtle); border-color: var(--border-strong); color: var(--text-main); }
+.btn-header.active-asset { background: var(--purple-light); border-color: var(--purple); color: var(--purple); font-weight: 700; }
+
+/* 角色权限动态提示条 */
+.role-banner {
+  background: #f0fdf4; border-bottom: 1px solid #bbf7d0; color: #166534;
+  font-size: 12px; font-weight: 600; padding: 6px 18px; display: flex;
+  align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.role-banner.warn { background: #fffbeb; border-bottom-color: #fde68a; color: #92400e; }
+.role-banner.info { background: #eff6ff; border-bottom-color: #bfdbfe; color: #1e40af; }
+
+/* ==================== 3. 主工作区布局 (Sidebar + Canvas + Inspector) ==================== */
+.workspace-body {
+  flex: 1; display: flex; overflow: hidden; position: relative;
+}
+
+/* 左侧生产流水线步骤导航 (Stepper Nav) */
+.pipeline-nav {
+  width: 240px; background: var(--bg-panel); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0;
+  z-index: 20;
+}
+.nav-section-title {
+  padding: 16px 16px 8px; font-size: 11px; font-weight: 750; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.6px;
+}
+.stage-stepper-list { list-style: none; padding: 0 10px; }
+.stage-item {
+  padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; gap: 10px; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent; color: var(--text-body); background: transparent;
+}
+.stage-item:hover { background: var(--bg-subtle); color: var(--text-main); }
+.stage-item.active {
+  background: var(--accent-light); border-color: var(--accent-border);
+  color: var(--accent); font-weight: 700; box-shadow: var(--shadow-sm);
+}
+.stage-item.disabled {
+  opacity: 0.45; cursor: not-allowed; pointer-events: none;
+}
+.stage-idx-badge {
+  width: 24px; height: 24px; border-radius: 6px; background: var(--bg-subtle);
+  border: 1px solid var(--border); color: var(--text-muted); font-size: 11px;
+  font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.stage-item.active .stage-idx-badge {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.stage-item.done .stage-idx-badge {
+  background: var(--success); color: #fff; border-color: var(--success);
+}
+.stage-meta { flex: 1; min-width: 0; }
+.stage-name { font-size: 12.5px; line-height: 1.3; font-weight: 700; }
+.stage-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.stage-item.active .stage-sub { color: #3b82f6; }
+
+.stage-status-pill {
+  font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 750;
+}
+.pill-done { background: var(--success-light); color: var(--success); border: 1px solid var(--success-border); }
+.pill-active { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent-border); }
+.pill-wait { background: var(--bg-subtle); color: var(--text-dim); }
+
+.project-summary-box {
+  margin: 12px; padding: 14px; background: var(--bg-subtle); border: 1px solid var(--border);
+  border-radius: 8px; font-size: 12px; color: var(--text-body);
+}
+.project-summary-box strong { color: var(--text-main); display: block; margin-bottom: 4px; font-size: 12.5px; }
+
+/* ==================== 4. 中央画布视口 (Canvas Viewport) ==================== */
+.canvas-container {
+  flex: 1; position: relative; background: #f8fafc; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+/* 画布顶栏工具条 (Canvas Control Bar) */
+.canvas-control-bar {
+  height: 44px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border); display: flex; align-items: center;
+  justify-content: space-between; padding: 0 18px; z-index: 10;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.03);
+}
+.canvas-view-modes { display: flex; gap: 6px; }
+.btn-view-toggle {
+  background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-body);
+  font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 6px;
+  cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s;
+}
+.btn-view-toggle:hover { background: var(--bg-subtle); }
+.btn-view-toggle.active {
+  background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 750;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.25);
+}
+
+.canvas-zoom-tools {
+  display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted);
+}
+.zoom-btn {
+  width: 26px; height: 26px; border-radius: 5px; background: var(--bg-panel);
+  border: 1px solid var(--border); color: var(--text-main); font-weight: 750;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: all 0.15s;
+}
+.zoom-btn:hover { background: var(--bg-subtle); border-color: var(--border-strong); }
+
+/* 主可视画板舞台 (Stage) */
+.canvas-stage {
+  flex: 1; position: relative; overflow: hidden; cursor: grab;
+  /* 现代出版工程点阵网格背景 */
+  background-image: radial-gradient(circle, #cbd5e1 1.2px, transparent 1.2px);
+  background-size: 24px 24px; background-color: #f8fafc;
+}
+.canvas-stage.grabbing { cursor: grabbing; }
+
+/* 视口 A: 无限分镜全景故事板 (Infinite Multi-Artboard Board) */
+.storyboard-pan-view {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  transform-origin: 0 0; transition: transform 0.05s ease-out;
+  display: flex; flex-direction: column; padding: 40px; gap: 24px;
+}
+.storyboard-board-title {
+  font-size: 13.5px; font-weight: 750; color: var(--text-body);
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.storyboard-grid {
+  display: flex; gap: 24px; flex-wrap: nowrap; align-items: flex-start;
+}
+
+/* 单个分镜画板卡片 (亮色卡片质感) */
+.artboard-card {
+  width: 220px; height: 310px; background: #ffffff; border: 1.5px solid var(--border);
+  border-radius: 8px; position: relative; box-shadow: var(--shadow-artboard);
+  cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;
+}
+.artboard-card:hover {
+  transform: translateY(-5px) scale(1.02); border-color: var(--accent);
+  box-shadow: 0 16px 36px -4px rgba(37, 99, 235, 0.2);
+}
+.artboard-card.current-active {
+  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+.artboard-card.has-error {
+  border-color: var(--danger); box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+}
+.artboard-header {
+  padding: 8px 10px; background: #ffffff; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center; font-size: 11.5px;
+}
+.artboard-num { font-weight: 800; color: var(--accent); }
+.artboard-status { font-size: 10px; font-weight: 750; padding: 2px 6px; border-radius: 4px; }
+.artboard-preview {
+  flex: 1; background: #f0f9ff; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.artboard-footer {
+  padding: 8px 10px; font-size: 11px; background: #ffffff; border-top: 1px solid var(--border);
+  color: var(--text-body); line-height: 1.4;
+}
+.artboard-bleed-hint {
+  position: absolute; inset: 4px; border: 1px dashed rgba(220, 38, 38, 0.35);
+  pointer-events: none; border-radius: 4px;
+}
+
+/* 视口 B: 定开本受控印刷画板 (Focused Print Artboard View) */
+.focused-artboard-view {
+  position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+  background: rgba(248, 250, 252, 0.88); z-index: 5;
+}
+.focused-artboard-view.active { display: flex; }
+
+.print-artboard-canvas {
+  width: 480px; height: 650px; background: #ffffff; border-radius: 2px;
+  position: relative; box-shadow: var(--shadow-artboard);
+  overflow: hidden; border: 1px solid #cbd5e1;
+}
+
+/* 物理毫米标尺与工程准线 Overlays */
+.ruler-top {
+  position: absolute; top: -20px; left: 0; width: 100%; height: 20px;
+  background: #e2e8f0; color: #475569; font-size: 9.5px; display: flex;
+  justify-content: space-between; padding: 2px 6px; font-family: monospace; font-weight: 700;
+  border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;
+}
+.ruler-left {
+  position: absolute; top: 0; left: -24px; width: 24px; height: 100%;
+  background: #e2e8f0; color: #475569; font-size: 9.5px; display: flex;
+  flex-direction: column; justify-content: space-between; padding: 6px 2px; font-family: monospace; font-weight: 700;
+  border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1;
+}
+.bleed-border-box {
+  position: absolute; inset: 12px; border: 1.5px dashed #dc2626; pointer-events: none;
+  z-index: 10;
+}
+.bleed-tag {
+  position: absolute; top: 14px; left: 16px; background: #dc2626;
+  color: #fff; font-size: 9.5px; font-weight: 750; padding: 2px 6px; border-radius: 3px;
+  z-index: 11; box-shadow: 0 1px 3px rgba(220,38,38,0.3);
+}
+.safe-text-area {
+  position: absolute; top: 12px; left: 12px; right: 12px; height: 165px;
+  background: rgba(37, 99, 235, 0.06); border-bottom: 2px dashed #2563eb;
+  pointer-events: none; z-index: 10; display: flex; align-items: flex-end; padding: 6px 12px;
+}
+.safe-text-badge {
+  background: #2563eb; color: #fff; font-size: 10px; font-weight: 750;
+  padding: 2px 7px; border-radius: 4px; box-shadow: 0 1px 3px rgba(37,99,235,0.3);
+}
+.spine-gutter-zone {
+  position: absolute; top: 12px; bottom: 12px; left: 12px; width: 36px;
+  background: repeating-linear-gradient(45deg, rgba(217, 119, 6, 0.08), rgba(217, 119, 6, 0.08) 8px, transparent 8px, transparent 16px);
+  border-right: 1.5px solid rgba(217, 119, 6, 0.6); pointer-events: none; z-index: 10;
+}
+.spine-gutter-label {
+  position: absolute; bottom: 16px; left: 14px; font-size: 9.5px; font-weight: 750;
+  color: #d97706; writing-mode: vertical-rl; transform: rotate(180deg);
+}
+
+/* 核心插画图层树与局部重绘交互 */
+.canvas-illustration-container {
+  width: 100%; height: 100%; position: relative; background: #e0f2fe;
+}
+.ill-layer {
+  position: absolute; inset: 0; transition: opacity 0.25s; pointer-events: none;
+}
+.layer-bg { background: linear-gradient(180deg, #bae6fd 0%, #7dd3fc 45%, #bbf7d0 45%, #4ade80 100%); }
+.layer-props { position: absolute; bottom: 0; left: 0; width: 100%; height: 260px; }
+.layer-character { position: absolute; inset: 0; }
+.layer-text {
+  position: absolute; top: 32px; left: 45px; right: 35px; font-size: 19px;
+  font-weight: 800; color: #1e3a8a; line-height: 1.55;
+  font-family: "KaiTi", "STKaiti", "FangSong", serif;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+}
+
+/* 局部重绘笔刷 Mask 选区效果 */
+.inpaint-mask-overlay {
+  position: absolute; width: 130px; height: 120px; top: 290px; left: 160px;
+  background: rgba(239, 68, 68, 0.4); border: 2px dashed #dc2626; border-radius: 50%;
+  z-index: 20; display: none; cursor: crosshair; animation: pulseMaskLight 1.5s infinite;
+}
+.inpaint-mask-overlay.active { display: block; }
+@keyframes pulseMaskLight {
+  0% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.04); opacity: 0.85; }
+  100% { transform: scale(1); opacity: 0.6; }
+}
+
+/* 批注指示便签气泡 */
+.audit-annotation-box {
+  position: absolute; top: 260px; right: 35px; background: #fff1f2; border: 1.5px solid #f43f5e;
+  border-radius: 8px; padding: 12px 14px; max-width: 210px; font-size: 12px; color: #9f1239;
+  box-shadow: 0 10px 25px rgba(244,63,94,0.18); z-index: 30; display: none; line-height: 1.5;
+}
+.audit-annotation-box.visible { display: block; }
+
+/* 三审三校出版合规红色公章 */
+.audit-stamp {
+  position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg) scale(0);
+  width: 180px; height: 180px; border: 4px solid #dc2626; border-radius: 50%;
+  color: #dc2626; font-size: 18px; font-weight: 900; display: flex; align-items: center;
+  justify-content: center; text-align: center; line-height: 1.35; pointer-events: none;
+  background: rgba(254, 242, 242, 0.85); box-shadow: 0 0 40px rgba(220,38,38,0.25);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 40;
+  letter-spacing: 1px;
+}
+.audit-stamp.stamped { transform: translate(-50%, -50%) rotate(-15deg) scale(1); }
+
+/* ==================== 5. 右侧属性与操作面板 (Inspector Panel) ==================== */
+.inspector-panel {
+  width: 340px; background: var(--bg-panel); border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0; z-index: 20;
+  box-shadow: -2px 0 6px rgba(15,23,42,0.03);
+}
+.inspector-header {
+  padding: 15px 18px; border-bottom: 1px solid var(--border); font-size: 14px;
+  font-weight: 750; color: var(--text-main); display: flex; justify-content: space-between;
+  align-items: center; background: #ffffff;
+}
+.inspector-content {
+  flex: 1; padding: 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
+  background: #ffffff;
+}
+.panel-section {
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; box-shadow: var(--shadow-sm);
+}
+.panel-section-title {
+  font-size: 12.5px; font-weight: 750; color: var(--text-main); margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* 按钮设计规范 (亮色高质感) */
+.btn-primary {
+  width: 100%; background: var(--accent); border: 1px solid var(--accent); color: #fff;
+  padding: 10px 16px; border-radius: 7px; font-size: 13px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.15s; box-shadow: 0 2px 6px rgba(37,99,235,0.2);
+}
+.btn-primary:hover { background: var(--accent-hover); box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+
+.btn-danger {
+  width: 100%; background: var(--danger); border: 1px solid var(--danger); color: #fff;
+  padding: 10px 16px; border-radius: 7px; font-size: 13px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.15s; box-shadow: 0 2px 6px rgba(220,38,38,0.2);
+}
+.btn-danger:hover { background: #b91c1c; }
+
+.btn-secondary {
+  width: 100%; background: var(--bg-subtle); border: 1px solid var(--border); color: var(--text-main);
+  padding: 8px 12px; border-radius: 7px; font-size: 12px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.15s;
+}
+.btn-secondary:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+
+/* 图层管理树行样式 */
+.layer-row {
+  display: flex; align-items: center; justify-content: space-between; padding: 8px 10px;
+  border-radius: 6px; margin-bottom: 6px; font-size: 12px; color: var(--text-body);
+  background: var(--bg-subtle); border: 1px solid var(--border); transition: all 0.15s;
+}
+.layer-row:hover { background: #e2e8f0; }
+.layer-left { display: flex; align-items: center; gap: 8px; }
+.layer-toggle { cursor: pointer; color: var(--accent); font-size: 13px; }
+
+/* 质检漏斗雷达行 */
+.eval-metric-row {
+  display: flex; justify-content: space-between; align-items: center; font-size: 12px;
+  margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--border);
+}
+.eval-badge { font-size: 10.5px; font-weight: 750; padding: 2px 7px; border-radius: 4px; }
+
+/* ==================== 5.5. 协同 Agent 对话控制台 (Agent Conversational UI) ==================== */
+.panel-mode-bar {
+  display: flex;
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border);
+  padding: 4px 8px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.panel-mode-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.15s;
+}
+.panel-mode-btn:hover {
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.04);
+}
+.panel-mode-btn.active {
+  background: var(--bg-panel);
+  color: #4f46e5;
+  box-shadow: var(--shadow-sm);
+}
+.agent-badge-pill {
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  font-weight: 800;
+}
+
+.agent-view-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #ffffff;
+}
+#inspector-view-container {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+.agent-panel-header {
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.agent-persona-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.agent-select-input {
+  flex: 1;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-main);
+  outline: none;
+}
+.agent-select-input:focus {
+  border-color: #6366f1;
+}
+.agent-context-ribbon {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 2px;
+}
+.context-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  cursor: pointer;
+}
+.context-tag.alert {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecdd3;
+  animation: pulseTag 2s infinite;
+}
+@keyframes pulseTag {
+  0% { opacity: 0.9; }
+  50% { opacity: 0.55; }
+  100% { opacity: 0.9; }
+}
+
+.agent-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.agent-msg-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.agent-msg-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+.agent-msg-meta.user {
+  justify-content: flex-end;
+}
+.agent-msg-bubble {
+  max-width: 95%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+.agent-msg-bubble.user {
+  align-self: flex-end;
+  background: #2563eb;
+  color: #ffffff;
+  border-bottom-right-radius: 2px;
+}
+.agent-msg-bubble.agent {
+  align-self: flex-start;
+  background: #f8fafc;
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 2px;
+}
+
+.agent-mention-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  margin: 0 1px;
+}
+.agent-msg-bubble.user .agent-mention-tag {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+.agent-msg-bubble.agent .agent-mention-tag {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+/* 思维链 CoT 块 */
+.agent-cot-stream {
+  background: #f5f3ff;
+  border-left: 3px solid #7c3aed;
+  padding: 8px 10px;
+  border-radius: 0 6px 6px 0;
+  font-size: 11px;
+  color: #4b5563;
+  margin: 6px 0;
+}
+.agent-cot-stream summary {
+  cursor: pointer;
+  font-weight: 750;
+  color: #7c3aed;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* 执行动作卡片 */
+.agent-action-card {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  box-shadow: var(--shadow-sm);
+}
+.action-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #1e40af;
+  margin-bottom: 6px;
+}
+.action-card-diff {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  background: #f1f5f9;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 10.5px;
+}
+.action-diff-col {
+  flex: 1;
+  text-align: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+.action-diff-col.before {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.action-diff-col.after {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 700;
+}
+
+.agent-quick-chips {
+  padding: 6px 12px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  border-top: 1px solid var(--border);
+  background: #fbfcfd;
+  flex-shrink: 0;
+}
+.quick-chip {
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-body);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.quick-chip:hover {
+  background: #eef2ff;
+  border-color: #818cf8;
+  color: #4f46e5;
+}
+
+.agent-input-box {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.agent-input-toolbar {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+}
+.agent-tool-btn {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.agent-tool-btn:hover {
+  background: #e2e8f0;
+  color: var(--text-main);
+}
+.agent-input-row {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+.agent-textarea {
+  flex: 1;
+  height: 44px;
+  max-height: 90px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--text-main);
+  resize: none;
+  line-height: 1.45;
+  outline: none;
+}
+.agent-textarea:focus {
+  border-color: #6366f1;
+  background: #fff;
+}
+.agent-send-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  background: #4f46e5;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.agent-send-btn:hover {
+  background: #4338ca;
+}
+
+/* 画布底部浮动 Agent 胶囊 */
+.canvas-agent-bar {
+  position: absolute;
+  bottom: 16px;
+  right: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid #818cf8;
+  border-radius: 30px;
+  padding: 8px 14px;
+  box-shadow: 0 4px 18px rgba(79, 70, 229, 0.22);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  z-index: 35;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.canvas-agent-bar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(79, 70, 229, 0.3);
+  background: #ffffff;
+}
+.agent-pulse-icon {
+  font-size: 16px;
+  display: inline-block;
+  animation: pulseIcon 1.5s infinite;
+}
+@keyframes pulseIcon {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.agent-bar-text {
+  font-size: 11.5px;
+  color: #1e1b4b;
+  font-weight: 600;
+}
+
+/* ==================== 6. 右侧滑出式「全要素资产中台」抽屉 ==================== */
+.asset-drawer {
+  position: absolute; top: 0; right: -420px; width: 420px; height: 100%;
+  background: #ffffff; border-left: 1px solid var(--border); z-index: 60;
+  box-shadow: -10px 0 35px rgba(15,23,42,0.12); transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; flex-direction: column;
+}
+.asset-drawer.open { right: 0; }
+.drawer-header {
+  padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex;
+  justify-content: space-between; align-items: center; font-size: 14.5px; font-weight: 800;
+  color: var(--text-main); background: #ffffff;
+}
+.drawer-tabs {
+  display: flex; border-bottom: 1px solid var(--border); background: var(--bg-subtle);
+}
+.drawer-tab {
+  flex: 1; text-align: center; padding: 11px 6px; font-size: 12.5px; font-weight: 600;
+  cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent;
+}
+.drawer-tab.active {
+  color: var(--accent); border-bottom-color: var(--accent); background: #ffffff; font-weight: 750;
+}
+.drawer-body { flex: 1; padding: 18px; overflow-y: auto; background: #ffffff; }
+
+/* 角色三视图卡片 */
+.char-card-wrap {
+  background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px; margin-bottom: 14px;
+}
+.char-3views {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0;
+}
+.char-view-thumb {
+  height: 85px; background: #ffffff; border-radius: 6px; display: flex;
+  flex-direction: column; align-items: center; justify-content: center; font-size: 11px;
+  color: var(--text-body); border: 1px solid var(--border); gap: 3px;
+}
+
+/* ==================== 7. 底部状态栏 Status Bar ==================== */
+.status-bar {
+  height: 30px; background: #ffffff; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 18px;
+  font-size: 11.5px; color: var(--text-muted); z-index: 50; flex-shrink: 0;
+  box-shadow: 0 -1px 2px rgba(15,23,42,0.02);
+}
+.status-left, .status-right { display: flex; align-items: center; gap: 14px; }
+.status-indicator { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+
+/* 全局轻量 Toast 提示 */
+.toast-msg {
+  position: absolute; bottom: 44px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: #0f172a; color: #ffffff; padding: 9px 20px; border-radius: 20px;
+  font-size: 12.5px; font-weight: 600; box-shadow: 0 10px 30px rgba(15,23,42,0.25);
+  opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 100;
+  display: flex; align-items: center; gap: 8px;
+}
+.toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+
+/* ==================== 9. 工作台视觉层级收敛 ==================== */
+:root {
+  --bg-app: #eef2f6;
+  --bg-subtle: #f4f6f8;
+  --bg-hover: #e8edf2;
+  --border: #dce3ea;
+  --border-strong: #c5d0dc;
+  --text-main: #172b3d;
+  --text-body: #354b5e;
+  --text-muted: #65788a;
+  --text-dim: #788b9d;
+  --shadow-sm: 0 1px 2px rgba(23, 43, 61, 0.04);
+  --shadow-md: 0 3px 10px rgba(23, 43, 61, 0.06);
+  --shadow-lg: 0 8px 24px rgba(23, 43, 61, 0.09);
+  --shadow-artboard: 0 14px 34px -8px rgba(23, 43, 61, 0.2), 0 4px 12px -4px rgba(23, 43, 61, 0.1);
+}
+
+body { font-size: 13px; }
+.top-bar {
+  min-height: 62px;
+  height: auto;
+  padding: 8px 20px;
+  gap: 14px;
+  box-shadow: none;
+}
+.brand-group { gap: 9px; min-width: 0; }
+.brand-title { font-size: 14px; white-space: nowrap; }
+.brand-tag { font-size: 10px; padding: 2px 5px; white-space: nowrap; }
+.tenant-pill { font-size: 11px; padding: 4px 8px; white-space: nowrap; }
+.role-segmented-control { gap: 2px; padding: 3px; flex-shrink: 0; }
+.role-segmented-title { font-size: 11px; padding: 0 4px; white-space: nowrap; }
+.role-btn { padding: 5px 8px; font-size: 11.5px; white-space: nowrap; }
+.top-actions { gap: 6px; flex-shrink: 0; }
+.token-stat { padding: 5px 8px; font-size: 11px; white-space: nowrap; }
+.btn-header { padding: 6px 9px; font-size: 11.5px; white-space: nowrap; }
+.role-banner {
+  min-height: 30px;
+  padding: 5px 20px;
+  gap: 6px 18px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+.role-banner > span:first-child { flex: 1 1 620px; }
+.role-banner > span:last-child { flex: 0 1 auto; }
+.workspace-body { min-height: 0; }
+.pipeline-nav {
+  width: 218px;
+  background: #fbfcfd;
+  border-right-color: var(--border);
+}
+.nav-section-title { padding: 15px 14px 8px; font-size: 10.5px; }
+.stage-stepper-list { padding: 0 8px; }
+.stage-item { padding: 9px 9px; margin-bottom: 3px; gap: 8px; border-radius: 6px; }
+.stage-item.active { box-shadow: inset 2px 0 0 var(--accent); }
+.stage-idx-badge { width: 22px; height: 22px; border-radius: 5px; }
+.stage-name { font-size: 12px; }
+.stage-sub { font-size: 10.5px; }
+.stage-status-pill { font-size: 9.5px; padding: 2px 5px; }
+.project-summary-box {
+  margin: 10px;
+  padding: 11px 12px;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+.project-summary-box strong { font-size: 12px; }
+.canvas-container { background: var(--bg-app); }
+.canvas-control-bar {
+  height: auto;
+  min-height: 46px;
+  padding: 6px 14px;
+  gap: 10px;
+  flex-wrap: wrap;
+  box-shadow: none;
+}
+.canvas-view-modes { gap: 4px; }
+.btn-view-toggle { font-size: 11.5px; padding: 5px 9px; }
+.canvas-stage { background-color: var(--bg-app); }
+.storyboard-pan-view { padding: 30px; gap: 18px; }
+.artboard-card { border-radius: 5px; box-shadow: 0 7px 20px -7px rgba(23, 43, 61, 0.24); }
+.artboard-card:hover { box-shadow: 0 12px 25px -7px rgba(37, 99, 235, 0.22); }
+.inspector-panel {
+  width: 320px;
+  background: #fff;
+  box-shadow: none;
+}
+.inspector-header { padding: 13px 16px; font-size: 13px; }
+.inspector-content { padding: 10px 16px 18px; gap: 0; }
+.panel-section {
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  padding: 13px 0;
+  box-shadow: none;
+}
+.panel-section-title { font-size: 12.5px; margin-bottom: 9px; }
+.btn-primary, .btn-danger { box-shadow: none; }
+.btn-secondary { font-size: 12px; }
+.layer-row {
+  padding: 8px 3px;
+  margin-bottom: 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+}
+.eval-metric-row { font-size: 11.5px; }
+.eval-badge { font-size: 10px; }
+.status-bar { height: 28px; padding: 0 16px; box-shadow: none; font-size: 10.5px; }
+.toast-msg { z-index: 100; }
+:where(button, a, input, select, textarea, [onclick]):focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1280px) {
+  .top-bar { flex-wrap: wrap; justify-content: center; }
+  .brand-group { flex: 1 1 360px; }
+  .role-segmented-control { order: 3; }
+  .top-actions { margin-left: auto; }
+  .pipeline-nav { width: 198px; }
+  .inspector-panel { width: 300px; }
+  .stage-status-pill { display: none; }
+}
+
+@media (max-width: 900px) {
+  html { overflow-x: clip; }
+  body { height: auto; min-height: 100vh; overflow: auto; overflow-x: clip; }
+  .top-bar { justify-content: flex-start; }
+  .brand-group { flex-wrap: wrap; }
+  .role-segmented-control { max-width: 100%; overflow-x: auto; }
+  .top-actions { max-width: 100%; overflow-x: auto; }
+  .workspace-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(56vh, auto) auto;
+    overflow: visible;
+  }
+  .pipeline-nav {
+    width: auto;
+    min-height: 0;
+    display: block;
+    padding: 0 0 8px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-section-title { padding: 11px 14px 6px; }
+  .stage-stepper-list { display: flex; gap: 4px; overflow-x: auto; padding: 0 10px 6px; }
+  .stage-item { min-width: 190px; margin-bottom: 0; }
+  .stage-status-pill { display: inline-block; }
+  .project-summary-box { margin: 4px 12px 0; padding: 8px 2px 0; }
+  .canvas-container { min-height: 56vh; }
+  .canvas-control-bar { justify-content: flex-start; }
+  .inspector-panel { width: auto; min-height: 300px; border-left: 0; border-top: 1px solid var(--border); }
+  .inspector-content { overflow: visible; }
+  .asset-drawer { position: fixed; width: min(420px, 100vw); right: -100%; transform: none; }
+  .asset-drawer.open { right: 0; transform: none; }
+  .status-bar { position: relative; }
+  .status-bar { min-height: 28px; height: auto; padding: 6px 12px; gap: 5px 12px; flex-wrap: wrap; }
+  .status-left, .status-right { flex-wrap: wrap; gap: 6px 10px; }
+}
+
+  @media (max-width: 900px) {
+    .top-bar { flex-wrap: wrap; }
+    .workspace-body { grid-template-columns: minmax(0, 1fr); }
+  }
+}
+
+
+@media (max-width: 900px) {
+  .asset-drawer { position: fixed; width: min(420px, 100vw); right: -100%; }
+  .asset-drawer.open { right: 0; }
+}
+@media (min-width: 901px) {
+  .asset-drawer { transform: none; }
+}
+
+@media (max-width: 560px) {
+  .top-bar { padding: 8px 12px; gap: 8px; }
+  .brand-group { flex-basis: 100%; }
+  .brand-title { white-space: normal; }
+  .tenant-pill { max-width: 100%; white-space: normal; }
+  .role-segmented-control { order: 0; width: 100%; }
+  .role-segmented-control .role-btn { flex-shrink: 0; }
+  .top-actions { width: 100%; }
+  .top-actions > * { flex-shrink: 0; }
+  .role-segmented-title { display: none; }
+  .top-actions { margin-left: 0; }
+  .btn-header, .token-stat { font-size: 10.5px; }
+  .role-banner { padding: 6px 12px; }
+  .role-banner > span:first-child, .role-banner > span:last-child { flex-basis: 100%; }
+  .canvas-view-modes { width: 100%; overflow-x: auto; }
+  .canvas-control-bar > div:nth-child(2) { order: 3; width: 100%; }
+  .canvas-zoom-tools { margin-left: auto; }
+  .storyboard-pan-view { padding: 20px; }
+  .print-artboard-canvas { transform-origin: center center; }
+  .status-left > span, .status-right > span:nth-child(2) { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+
+/* ==================== 10. 清晰的出版工作台层级 ==================== */
+:root {
+  --bg-app: #e9eef2;
+  --bg-panel: #ffffff;
+  --bg-subtle: #f3f6f8;
+  --bg-hover: #e5edf2;
+  --border: #d4dee5;
+  --border-strong: #b7c6d1;
+  --text-main: #162d3e;
+  --text-body: #354c5d;
+  --text-muted: #657b89;
+  --accent: #176b91;
+  --accent-hover: #105778;
+  --accent-light: #e6f2f7;
+  --accent-border: #b7d8e5;
+  --shadow-sm: 0 1px 2px rgba(22, 45, 62, .05);
+  --shadow-md: 0 4px 14px rgba(22, 45, 62, .08);
+  --shadow-lg: 0 12px 32px rgba(22, 45, 62, .14);
+  --shadow-artboard: 0 18px 42px -10px rgba(22, 45, 62, .28), 0 4px 12px rgba(22, 45, 62, .12);
+}
+
+.top-bar {
+  min-height: 60px;
+  height: auto;
+  padding: 8px 18px;
+  gap: 12px;
+  background: #162d3e;
+  color: #f4f8fa;
+  border-bottom: 3px solid #28789b;
+  box-shadow: none;
+}
+.brand-group { gap: 9px; min-width: 0; }
+.brand-title { color: #f4f8fa; font-size: 14px; white-space: nowrap; }
+.brand-tag { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.18); color: #d5e5ed; font-size: 10px; }
+.tenant-pill { background: rgba(255,255,255,.08); color: #e1edf2; border-color: rgba(255,255,255,.16); font-size: 11px; }
+.role-segmented-control { gap: 2px; padding: 3px; background: #203c4f; border-color: #365469; }
+.role-segmented-title { color: #bdccd5; font-size: 11px; }
+.role-btn { color: #d1dde4; font-size: 11.5px; padding: 5px 8px; }
+.role-btn:hover { color: #fff; }
+.role-btn.active { background: #f4f8fa; color: #145d7c; box-shadow: none; }
+.top-actions { gap: 6px; }
+.token-stat { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.15); color: #e1edf2; font-size: 11px; }
+.btn-header { background: transparent; color: #edf4f7; border-color: #496274; box-shadow: none; font-size: 11.5px; }
+.btn-header:hover { background: #244459; border-color: #7390a2; color: #fff; }
+.btn-header.active-asset { background: #e9f4f8; color: #145d7c; border-color: #b7d8e5; }
+.role-banner {
+  min-height: 32px;
+  padding: 5px 18px;
+  gap: 4px 20px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  line-height: 1.4;
+  background: #f4f7f8;
+  border-bottom-color: #d4dee5;
+  color: #29495b;
+}
+.role-banner.info { background: #f0f5f7; border-bottom-color: #d4dee5; color: #29495b; }
+.role-banner.warn { background: #fbf5e8; border-bottom-color: #eadbb7; color: #715320; }
+.role-banner > span:first-child { flex: 1 1 520px; }
+.role-banner > span:last-child { flex: 0 1 auto; }
+.workspace-body { min-height: 0; }
+.pipeline-nav {
+  width: 212px;
+  background: #f8fafb;
+  border-right-color: #cbd7df;
+  box-shadow: 3px 0 12px rgba(22,45,62,.035);
+}
+.nav-section-title { padding: 15px 14px 8px; font-size: 10.5px; letter-spacing: .2px; }
+.stage-stepper-list { padding: 0 8px; }
+.stage-item {
+  padding: 8px 8px;
+  margin-bottom: 2px;
+  gap: 8px;
+  border: 0;
+  border-radius: 5px;
+  box-shadow: none;
+}
+.stage-item:hover { background: #edf2f5; }
+.stage-item.active {
+  background: #e5f0f5;
+  box-shadow: inset 3px 0 0 #176b91;
+  color: #145d7c;
+}
+.stage-idx-badge { width: 21px; height: 21px; border-radius: 50%; font-size: 10px; }
+.stage-item.done .stage-idx-badge { background: #e4f3ec; color: #14734c; border-color: #badfcf; }
+.stage-item.active .stage-idx-badge { background: #176b91; border-color: #176b91; color: #fff; }
+.stage-name { font-size: 12px; }
+.stage-sub { font-size: 10.5px; }
+.stage-status-pill { font-size: 9.5px; padding: 2px 5px; border: 0; background: transparent; }
+.pill-done { color: #14734c; }
+.pill-active { color: #145d7c; }
+.project-summary-box {
+  margin: 10px 12px;
+  padding: 11px 0 0;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid #d4dee5;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+.project-summary-box strong { font-size: 12px; }
+.canvas-container { background: #e9eef2; }
+.canvas-control-bar {
+  min-height: 46px;
+  height: auto;
+  padding: 6px 14px;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+  background: #fbfcfc;
+  box-shadow: none;
+}
+.canvas-view-modes { gap: 3px; }
+.btn-view-toggle {
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  box-shadow: none;
+}
+.btn-view-toggle.active { background: #176b91; border-color: #176b91; box-shadow: none; }
+.canvas-zoom-tools { gap: 6px; }
+.zoom-btn { border-radius: 4px; }
+.canvas-stage {
+  background-color: #e9eef2;
+  background-image: linear-gradient(rgba(111,136,151,.085) 1px, transparent 1px), linear-gradient(90deg, rgba(111,136,151,.085) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.storyboard-pan-view { padding: 28px; gap: 18px; }
+.storyboard-board-title { color: #29495b; font-size: 13px; }
+.artboard-card { border: 1px solid #d5dfe5; border-radius: 3px; box-shadow: 0 12px 28px -10px rgba(22,45,62,.3); }
+.artboard-card:hover { box-shadow: 0 16px 34px -8px rgba(23,107,145,.25); }
+.artboard-card.current-active { border-color: #176b91; box-shadow: 0 0 0 2px #176b91, 0 14px 32px -10px rgba(22,45,62,.28); }
+.artboard-header, .artboard-footer { background: #fff; }
+.inspector-panel {
+  width: 320px;
+  background: #fff;
+  border-left: 1px solid #cbd7df;
+  box-shadow: -4px 0 14px rgba(22,45,62,.045);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.inspector-header { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid #d4dee5; }
+.inspector-content { padding: 4px 16px 16px; gap: 0; }
+.panel-section {
+  margin: 0;
+  padding: 13px 0;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e0e7eb !important;
+  border-radius: 0;
+  box-shadow: none;
+}
+.panel-section-title { margin-bottom: 9px; font-size: 12.5px; }
+.btn-primary, .btn-danger { box-shadow: none; border-radius: 5px; }
+.btn-primary { background: #176b91; border-color: #176b91; }
+.btn-primary:hover { background: #105778; }
+.btn-secondary { border-radius: 5px; font-size: 12px; }
+.layer-row {
+  padding: 8px 2px;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #e7ecef;
+  border-radius: 0;
+}
+.eval-metric-row { font-size: 11.5px; }
+.eval-badge { font-size: 10px; }
+.status-bar {
+  min-height: 28px;
+  height: auto;
+  padding: 5px 16px;
+  background: #f8fafb;
+  box-shadow: none;
+  font-size: 10.5px;
+}
+:where(button, a, input, select, textarea, [onclick]):focus-visible { outline: 2px solid #176b91; outline-offset: 2px; }
+
+@media (max-width: 1280px) {
+  .top-bar { flex-wrap: wrap; justify-content: space-between; }
+  .brand-group { flex: 1 1 360px; }
+  .role-segmented-control { order: 3; }
+  .top-actions { margin-left: auto; }
+  .pipeline-nav { width: 198px; }
+  .inspector-panel { width: 300px; }
+  .stage-status-pill { display: none; }
+}
+
+@media (max-width: 900px) {
+  html { overflow-x: clip; }
+  body { height: auto; min-height: 100vh; overflow: auto; overflow-x: clip; }
+  .top-bar { padding: 8px 14px; gap: 8px; }
+  .brand-group { flex: 1 1 100%; }
+  .role-segmented-control { order: 0; width: 100%; justify-content: flex-start; overflow-x: auto; }
+  .role-segmented-control .role-btn { flex: 0 0 auto; }
+  .top-actions { width: 100%; margin-left: 0; overflow-x: auto; }
+  .top-actions > * { flex: 0 0 auto; }
+  .role-banner { padding: 6px 14px; gap: 2px 12px; }
+  .role-banner > span:first-child, .role-banner > span:last-child { flex-basis: 100%; }
+  .workspace-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(56vh, auto) auto;
+    overflow: visible;
+  }
+  .pipeline-nav {
+    width: auto;
+    min-height: 0;
+    display: block;
+    padding: 0 0 7px;
+    border-right: 0;
+    border-bottom: 1px solid #cbd7df;
+    box-shadow: none;
+  }
+  .nav-section-title { padding: 10px 14px 5px; }
+  .stage-stepper-list { display: flex; gap: 3px; overflow-x: auto; padding: 0 10px 6px; }
+  .stage-item {
+    min-width: 148px;
+    padding: 7px 8px;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 3px;
+    border-bottom: 2px solid transparent;
+  }
+  .stage-item.active { background: #e5f0f5; border-bottom-color: #176b91; box-shadow: none; }
+  .stage-status-pill { display: inline-block; }
+  .project-summary-box { margin: 4px 14px 0; padding: 7px 0 0; display: block; }
+  .canvas-container { min-height: 56vh; }
+  .canvas-control-bar { justify-content: flex-start; }
+  .inspector-panel {
+    width: auto;
+    min-height: 300px;
+    border: 0;
+    border-top: 3px solid #176b91;
+    box-shadow: none;
+  }
+  .inspector-content { overflow: visible; }
+  .asset-drawer { position: fixed; width: min(420px, 100vw); right: -100%; transform: none; }
+  .asset-drawer.open { right: 0; transform: none; }
+  .status-bar { position: relative; flex-wrap: wrap; gap: 5px 12px; }
+  .status-left, .status-right { flex-wrap: wrap; gap: 6px 10px; }
+}
+
+@media (max-width: 560px) {
+  .brand-group { gap: 7px; }
+  .brand-title { white-space: normal; }
+  .brand-tag { display: none; }
+  .tenant-pill { max-width: 100%; white-space: normal; }
+  .role-segmented-title { display: none; }
+  .role-btn { padding: 6px 9px; font-size: 11px; }
+  .top-actions { gap: 5px; }
+  .token-stat, .btn-header { padding: 6px 8px; font-size: 10.5px; }
+  .canvas-view-modes { width: 100%; overflow-x: auto; }
+  .canvas-control-bar > div:nth-child(2) { order: 3; width: 100%; }
+  .canvas-zoom-tools { margin-left: auto; }
+  .storyboard-pan-view { padding: 18px; }
+  .status-left > span, .status-right > span:nth-child(2) { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+.book-preview { width: 100%; height: 100%; display: block; }
+.artboard-preview { background: #edf2df; }
+.layer-bg { background: none; }
+.layer-props { inset: 0; width: 100%; height: 100%; }
+.canvas-illustration-container { background: #f5f3df; }
+.layer-text { top: 38px; left: 55px; right: 32px; font-size: 17px; line-height: 1.8; font-weight: 600; color: #435b47; text-shadow: none; }
+.inpaint-mask-overlay { top: 375px; left: 275px; width: 65px; height: 65px; }
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" style="position:absolute;pointer-events:none;">
+  <defs>
+    <linearGradient id="book-sky" x2="0" y2="1"><stop stop-color="#dceee9"/><stop offset="1" stop-color="#f8f5df"/></linearGradient>
+    <linearGradient id="book-fur" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffdf6"/><stop offset="1" stop-color="#e8e6d7"/></linearGradient>
+    <linearGradient id="book-carrot" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f9b259"/><stop offset=".5" stop-color="#ec8646"/><stop offset="1" stop-color="#cd633c"/></linearGradient>
+    <radialGradient id="book-cheek"><stop stop-color="#eeb8aa" stop-opacity=".8"/><stop offset="1" stop-color="#eeb8aa" stop-opacity="0"/></radialGradient>
+    <filter id="book-paper" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".055"/></feComponentTransfer><feBlend in="SourceGraphic" mode="multiply"/></filter>
+    <symbol id="book-rabbit" viewBox="0 0 160 230">
+      <ellipse cx="81" cy="217" rx="49" ry="8" fill="#506e51" opacity=".14"/>
+      <circle cx="123" cy="172" r="17" fill="url(#book-fur)" stroke="#b4baaa" stroke-width="1.2"/>
+      <path d="M54 122 C29 140 29 188 44 203 Q80 220 114 203 C131 180 118 138 101 124Z" fill="url(#book-fur)" stroke="#b4baaa" stroke-width="1.4"/>
+      <ellipse cx="75" cy="173" rx="26" ry="34" fill="#fffdf7" opacity=".8"/>
+      <path d="M49 74 C34 59 27 13 38 7 C55 -1 65 49 61 71" fill="url(#book-fur)" stroke="#b4baaa" stroke-width="1.4"/>
+      <path d="M83 70 C82 47 96 2 108 8 C124 15 104 59 96 75" fill="url(#book-fur)" stroke="#b4baaa" stroke-width="1.4"/>
+      <path d="M45 62 C35 38 34 16 40 16 C48 19 56 49 54 66" fill="#e8bdb2"/>
+      <path d="M89 64 C90 43 103 15 108 18 C111 25 100 53 96 67" fill="#e8bdb2"/>
+      <path d="M36 90 C36 70 56 64 77 65 C103 64 122 80 122 101 C123 124 100 140 77 139 C52 138 33 119 36 90Z" fill="url(#book-fur)" stroke="#b4baaa" stroke-width="1.4"/>
+      <ellipse cx="50" cy="111" rx="13" ry="10" fill="url(#book-cheek)"/><ellipse cx="106" cy="113" rx="13" ry="10" fill="url(#book-cheek)"/>
+      <ellipse cx="60" cy="97" rx="4" ry="5.8" fill="#384139"/><ellipse cx="94" cy="98" rx="4" ry="5.8" fill="#384139"/>
+      <circle cx="61" cy="95" r="1.4" fill="#fff"/><circle cx="95" cy="96" r="1.4" fill="#fff"/>
+      <path d="M72 108 Q78 104 83 108 Q79 115 77 113Z" fill="#c68076"/>
+      <path d="M77 113 L77 117 M66 117 Q72 123 77 117 Q84 124 91 117" stroke="#79766a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M48 126 Q80 145 111 126 L110 138 Q82 151 49 139Z" fill="#bc6658" stroke="#a65548" stroke-width="1"/>
+      <path d="M98 136 Q106 152 99 178 L86 172 Q96 151 88 141Z" fill="#ca7565" stroke="#a65548" stroke-width="1"/>
+      <path d="M91 155 L102 159 M89 164 L100 169" stroke="#e8ab91" stroke-width="2"/>
+      <ellipse cx="42" cy="207" rx="18" ry="10" fill="url(#book-fur)" stroke="#b4baaa" stroke-width="1.2"/><ellipse cx="103" cy="208" rx="19" ry="10" fill="url(#book-fur)" stroke="#b4baaa" stroke-width="1.2"/>
+      <path d="M35 205 L36 209 M43 204 L44 209 M97 205 L97 211 M105 205 L105 211" stroke="#c5c7b7" fill="none" stroke-width="1"/>
+      <path d="M47 148 Q25 151 31 167 Q39 176 49 158" fill="url(#book-fur)" stroke="#b4baaa" stroke-width="1.4"/>
+    </symbol>
+    <symbol id="book-carrot-sprig" viewBox="0 0 100 150">
+      <path d="M38 54 Q20 35 17 18 Q38 24 46 51 M49 49 Q45 13 60 3 Q67 29 56 52 M57 53 Q76 19 88 24 Q84 48 61 61" fill="#648552" stroke="#486e48" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="M29 60 Q47 48 71 61 Q72 94 42 143 Q36 119 29 60Z" fill="url(#book-carrot)" stroke="#bb7249" stroke-width="1.7"/>
+      <path d="M35 72 L48 76 M54 88 L65 86 M39 100 L50 103 M48 119 L54 115" stroke="#c67846" stroke-width="2" stroke-linecap="round"/>
+      <path d="M37 63 Q36 94 43 115" fill="none" stroke="#ffd196" stroke-width="3" opacity=".65"/>
+    </symbol>
+    <symbol id="book-flower" viewBox="0 0 30 45">
+      <path d="M15 43 Q12 24 16 14 M14 34 Q3 27 4 22 Q15 24 14 34 M15 29 Q26 18 27 25 Q22 34 15 34" stroke="#708b57" stroke-width="1.2" fill="#9baa70"/>
+      <g fill="#fff8e3"><ellipse cx="15" cy="7" rx="4" ry="7"/><ellipse cx="22" cy="13" rx="7" ry="4"/><ellipse cx="15" cy="20" rx="4" ry="7"/><ellipse cx="8" cy="13" rx="7" ry="4"/></g><circle cx="15" cy="13" r="4" fill="#d8af5e"/>
+    </symbol>
+    <symbol id="book-forest" viewBox="0 0 240 320">
+      <rect width="240" height="320" fill="url(#book-sky)"/>
+      <circle cx="175" cy="60" r="35" fill="#fff7cf" opacity=".65"/>
+      <path d="M0 176 Q75 133 145 174 T260 161 L260 320 H0Z" fill="#b5cba2"/>
+      <path d="M0 208 Q73 161 144 210 T260 196 V320 H0Z" fill="#91af83"/>
+      <g fill="#567952" opacity=".23"><ellipse cx="19" cy="102" rx="29" ry="73"/><ellipse cx="224" cy="110" rx="32" ry="82"/></g>
+      <path d="M15 0 Q27 100 19 240 L5 242 Q12 96 1 0 M236 0 Q219 111 228 237 L242 242 Q232 108 248 0" fill="#899a75"/>
+      <path d="M18 89 L48 63 M227 94 L202 57" stroke="#899a75" stroke-width="7" stroke-linecap="round"/>
+      <g fill="#759467"><ellipse cx="18" cy="23" rx="54" ry="25"/><ellipse cx="229" cy="24" rx="49" ry="28"/><ellipse cx="22" cy="60" rx="32" ry="21"/><ellipse cx="225" cy="62" rx="32" ry="20"/></g>
+      <g fill="#a7bd8b"><ellipse cx="51" cy="18" rx="23" ry="12"/><ellipse cx="199" cy="21" rx="26" ry="14"/></g>
+      <path d="M115 194 Q143 213 143 241 Q128 273 181 320 H54 Q108 263 112 243 Q128 218 115 194" fill="#e0d8ae"/>
+      <path d="M0 271 Q30 249 70 267 M176 279 Q214 253 240 265" stroke="#799760" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <g stroke="#6e8b59" stroke-width="1.3" fill="none"><path d="M30 295 L25 279 M30 295 L35 276 M208 307 L205 289 M208 307 L215 290 M59 249 L54 240 M59 249 L63 238"/></g>
+      <use href="#book-flower" x="14" y="259" width="18" height="27"/><use href="#book-flower" x="210" y="252" width="15" height="23"/><use href="#book-flower" x="40" y="293" width="15" height="23"/>
+      <g fill="#cfb876" opacity=".65"><ellipse cx="93" cy="282" rx="4" ry="2"/><ellipse cx="144" cy="312" rx="5" ry="2"/><ellipse cx="136" cy="260" rx="3" ry="1.5"/></g>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- 1. 顶栏 Global Header -->
+<header class="top-bar">
+  <div class="brand-group">
+    <div class="brand-icon">🎨</div>
+    <div class="brand-title">
+      出版级 AI 绘画工作台
+      <span class="brand-tag">工业级交互原型沙盘 v2.0</span>
+    </div>
+    <div class="tenant-pill">
+      <span class="tenant-dot"></span>
+      人教社幼教绘本专项沙箱 (TENANT-PEP-01)
+    </div>
+  </div>
+
+  <!-- RBAC 角色权限切换器 (Segmented Control) -->
+  <div class="role-segmented-control">
+    <span class="role-segmented-title">🎭 协同视角：</span>
+    <button class="role-btn" onclick="switchRole('editor')" id="role-editor">文字编辑</button>
+    <button class="role-btn active" onclick="switchRole('art')" id="role-art">美术监修 (全功能)</button>
+    <button class="role-btn" onclick="switchRole('proofreader')" id="role-proofreader">责任编辑 (三审)</button>
+    <button class="role-btn" onclick="switchRole('printer')" id="role-printer">印制工程师 (出片)</button>
+  </div>
+
+  <!-- 顶栏快捷操作 -->
+  <div class="top-actions">
+    <div class="token-stat">⚡ 算力消耗: <strong>1,420</strong> / 10,000 Token</div>
+    <button class="btn-header" id="btn-toggle-agent" onclick="toggleRightPanelMode()" style="border-color:#818cf8; color:#4338ca; background:#eef2ff; font-weight:700;">
+      🤖 协同 Agent 对话 <span class="agent-badge-pill" id="top-agent-badge">1</span>
+    </button>
+    <button class="btn-header" id="btn-toggle-asset" onclick="toggleAssetDrawer()">📦 全要素资产中心</button>
+    <a href="publishing-workbench.html" class="btn-header" style="text-decoration:none;">📄 返回 PRD 总览</a>
+  </div>
+</header>
+
+<!-- 动态角色权限与状态提示条 -->
+<div class="role-banner info" id="role-status-banner">
+  <span>💡 <strong>当前视角：美术监修</strong> · 已解锁画风 LoRA 绑定、分层画布编辑、SAM 2 笔刷局部重绘 (Inpainting)。</span>
+  <span style="font-size:11px; opacity:0.85;">权责边界：无终审放行权，修图完毕后需向责任编辑提交三审工单</span>
+</div>
+
+<!-- 2. 主工作区布局 -->
+<div class="workspace-body">
+
+  <!-- 左侧流水线导航 (Pipeline Stepper Nav) -->
+  <nav class="pipeline-nav">
+    <div>
+      <div class="nav-section-title">全链路生产流水线 (5 阶段)</div>
+      <ul class="stage-stepper-list">
+        <!-- Stage 1 -->
+        <li class="stage-item done" onclick="switchStage(1)" id="nav-stage-1">
+          <div class="stage-idx-badge">✓</div>
+          <div class="stage-meta">
+            <div class="stage-name">01. 文稿智能解析室</div>
+            <div class="stage-sub">LLM分镜拆解 · 留白安全区</div>
+          </div>
+          <span class="stage-status-pill pill-done">已就绪</span>
+        </li>
+        <!-- Stage 2 -->
+        <li class="stage-item done" onclick="switchStage(2)" id="nav-stage-2">
+          <div class="stage-idx-badge">✓</div>
+          <div class="stage-meta">
+            <div class="stage-name">02. 资产与画风锁定</div>
+            <div class="stage-sub">三视图FaceID · 专属LoRA</div>
+          </div>
+          <span class="stage-status-pill pill-done">已绑定</span>
+        </li>
+        <!-- Stage 3 -->
+        <li class="stage-item active" onclick="switchStage(3)" id="nav-stage-3">
+          <div class="stage-idx-badge">03</div>
+          <div class="stage-meta">
+            <div class="stage-name">03. 分层画布与重绘</div>
+            <div class="stage-sub">图层解耦 · 笔刷Inpainting</div>
+          </div>
+          <span class="stage-status-pill pill-active">制作中</span>
+        </li>
+        <!-- Stage 4 -->
+        <li class="stage-item" onclick="switchStage(4)" id="nav-stage-4">
+          <div class="stage-idx-badge">04</div>
+          <div class="stage-meta">
+            <div class="stage-name">04. 三审三校质检看板</div>
+            <div class="stage-sub">VLM初检 · 逆向驳回闭环</div>
+          </div>
+          <span class="stage-status-pill pill-wait" id="stage-4-badge">待终审</span>
+        </li>
+        <!-- Stage 5 -->
+        <li class="stage-item" onclick="switchStage(5)" id="nav-stage-5">
+          <div class="stage-idx-badge">05</div>
+          <div class="stage-meta">
+            <div class="stage-name">05. 印前工业合规出片</div>
+            <div class="stage-sub">300 DPI · CMYK · 出血位</div>
+          </div>
+          <span class="stage-status-pill pill-wait" id="stage-5-badge">锁定中</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 当前项目卡片 -->
+    <div class="project-summary-box">
+      <strong>📖 《森林里的小兔子》Vol.3</strong>
+      <div style="color:var(--text-muted); margin-top:2px;">开本：大度 16 开 (210×285mm)</div>
+      <div style="color:var(--text-muted);">篇幅：全册 40 页长篇连续绘本</div>
+      <div style="margin-top:6px; color:var(--success); font-weight:700;">● 角色跨页漂移率: 4.8% (优)</div>
+    </div>
+  </nav>
+
+  <!-- 中央画布区 (Canvas Viewport) -->
+  <main class="canvas-container">
+    <!-- 画布顶栏控制器 -->
+    <div class="canvas-control-bar">
+      <div class="canvas-view-modes">
+        <button class="btn-view-toggle active" id="btn-mode-storyboard" onclick="setViewMode('storyboard')">
+          🖼️ 全书分镜无限看板 (40P)
+        </button>
+        <button class="btn-view-toggle" id="btn-mode-focused" onclick="setViewMode('focused')">
+          🔍 定开本物理受控画板 (P03 精修)
+        </button>
+      </div>
+
+      <!-- 准线快捷开关 -->
+      <div style="display:flex; align-items:center; gap:12px; font-size:12px; color:var(--text-body);">
+        <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+          <input type="checkbox" id="chk-bleed-guide" checked onchange="toggleBleedGuide(this.checked)"/>
+          <span>3mm出血线</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+          <input type="checkbox" id="chk-safe-guide" checked onchange="toggleSafeGuide(this.checked)"/>
+          <span>排版留白安全区</span>
+        </label>
+      </div>
+
+      <div class="canvas-zoom-tools">
+        <span>缩放:</span>
+        <button class="zoom-btn" onclick="zoomCanvas(-0.1)">-</button>
+        <span id="zoom-val-text" style="font-weight:700; width:45px; text-align:center; color:var(--text-main);">100%</span>
+        <button class="zoom-btn" onclick="zoomCanvas(0.1)">+</button>
+        <button class="btn-view-toggle" onclick="resetZoom()" style="padding:3px 8px; font-size:11.5px;">重置</button>
+      </div>
+    </div>
+
+    <!-- 舞台 Stage -->
+    <div class="canvas-stage" id="canvas-stage">
+      
+      <!-- ================= 视口 A: 无限故事板全景视图 ================= -->
+      <div class="storyboard-pan-view" id="storyboard-view">
+        <div>
+          <div class="storyboard-board-title">
+            <span>📚 全书 40 页分镜全景故事板 (可按住拖拽平移 / 双击 P03 画板平滑聚焦进入定开本精修)</span>
+          </div>
+
+          <div class="storyboard-grid">
+            <!-- P01 封面 -->
+            <div class="artboard-card" onclick="openPageDetail(1)">
+              <div class="artboard-header">
+                <span class="artboard-num">P01 · 封面</span>
+                <span class="artboard-status" style="background:#ecfdf5;color:#059669;">已定稿</span>
+              </div>
+              <div class="artboard-preview">
+                <svg class="book-preview" viewBox="0 0 240 320" role="img" aria-label="戴红围巾的小兔子站在开满野花的森林小径上">
+                  <g filter="url(#book-paper)">
+                    <use href="#book-forest" width="240" height="320"/>
+                    <path d="M46 83 Q119 64 192 83" fill="none" stroke="#b3bf9a" stroke-width="1"/>
+                    <text x="120" y="67" text-anchor="middle" fill="#405e48" font-family="STKaiti, KaiTi, serif" font-size="21" font-weight="700">森林里的小兔子</text>
+                    <text x="120" y="91" text-anchor="middle" fill="#7e8b66" font-size="8" letter-spacing="3">一个关于分享的故事</text>
+                    <use href="#book-rabbit" x="69" y="123" width="103" height="148"/>
+                    <path d="M144 217 Q164 199 168 208 Q173 220 151 230" fill="url(#book-fur)" stroke="#b4baaa" stroke-width="1"/>
+                    <use href="#book-flower" x="168" y="236" width="22" height="33"/>
+                    <use href="#book-flower" x="47" y="243" width="23" height="35"/>
+                    <path d="M182 116 Q187 102 192 114 Q202 107 200 118 Q191 125 182 116" fill="#e1bb72"/>
+                  </g>
+                </svg>
+                <div class="artboard-bleed-hint"></div>
+              </div>
+              <div class="artboard-footer">
+                封面定装照：欢欢向森林招手，预留大标题安全区。
+              </div>
+            </div>
+
+            <!-- P02 森林小雨 -->
+            <div class="artboard-card" onclick="openPageDetail(2)">
+              <div class="artboard-header">
+                <span class="artboard-num">P02 · 森林小雨</span>
+                <span class="artboard-status" style="background:#ecfdf5;color:#059669;">已定稿</span>
+              </div>
+              <div class="artboard-preview">
+                <svg class="book-preview" viewBox="0 0 240 320" role="img" aria-label="小兔子撑着红蘑菇伞走过雨后的森林">
+                  <g filter="url(#book-paper)">
+                    <use href="#book-forest" width="240" height="320"/>
+                    <path d="M75 279 Q117 263 151 281 Q128 292 75 279" fill="#b7d3cc" stroke="#91b7b0" stroke-width="1"/>
+                    <use href="#book-rabbit" x="76" y="145" width="85" height="122"/>
+                    <path d="M144 143 L143 235 Q143 245 135 242" stroke="#947652" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <path d="M66 157 Q101 97 149 105 Q189 109 205 159 Q170 151 145 158 Q107 150 66 157Z" fill="#ba6a59" stroke="#995847" stroke-width="1.8"/>
+                    <path d="M75 151 Q123 114 181 133" fill="none" stroke="#dfa184" stroke-width="3" opacity=".7"/>
+                    <g fill="#f9e5c8"><ellipse cx="112" cy="129" rx="10" ry="5" transform="rotate(-20 112 129)"/><ellipse cx="161" cy="125" rx="8" ry="5"/><ellipse cx="180" cy="145" rx="7" ry="4"/><ellipse cx="87" cy="146" rx="6" ry="3"/></g>
+                    <path d="M127 218 Q142 209 147 215 Q152 226 132 229" fill="url(#book-fur)" stroke="#b4baaa"/>
+                    <g stroke="#7caaa9" stroke-width="1.2" opacity=".65"><path d="M53 101 L50 110 M181 80 L178 89 M206 191 L203 200 M41 217 L38 226 M91 74 L88 83 M156 63 L153 72"/></g>
+                    <g fill="#faf8e9"><circle cx="80" cy="277" r="1.5"/><circle cx="146" cy="279" r="2"/></g>
+                  </g>
+                </svg>
+                <div class="artboard-bleed-hint"></div>
+              </div>
+              <div class="artboard-footer">
+                欢欢撑着蘑菇伞走在小径，文字排在左上方。
+              </div>
+            </div>
+
+            <!-- P03 拔胡萝卜 (核心演示画板，存在瑕疵待局部重绘) -->
+            <div class="artboard-card current-active has-error" onclick="openPageDetail(3)" id="card-p03">
+              <div class="artboard-header">
+                <span class="artboard-num">P03 · 拔胡萝卜 (当前画板)</span>
+                <span class="artboard-status" style="background:#fef2f2;color:#dc2626;" id="p03-status-pill">待修复手部</span>
+              </div>
+              <div class="artboard-preview" style="background:#e0f2fe;">
+                <!-- 兔子拔胡萝卜示意 -->
+                <svg class="book-preview" viewBox="0 0 240 320" role="img" aria-label="小兔子在菜园里用力拔起胡萝卜">
+                  <g filter="url(#book-paper)">
+                    <use href="#book-forest" width="240" height="320"/>
+                    <path d="M35 236 L35 175 M58 232 L58 177 M81 232 L81 173 M30 200 L88 200 M30 222 L87 222" stroke="#b49b71" stroke-width="6" stroke-linecap="round"/>
+                    <path d="M128 276 Q157 248 206 273 L211 289 Q166 296 125 286" fill="#ac8d66"/>
+                    <use href="#book-carrot-sprig" x="137" y="170" width="73" height="110"/>
+                    <use href="#book-rabbit" x="63" y="128" width="107" height="154"/>
+                    <path d="M134 224 Q158 213 165 217 Q173 228 144 240" fill="url(#book-fur)" stroke="#b4baaa"/>
+                    <circle cx="163" cy="226" r="13" fill="none" stroke="#be6558" stroke-width="1.5" stroke-dasharray="3 3"/>
+                    <use href="#book-flower" x="35" y="268" width="20" height="30"/>
+                  </g>
+                </svg>
+                <div class="artboard-bleed-hint"></div>
+              </div>
+              <div class="artboard-footer">
+                <strong style="color:#dc2626;">⚠️ 待修瑕疵：</strong>右手手指形制异常，需局部重绘。
+              </div>
+            </div>
+
+            <!-- P04 遇见松鼠 -->
+            <div class="artboard-card" onclick="openPageDetail(4)">
+              <div class="artboard-header">
+                <span class="artboard-num">P04 · 遇见松鼠皮皮</span>
+                <span class="artboard-status" style="background:#fffbeb;color:#d97706;">待三审</span>
+              </div>
+              <div class="artboard-preview">
+                <svg class="book-preview" viewBox="0 0 240 320" role="img" aria-label="小兔子和蓬松尾巴的松鼠在森林里分享胡萝卜">
+                  <g filter="url(#book-paper)">
+                    <use href="#book-forest" width="240" height="320"/>
+                    <path d="M192 243 C224 228 241 174 209 168 C178 162 176 186 186 193 C193 199 205 187 202 184 C217 195 211 227 191 233" fill="#ba8260" stroke="#986745" stroke-width="2"/>
+                    <path d="M192 232 Q220 205 211 181" stroke="#d3ab7c" stroke-width="7" stroke-linecap="round" fill="none"/>
+                    <ellipse cx="177" cy="240" rx="24" ry="32" fill="#b77a53" stroke="#986745" stroke-width="1.2"/>
+                    <ellipse cx="171" cy="244" rx="13" ry="21" fill="#ebd3a7"/>
+                    <path d="M160 206 L156 185 Q166 181 170 199 M181 202 L190 182 Q199 186 194 207" fill="#b77a53" stroke="#986745" stroke-width="1.2"/>
+                    <ellipse cx="175" cy="211" rx="24" ry="21" fill="#c38d61" stroke="#986745" stroke-width="1.2"/>
+                    <ellipse cx="166" cy="218" rx="14" ry="10" fill="#e8c9a1"/><circle cx="163" cy="207" r="3" fill="#39463c"/><circle cx="187" cy="207" r="3" fill="#39463c"/><circle cx="164" cy="206" r="1" fill="#fff"/>
+                    <circle cx="153" cy="218" r="3" fill="#805846"/><path d="M158 224 Q166 229 173 223" stroke="#805846" fill="none"/>
+                    <ellipse cx="169" cy="269" rx="16" ry="6" fill="#b77a53"/><ellipse cx="189" cy="269" rx="15" ry="6" fill="#b77a53"/>
+                    <use href="#book-rabbit" x="49" y="145" width="92" height="133"/>
+                    <use href="#book-carrot-sprig" x="119" y="207" width="38" height="57" transform="rotate(-30 138 235)"/>
+                    <path d="M115 225 Q136 216 141 224 Q138 233 122 235" fill="url(#book-fur)" stroke="#b4baaa"/><path d="M165 233 Q150 222 144 229 Q145 238 165 245" fill="#c38d61" stroke="#986745"/>
+                    <use href="#book-flower" x="25" y="257" width="23" height="35"/>
+                  </g>
+                </svg>
+                <div class="artboard-bleed-hint"></div>
+              </div>
+              <div class="artboard-footer">
+                欢欢与松鼠皮皮分享胡萝卜，翻页情感节奏欢乐。
+              </div>
+            </div>
+
+            <!-- 虚拟更多分镜提示 -->
+            <div style="align-self:center; color:var(--text-muted); font-size:12.5px; font-weight:700; padding:20px; text-align:center;">
+              ➔ P05 ~ P40 分镜画板加载完毕 (全册 40P)<br/>
+              <span style="font-size:11px; font-weight:500; color:var(--text-dim);">支持全局色彩一致性扫描</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 视口 B: 定开本受控印刷画板 (Page 03 精修) ================= -->
+      <div class="focused-artboard-view" id="focused-view">
+        <div class="print-artboard-canvas" id="print-artboard">
+          <!-- 物理标尺 -->
+          <div class="ruler-top"><span>0mm</span><span>50mm</span><span>100mm</span><span>150mm</span><span>210mm (切线)</span></div>
+          <div class="ruler-left"><span>0</span><span>70</span><span>140</span><span>210</span><span>285</span></div>
+
+          <!-- 3mm 红色出血线 -->
+          <div class="bleed-border-box" id="bleed-box"></div>
+          <span class="bleed-tag" id="bleed-tag">3mm 物理出血切线 (210×285mm)</span>
+
+          <!-- 装订中缝胶装避让安全区 -->
+          <div class="spine-gutter-zone" id="gutter-box">
+            <span class="spine-gutter-label">12mm 胶装中缝避让线</span>
+          </div>
+
+          <!-- 版心文字 30% 留白安全区 -->
+          <div class="safe-text-area" id="safe-text-box">
+            <span class="safe-text-badge">文字排版安全区 (30% 构图留白)</span>
+          </div>
+
+          <!-- 插画图层容器 -->
+          <div class="canvas-illustration-container">
+            <!-- 图层 1: 背景草地与蓝天 -->
+            <div class="ill-layer layer-bg" id="layer-bg">
+              <svg width="100%" height="100%" viewBox="0 0 480 650" preserveAspectRatio="none" aria-hidden="true">
+                <g filter="url(#book-paper)">
+                  <rect width="480" height="650" fill="url(#book-sky)"/>
+                  <circle cx="355" cy="260" r="75" fill="#fff9d8" opacity=".6"/>
+                  <path d="M0 372 Q110 297 260 358 T480 340 V650 H0Z" fill="#bed0ac"/>
+                  <path d="M0 432 Q160 355 304 414 T480 398 V650 H0Z" fill="#a0bb8f"/>
+                  <path d="M0 536 Q160 465 311 534 T480 508 V650 H0Z" fill="#8daa7c"/>
+                  <g fill="#839f79" opacity=".28"><ellipse cx="30" cy="320" rx="42" ry="118"/><ellipse cx="460" cy="312" rx="49" ry="128"/></g>
+                  <path d="M0 193 Q22 319 15 493 L33 499 Q42 312 16 192 M480 188 Q445 340 465 492 L482 490 Q470 329 496 187" fill="#8fa07c"/>
+                  <path d="M25 293 L67 255 M465 295 L423 253" stroke="#8fa07c" stroke-width="10" stroke-linecap="round"/>
+                  <g fill="#809b72"><ellipse cx="10" cy="204" rx="60" ry="23"/><ellipse cx="478" cy="205" rx="64" ry="26"/></g>
+                  <path d="M0 586 Q89 570 134 598 Q252 555 480 600 V650 H0Z" fill="#a6ba87"/>
+                </g>
+              </svg>
+            </div>
+
+            <!-- 图层 2: 中景篱笆与泥土堆 -->
+            <div class="ill-layer layer-props" id="layer-props">
+              <svg width="100%" height="100%" viewBox="0 0 480 650" aria-hidden="true">
+                <g filter="url(#book-paper)">
+                  <g fill="#bea578" stroke="#a58d65" stroke-width="1.5">
+                    <path d="M45 397 V319 L53 308 L61 319 V397Z"/><path d="M79 392 V315 L87 304 L95 315 V392Z"/><path d="M113 388 V311 L121 300 L129 311 V388Z"/>
+                    <rect x="35" y="337" width="108" height="8" rx="2"/><rect x="35" y="369" width="108" height="8" rx="2"/>
+                  </g>
+                  <path d="M247 559 Q305 513 419 549 Q449 558 450 579 Q345 596 244 576Z" fill="#ad906b"/>
+                  <path d="M264 558 Q336 530 421 561" stroke="#c1aa80" stroke-width="3" fill="none"/>
+                  <g fill="#8d775a"><ellipse cx="280" cy="569" rx="5" ry="3"/><ellipse cx="405" cy="575" rx="7" ry="3"/><ellipse cx="321" cy="547" rx="3" ry="2"/></g>
+                  <g stroke="#648451" stroke-width="2" fill="none" stroke-linecap="round"><path d="M58 560 Q45 538 47 528 M58 560 Q64 535 72 532 M422 611 Q414 588 419 583 M422 611 Q438 585 444 590 M93 621 Q87 602 90 595 M93 621 Q106 598 111 601"/></g>
+                  <use href="#book-flower" x="45" y="547" width="32" height="48"/><use href="#book-flower" x="403" y="572" width="26" height="39"/>
+                  <use href="#book-flower" x="81" y="580" width="22" height="33"/>
+                  <path d="M144 599 Q153 586 167 599 Q158 608 144 599 M367 611 Q382 596 391 606 Q380 617 367 611" fill="#6b8b58"/>
+                </g>
+              </svg>
+            </div>
+
+            <!-- 图层 3: 前景角色主体 (小兔子欢欢与胡萝卜) -->
+            <div class="ill-layer layer-character" id="layer-character">
+              <svg width="100%" height="100%" viewBox="0 0 480 650" role="img" aria-label="戴红围巾的小兔子欢欢在菜园拔胡萝卜">
+                <g filter="url(#book-paper)">
+                  <ellipse cx="252" cy="565" rx="113" ry="15" fill="#506b45" opacity=".15"/>
+                  <use href="#book-carrot-sprig" x="295" y="330" width="144" height="220" transform="rotate(12 364 440)"/>
+                  <use href="#book-rabbit" x="120" y="236" width="235" height="338" transform="rotate(-7 237 490)"/>
+                  <path d="M254 431 Q277 408 297 400 Q315 400 311 417 Q296 438 267 451" fill="url(#book-fur)" stroke="#b4baaa" stroke-width="1.8"/>
+                  <g id="hand-defective">
+                    <path d="M283 398 Q307 373 324 387 Q339 397 322 417 Q307 429 288 415Z" fill="url(#book-fur)" stroke="#b4baaa" stroke-width="1.7"/>
+                    <path d="M304 389 L328 384 M307 395 L334 393 M308 402 L334 403 M303 409 L329 414 M298 414 L319 422" stroke="#a4ad9a" stroke-width="1.8" stroke-linecap="round"/>
+                  </g>
+                  <g id="hand-fixed" style="display:none;">
+                    <path d="M285 399 Q301 382 313 387 Q330 391 323 405 Q326 419 310 420 Q290 422 285 408Z" fill="url(#book-fur)" stroke="#a8b19d" stroke-width="1.8"/>
+                    <path d="M311 391 Q319 396 313 401 M315 402 Q321 409 313 411 M305 409 Q313 416 306 419" stroke="#b1b8a6" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <path d="M316 401 Q337 395 349 407" stroke="#63824e" stroke-width="4" fill="none"/>
+                  </g>
+                  <path d="M140 300 Q131 297 126 287 M149 281 Q147 271 151 267" stroke="#b0ba90" stroke-width="2" fill="none" stroke-linecap="round"/>
+                </g>
+              </svg>
+            </div>
+
+            <!-- 图层 4: 正文文字排版层 -->
+            <div class="ill-layer layer-text" id="layer-text">
+              雨后的泥土松松软软。<br/>
+              小兔子欢欢用力抓住胡萝卜的大缨子，<br/>
+              “嗨哟——嗨哟——！”大胡萝卜动了！
+            </div>
+
+            <!-- 交互式 Mask 涂抹红色半透明选区 -->
+            <div class="inpaint-mask-overlay" id="inpaint-mask"></div>
+
+            <!-- 责任编辑圈选批注便签气泡 -->
+            <div class="audit-annotation-box" id="audit-note">
+              <strong style="display:block; margin-bottom:4px;">📝 责任编辑批注工单 #042：</strong>
+              右手手指粘连形制不合规，违反《幼教插画人体解剖常识标准》，请局部重绘为标准四指卡通爪。
+            </div>
+
+            <!-- 三审三校合规公章 -->
+            <div class="audit-stamp" id="audit-stamp">
+              ★ 人民教育出版集团 ★<br/>三审三校合规通过<br/>准予印刷出片
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 画布浮动 Agent 伴随式协同胶囊 -->
+      <div class="canvas-agent-bar" id="canvas-agent-bar" onclick="openAgentChatWithTask('inpaint')">
+        <span class="agent-pulse-icon">🤖</span>
+        <span class="agent-bar-text" id="canvas-agent-bar-text"><strong>Agent 协同建议：</strong>工单 #042 检测到 P03 手部形制瑕疵，点击由 Agent 规划重绘 ➔</span>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- 右侧属性与操作控制面板 (Inspector Panel · 亮色卡片 · 双模态切换) -->
+  <aside class="inspector-panel" id="right-inspector-panel">
+    <!-- 双模式顶栏切换：属性检查器 vs 协同 Agent 对话 -->
+    <div class="panel-mode-bar">
+      <button class="panel-mode-btn" id="btn-mode-inspector" onclick="setRightPanelMode('inspector')">
+        ⚙️ 属性面板
+      </button>
+      <button class="panel-mode-btn active" id="btn-mode-agent" onclick="setRightPanelMode('agent')">
+        🤖 协同 Agent 对话 <span class="agent-badge-pill" id="agent-unread-badge">1</span>
+      </button>
+    </div>
+
+    <!-- 模式 A: 传统属性面板容器 -->
+    <div id="inspector-view-container" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+      <div class="inspector-header">
+        <span id="panel-step-title">⚙️ Stage 03 · 分层画布精修</span>
+        <span style="font-size:11.5px; color:var(--success); font-weight:700;">● ComfyUI 在线 (42ms)</span>
+      </div>
+
+      <div class="inspector-content">
+      
+      <!-- ================= Stage 1 控制面板 ================= -->
+      <div id="inspector-stage-1" style="display:none;">
+        <div class="panel-section">
+          <div class="panel-section-title">📄 教辅文稿结构化输入</div>
+          <button class="btn-secondary" onclick="loadScriptSample()" style="margin-bottom:10px;">
+            📥 快速载入绘本文稿草稿样例
+          </button>
+          <textarea id="script-input-text" style="width:100%; height:95px; background:var(--bg-subtle); border:1px solid var(--border); color:var(--text-main); border-radius:6px; padding:10px; font-size:12.5px; resize:none; line-height:1.5;" placeholder="在此输入或粘贴故事文稿..."></textarea>
+          <button class="btn-primary" onclick="runScriptAnalysis()" style="margin-top:10px;">
+            ✨ LLM 智能拆解分镜脚本
+          </button>
+        </div>
+
+        <div class="panel-section" id="script-result-box" style="display:none; border-color:var(--accent-border); background:var(--accent-light);">
+          <div class="panel-section-title" style="color:var(--accent);">🎯 提取结果与排版约束</div>
+          <div style="font-size:12px; color:var(--text-body); line-height:1.65;">
+            <div>• <strong>镜头主体：</strong>小兔子欢欢 (主角)</div>
+            <div>• <strong>画面动作：</strong>用力拔起大胡萝卜 (动态)</div>
+            <div>• <strong>排版约束：</strong>文字留白需达到 <strong>30%</strong></div>
+            <div>• <strong>合规检测：</strong>0 政治敏感词 · 0 事实硬伤</div>
+          </div>
+          <button class="btn-primary" onclick="switchStage(2)" style="margin-top:12px; background:var(--success); border-color:var(--success);">
+            ➔ 确认并锁定画风资产 (进入Stage 02)
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= Stage 2 控制面板 ================= -->
+      <div id="inspector-stage-2" style="display:none;">
+        <div class="panel-section">
+          <div class="panel-section-title">🎭 角色身份特征锁定 (Identity Lock)</div>
+          <div style="font-size:12.5px; margin-bottom:8px;">当前绑定：<strong>小白兔欢欢 (Mimi)</strong></div>
+          <div style="display:flex; gap:6px; margin-bottom:12px;">
+            <button class="btn-secondary" style="border-color:var(--accent); color:var(--accent); font-weight:700; background:#fff;">小白兔 (主角)</button>
+            <button class="btn-secondary">小松鼠 (配角)</button>
+          </div>
+          <div style="font-size:11.5px; color:var(--text-muted); line-height:1.6;">
+            <div>• FaceID 嵌入向量: <code>#4096-VEC-PEP01</code></div>
+            <div>• Pantone 标准色值: <code>#E11D48 (红围巾)</code></div>
+            <div>• IP-Adapter 拓扑权重: <strong>0.85 (已锁定)</strong></div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-section-title">🎨 出版社专属画风 LoRA</div>
+          <select style="width:100%; background:var(--bg-subtle); border:1px solid var(--border); color:var(--text-main); padding:8px; border-radius:6px; font-size:12.5px; margin-bottom:12px;">
+            <option>阳光少儿水彩绘本风 v2.1 (社内专属)</option>
+            <option>唯美低幼扁平拼贴风 v1.3</option>
+          </select>
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
+            <span>LoRA 风格强度系数:</span>
+            <strong id="lora-val-text" style="color:var(--accent);">0.85</strong>
+          </div>
+          <input type="range" min="0.5" max="1.0" step="0.05" value="0.85" style="width:100%;" oninput="document.getElementById('lora-val-text').innerText=this.value"/>
+          <button class="btn-primary" onclick="switchStage(3)" style="margin-top:14px;">
+            ➔ 载入分层画布精修 (进入Stage 03)
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= Stage 3 控制面板 (核心高光) ================= -->
+      <div id="inspector-stage-3">
+        <!-- 图层管理器 -->
+        <div class="panel-section">
+          <div class="panel-section-title">
+            <span>📚 LayerDiffusion 原生解耦图层</span>
+            <span style="font-size:10.5px; color:var(--success); background:var(--success-light); padding:1px 6px; border-radius:4px;">非破坏性</span>
+          </div>
+          <div class="layer-row">
+            <div class="layer-left">
+              <span class="layer-toggle" onclick="toggleLayer('text')">👁️</span>
+              <span>Layer 4: 正文文字排版安全层</span>
+            </div>
+            <span style="font-size:10.5px; color:var(--text-muted);">文字</span>
+          </div>
+          <div class="layer-row" style="border-color:var(--accent-border); background:var(--accent-light);">
+            <div class="layer-left">
+              <span class="layer-toggle" onclick="toggleLayer('character')">👁️</span>
+              <strong style="color:var(--accent);">Layer 3: 前景角色 (兔子与萝卜)</strong>
+            </div>
+            <span style="font-size:10.5px; color:var(--accent); font-weight:700;">RGBA透明</span>
+          </div>
+          <div class="layer-row">
+            <div class="layer-left">
+              <span class="layer-toggle" onclick="toggleLayer('props')">👁️</span>
+              <span>Layer 2: 中景篱笆与泥土堆</span>
+            </div>
+            <span style="font-size:10.5px; color:var(--text-muted);">道具</span>
+          </div>
+          <div class="layer-row">
+            <div class="layer-left">
+              <span class="layer-toggle" onclick="toggleLayer('bg')">👁️</span>
+              <span>Layer 1: 远景草地与蓝天背景</span>
+            </div>
+            <span style="font-size:10.5px; color:var(--text-muted);">背景</span>
+          </div>
+        </div>
+
+        <!-- 局部重绘 Inpainting 工具 -->
+        <div class="panel-section" style="border-color:var(--accent-border);">
+          <div class="panel-section-title">
+            <span>🖌️ 局部重绘 Inpainting (SAM 2)</span>
+            <span style="color:var(--danger); font-size:10.5px; font-weight:700;">检测到手指瑕疵</span>
+          </div>
+          
+          <button class="btn-secondary" id="btn-activate-brush" onclick="activateInpaintBrush()" style="margin-bottom:10px; background:#fef2f2; border-color:#fecdd3; color:#dc2626; font-weight:700;">
+            🔴 第一步：开启涂抹笔刷 (圈选右手)
+          </button>
+
+          <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:6px;">局部重绘精准指令 (非选区 100% 物理不变):</div>
+          <input type="text" id="inpaint-prompt" value="修复为标准少儿卡通四指手爪，紧握胡萝卜叶" style="width:100%; background:var(--bg-subtle); border:1px solid var(--border); color:var(--text-main); padding:8px 10px; border-radius:6px; font-size:12.5px; margin-bottom:12px;"/>
+
+          <button class="btn-primary" id="btn-run-inpaint" onclick="runInpaint()">
+            ⚡ 第二步：执行定向局部重绘 (Inpaint)
+          </button>
+        </div>
+
+        <button class="btn-primary" onclick="submitToReview()" style="background:var(--success); border-color:var(--success);">
+          📤 提交三审三校责任编辑审签 ➔
+        </button>
+      </div>
+
+      <!-- ================= Stage 4 控制面板 (审核闭环) ================= -->
+      <div id="inspector-stage-4" style="display:none;">
+        <div class="panel-section">
+          <div class="panel-section-title">🛡️ VLM 多模态初筛漏斗</div>
+          <div class="eval-metric-row">
+            <span>1. 政治红线与意识形态:</span>
+            <span class="eval-badge" style="background:#ecfdf5;color:#059669;">100% 达标</span>
+          </div>
+          <div class="eval-metric-row">
+            <span>2. 幼儿科普事实常识:</span>
+            <span class="eval-badge" style="background:#ecfdf5;color:#059669;">98% 准确</span>
+          </div>
+          <div class="eval-metric-row">
+            <span>3. 少儿形体解剖合规:</span>
+            <span class="eval-badge" id="eval-anatomy-badge" style="background:#fef2f2;color:#dc2626;">82% 异常警告</span>
+          </div>
+          <div class="eval-metric-row">
+            <span>4. 印刷工程物理合规:</span>
+            <span class="eval-badge" style="background:var(--bg-subtle);color:var(--text-muted);">待印前出片校验</span>
+          </div>
+        </div>
+
+        <div class="panel-section" style="border-color:var(--warn-border); background:#fffbeb;">
+          <div class="panel-section-title" style="color:var(--warn);">⚖️ 责任编辑终审决策闭环</div>
+          <p style="font-size:12px; color:var(--text-body); margin-bottom:12px; line-height:1.55;">
+            如画面存在事实或解剖瑕疵，可直接圈选驳回；若已修复完毕，可加盖出版电子签章放行。
+          </p>
+
+          <button class="btn-danger" onclick="triggerReviewReject()" style="margin-bottom:8px;">
+            ❌ 驳回并派发局部返修工单 (回流Stage 03)
+          </button>
+
+          <button class="btn-primary" onclick="triggerReviewApprove()" style="background:var(--success); border-color:var(--success);">
+            ✅ 三审三校合规通过 · 加盖出版签章
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= Stage 5 控制面板 (印前出片) ================= -->
+      <div id="inspector-stage-5" style="display:none;">
+        <div class="panel-section">
+          <div class="panel-section-title">🖨️ 印前物理合规校准 (Pre-Press)</div>
+          
+          <div style="margin-bottom:14px;">
+            <label style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px; font-weight:600;">
+              <span>300 DPI 出版级物理超分:</span>
+              <input type="checkbox" id="chk-300dpi" checked onchange="toggle300Dpi(this.checked)"/>
+            </label>
+            <span style="font-size:11px; color:var(--text-muted);">开启后消弭锯齿，呈现纸张纤维级高精印刷细节</span>
+          </div>
+
+          <div style="margin-bottom:14px;">
+            <label style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px; font-weight:600;">
+              <span>CMYK 胶印色域模拟滤镜:</span>
+              <input type="checkbox" id="chk-cmyk" onchange="toggleCmykFilter(this.checked)"/>
+            </label>
+            <span style="font-size:11px; color:var(--text-muted);">模拟真实油墨压印吸收，规避屏幕与打样色差</span>
+          </div>
+
+          <div style="margin-bottom:14px;">
+            <label style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px; font-weight:600;">
+              <span>K100 纯单色黑文字分离:</span>
+              <input type="checkbox" id="chk-k100" checked onchange="toggleK100(this.checked)"/>
+            </label>
+            <span style="font-size:11px; color:var(--text-muted);">提纯文字为 K100 通道，杜绝四色黑套印模糊</span>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="exportPrintBundle()" style="background:linear-gradient(135deg, #2563eb, #7c3aed); padding:12px; font-size:13.5px;">
+          📦 一键导出工业印刷物料包 (分层PSD+PDF)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模式 B: 协同 Agent 对话控制台 (Agent Conversational UI) -->
+    <div id="agent-view-container" class="agent-view-container" style="display:flex;">
+      <!-- Agent 子头部：Sub-Agent 切换与上下文对齐标签 -->
+      <div class="agent-panel-header">
+        <div class="agent-persona-selector">
+          <span style="font-size:11px; font-weight:750; color:var(--text-muted);">智能体视角:</span>
+          <select id="subagent-select" onchange="switchSubAgent(this.value)" class="agent-select-input">
+            <option value="art" selected>🎨 美术监修 Agent (分层/局部重绘)</option>
+            <option value="script">📝 策划分镜 Agent (文稿拆解/留白安全区)</option>
+            <option value="audit">⚖️ 审校合规 Agent (VLM初筛/三审质检)</option>
+            <option value="print">🖨️ 印前工程 Agent (300DPI超分/CMYK出片)</option>
+          </select>
+        </div>
+        <div class="agent-context-ribbon">
+          <span class="context-tag" onclick="focusCanvasEntity('p03')">🎯 @P03·拔胡萝卜</span>
+          <span class="context-tag">🎭 @小白兔欢欢</span>
+          <span class="context-tag alert" onclick="focusCanvasEntity('hand')">⚠️ @工单#042·手指粘连</span>
+        </div>
+      </div>
+
+      <!-- 对话消息流 -->
+      <div class="agent-chat-messages" id="agent-chat-messages">
+        <!-- Turn 1: Agent Welcome & Initial Issue Sensing -->
+        <div class="agent-msg-row">
+          <div class="agent-msg-meta">
+            <span>🎨 美术监修 Agent</span>
+            <span>刚刚</span>
+          </div>
+          <div class="agent-msg-bubble agent">
+            您好！我是您的<strong>美术监修智能体</strong>，已自动同步《森林里的小兔子》Vol.3 当前制作进展。<br/><br/>
+            检测到责任编辑在 Stage 04 圈选批注了 <span class="agent-mention-tag">@画板 P03</span> 的右手形制问题（<span class="agent-mention-tag">@工单 #042</span>：违反《少儿绘本解剖规范》手指粘连）。<br/><br/>
+            已为您预加载三视图 FaceID 向量，并锁定 Layer 1 背景与 Layer 2 泥土篱笆。是否需要我为您规划 <strong>SAM 2 掩膜局部重绘</strong>？
+          </div>
+        </div>
+
+        <!-- 初始建议卡片预置 -->
+        <div class="agent-msg-row" id="agent-msg-initial-proposal">
+          <div class="agent-action-card">
+            <div class="action-card-top">
+              <span>🎯 推荐方案：P03 手部局部重绘提案</span>
+              <span style="font-size:10px; color:#16a34a; font-weight:700;">● 算力消耗: 15 Token</span>
+            </div>
+            <div class="action-card-diff">
+              <div class="action-diff-col before">
+                <div>⚠️ 当前现状</div>
+                <div>手指粘连粘滞 (FTR 82%)</div>
+              </div>
+              <div style="align-self:center; font-weight:800; color:var(--text-muted);">➔</div>
+              <div class="action-diff-col after">
+                <div>✨ 预期目标</div>
+                <div>标准四指卡通爪紧握叶柄</div>
+              </div>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); line-height:1.45; margin-bottom:8px;">
+              • 掩膜选区: 65×65px (右手局部)<br/>
+              • 物理约束: 非选区 100% 像素完全冻结不变
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-primary" onclick="executeAgentAction('apply_inpaint')" style="padding:6px 10px; font-size:11.5px; border-radius:5px; background:#4f46e5; border-color:#4f46e5;">
+                ⚡ 一键执行并应用到画布
+              </button>
+              <button class="btn-secondary" onclick="insertMention('微调提示词：紧握胡萝卜叶，动态更用力一点')" style="padding:6px 8px; font-size:11px; border-radius:5px;">
+                ✏️ 对话微调
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 快速 Prompt 胶囊 -->
+      <div class="agent-quick-chips">
+        <button class="quick-chip" onclick="handleQuickChip('inpaint')">🪄 自动规划 P03 手部局部重绘</button>
+        <button class="quick-chip" onclick="handleQuickChip('anatomy')">🔍 调用 VLM 执行四级质检</button>
+        <button class="quick-chip" onclick="handleQuickChip('safe_area')">📐 校验 30% 文字留白安全区</button>
+        <button class="quick-chip" onclick="handleQuickChip('cmyk')">🖨️ 模拟 CMYK 胶印与 K100 分色</button>
+      </div>
+
+      <!-- 输入框交互区 -->
+      <div class="agent-input-box">
+        <div class="agent-input-toolbar">
+          <button class="agent-tool-btn" onclick="insertMention('@画板 P03')">@画板 P03</button>
+          <button class="agent-tool-btn" onclick="insertMention('@小白兔欢欢')">@小白兔欢欢</button>
+          <button class="agent-tool-btn" onclick="insertMention('@右手瑕疵选区')">@右手选区</button>
+          <button class="agent-tool-btn" onclick="insertMention('@工单 #042')">@工单#042</button>
+        </div>
+        <div class="agent-input-row">
+          <textarea id="agent-user-input" class="agent-textarea" placeholder="输入自然语言指令（例如：帮我修复P03小兔子的手部，生成标准四指卡通爪）..." onkeydown="handleAgentInputKey(event)"></textarea>
+          <button class="agent-send-btn" id="btn-agent-send" onclick="sendAgentMessage()">➤</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- 3. 右侧滑出式「全要素资产中台」抽屉 (Asset Center Drawer) -->
+<div class="asset-drawer" id="asset-drawer">
+  <div class="drawer-header">
+    <span>📦 出版社全要素资产中台 (PEP-Vault)</span>
+    <button class="zoom-btn" onclick="toggleAssetDrawer()">✕</button>
+  </div>
+
+  <div class="drawer-tabs">
+    <div class="drawer-tab active" onclick="switchDrawerTab(1)" id="dtab-1">角色资产卡</div>
+    <div class="drawer-tab" onclick="switchDrawerTab(2)" id="dtab-2">画风 LoRA 库</div>
+    <div class="drawer-tab" onclick="switchDrawerTab(3)" id="dtab-3">开本版式预设</div>
+  </div>
+
+  <div class="drawer-body">
+    <!-- 抽屉 Tab 1: 角色三视图卡 -->
+    <div id="dcontent-1">
+      <div class="char-card-wrap">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="color:var(--accent); font-size:13.5px;">小白兔欢欢 (Mimi)</strong>
+          <span class="stage-status-pill pill-done">租户专属物理隔离</span>
+        </div>
+        <p style="font-size:11.5px; color:var(--text-body); margin:6px 0 10px; line-height:1.5;">
+          固定特征：圆耳朵、粉红内耳、红色毛线围巾(#E11D48)、纯白短尾。
+        </p>
+        <div class="char-3views">
+          <div class="char-view-thumb"><span>正视图</span><strong style="color:var(--accent);">FaceID 锁定</strong></div>
+          <div class="char-view-thumb"><span>侧面45°</span><strong style="color:var(--accent);">IP-Adapter</strong></div>
+          <div class="char-view-thumb"><span>特写表情</span><strong style="color:var(--accent);">四情绪预置</strong></div>
+        </div>
+        <button class="btn-secondary" style="font-size:11.5px; margin-top:8px;" onclick="showToast('已复制该角色特征嵌入向量！')">
+          📋 复制并应用到当前画板
+        </button>
+      </div>
+    </div>
+
+    <!-- 抽屉 Tab 2: 画风 LoRA 库 -->
+    <div id="dcontent-2" style="display:none;">
+      <div class="panel-section">
+        <div class="panel-section-title">🎨 专属模型：少儿水彩风 v2.1</div>
+        <div style="font-size:12px; color:var(--text-body); line-height:1.7;">
+          <div>• 黄金样本集: <strong>36 张正交水彩原画</strong></div>
+          <div>• 标注引擎: <strong>WD14 结构化自动打标</strong></div>
+          <div>• 过拟合评测分: <strong style="color:var(--success);">94.2 / 100 (安全)</strong></div>
+          <div>• 租户授权: 人民教育出版社独家商业使用权</div>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top:14px;" onclick="showToast('正在沉淀本项目成稿，已提取 40 组优质特征增量优化模型！')">
+        ✨ 将本项目终审成稿沉淀归档入库
+      </button>
+    </div>
+
+    <!-- 抽屉 Tab 3: 开本预设 -->
+    <div id="dcontent-3" style="display:none;">
+      <div class="panel-section">
+        <div class="panel-section-title">📐 大度 16 开 (幼教绘本通用)</div>
+        <div style="font-size:12px; color:var(--text-body); line-height:1.7;">
+          <div>• 裁切净尺寸: 210 × 285 mm</div>
+          <div>• 出血位预留: 四周各 3.0 mm</div>
+          <div>• 中缝避让留白: 12.0 mm (无线胶装)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. 底部状态栏 Status Bar -->
+<footer class="status-bar">
+  <div class="status-left">
+    <div style="display:flex; align-items:center; gap:6px;">
+      <span class="status-indicator"></span>
+      <span id="status-role-text">当前权限：美术监修 (全功能操作可用)</span>
+    </div>
+    <span>|</span>
+    <span id="status-task-text">工单状态：Stage 03 画布精修制作中</span>
+  </div>
+  <div class="status-right">
+    <span>ComfyUI 集群推理延迟: 42ms</span>
+    <span>|</span>
+    <span>画布物理坐标: (X:210, Y:285)</span>
+  </div>
+</footer>
+
+<!-- 全局轻量 Toast 提示 -->
+<div class="toast-msg" id="toast-msg">提示消息</div>
+
+<!-- ================= 8. 前端核心交互逻辑脚本 ================= -->
+<script>
+// 全局状态管理
+const state = {
+  currentRole: 'art', // 'editor' | 'art' | 'proofreader' | 'printer'
+  currentStage: 3,    // 1..5
+  viewMode: 'focused', // 'storyboard' | 'focused'
+  zoomLevel: 1.0,
+  isHandFixed: false,
+  isMaskActive: false,
+  isAudited: false,
+  currentArtboard: 3,
+  isAssetDrawerOpen: false,
+  rightPanelMode: 'agent', // 'inspector' | 'agent'
+  activeSubAgent: 'art'    // 'art' | 'script' | 'audit' | 'print'
+};
+
+// 1. 角色权限切换 RBAC 与状态横幅联动
+function switchRole(role) {
+  state.currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`role-${role}`).classList.add('active');
+
+  const banner = document.getElementById('role-status-banner');
+  const statusRoleText = document.getElementById('status-role-text');
+  const subAgentSelect = document.getElementById('subagent-select');
+
+  if (role === 'editor') {
+    banner.className = 'role-banner info';
+    banner.innerHTML = '<span>💡 <strong>当前视角：文字编辑</strong> · 已解锁文稿输入、LLM 智能拆解、图文安全区留白标定。</span><span style="font-size:11px; opacity:0.85;">权责边界：算法底层参数与图层重绘置灰不可修改</span>';
+    statusRoleText.innerText = '当前权限：文字编辑 (仅文稿与排版大纲可写)';
+    showToast('已切换至【文字编辑】视角：策划分镜智能体已接管对话');
+    if (subAgentSelect) subAgentSelect.value = 'script';
+    switchSubAgent('script', true);
+    switchStage(1);
+  } else if (role === 'art') {
+    banner.className = 'role-banner info';
+    banner.innerHTML = '<span>💡 <strong>当前视角：美术监修</strong> · 已解锁画风 LoRA 绑定、分层画布编辑、SAM 2 笔刷局部重绘 (Inpainting)。</span><span style="font-size:11px; opacity:0.85;">权责边界：无终审放行权，修图完毕后需向责任编辑提交三审工单</span>';
+    statusRoleText.innerText = '当前权限：美术监修 (全功能操作可用)';
+    showToast('已切换至【美术监修】视角：美术监修智能体已就绪');
+    if (subAgentSelect) subAgentSelect.value = 'art';
+    switchSubAgent('art', true);
+    switchStage(3);
+  } else if (role === 'proofreader') {
+    banner.className = 'role-banner warn';
+    banner.innerHTML = '<span>⚖️ <strong>当前视角：责任编辑</strong> · 拥有 VLM 四级质检雷达查看权、圈选批注权、<strong>驳回返修权</strong>与<strong>终审合格盖章权</strong>。</span><span style="font-size:11px; opacity:0.85;">权责边界：不可私自修改插画图层（权责分离防扯皮）</span>';
+    statusRoleText.innerText = '当前权限：责任编辑 (审校质检与驳回/通过签署)';
+    showToast('已切换至【责任编辑】视角：审校合规智能体已开启');
+    if (subAgentSelect) subAgentSelect.value = 'audit';
+    switchSubAgent('audit', true);
+    switchStage(4);
+  } else if (role === 'printer') {
+    banner.className = 'role-banner info';
+    banner.innerHTML = '<span>🖨️ <strong>当前视角：印制工程师</strong> · 拥有 300 DPI 物理超分校准、CMYK 胶印滤镜、K100 纯单色黑分离与物料包导出权。</span><span style="font-size:11px; opacity:0.85;">权责边界：三审通过前本阶段全局锁定</span>';
+    statusRoleText.innerText = '当前权限：印制工程师 (300DPI超分、CMYK分色出片)';
+    showToast('已切换至【印制工程师】视角：印前工程智能体已接管');
+    if (subAgentSelect) subAgentSelect.value = 'print';
+    switchSubAgent('print', true);
+    switchStage(5);
+  }
+}
+
+// 2. 流水线阶段切换
+function switchStage(stageNum) {
+  state.currentStage = stageNum;
+
+  // 更新左侧 Stepper 高亮
+  for (let i = 1; i <= 5; i++) {
+    const item = document.getElementById(`nav-stage-${i}`);
+    if (item) item.classList.toggle('active', i === stageNum);
+    const inspectorSec = document.getElementById(`inspector-stage-${i}`);
+    if (inspectorSec) inspectorSec.style.display = (i === stageNum) ? 'block' : 'none';
+  }
+
+  const titles = [
+    '',
+    '📝 Stage 01 · 文稿智能解析室',
+    '🔒 Stage 02 · 画风与角色资产锁定',
+    '🖌️ Stage 03 · 分层画布与重绘精修',
+    '⚖️ Stage 04 · 三审三校质检看板',
+    '🖨️ Stage 05 · 印前工业合规出片'
+  ];
+  document.getElementById('panel-step-title').innerText = titles[stageNum];
+
+  // 阶段与视口联动
+  if (stageNum === 3 || stageNum === 5) {
+    setViewMode('focused');
+  } else if (stageNum === 1 || stageNum === 2) {
+    setViewMode('storyboard');
+  }
+}
+
+// 3. 画布视口模式切换 (无限故事板 vs 定开本聚焦)
+function setViewMode(mode) {
+  state.viewMode = mode;
+  const isStoryboard = mode === 'storyboard';
+  document.getElementById('btn-mode-storyboard').classList.toggle('active', isStoryboard);
+  document.getElementById('btn-mode-focused').classList.toggle('active', !isStoryboard);
+
+  document.getElementById('storyboard-view').style.display = isStoryboard ? 'flex' : 'none';
+  document.getElementById('focused-view').classList.toggle('active', !isStoryboard);
+
+  if (!isStoryboard) {
+    showToast('已聚焦进入【P03 定开本印刷画板 (210×285mm)】受控精修模式');
+  }
+}
+
+function openPageDetail(pageId) {
+  state.currentArtboard = pageId;
+  setViewMode('focused');
+  switchStage(3);
+}
+
+// 4. 准线开关
+function toggleBleedGuide(enabled) {
+  document.getElementById('bleed-box').style.display = enabled ? 'block' : 'none';
+  document.getElementById('bleed-tag').style.display = enabled ? 'block' : 'none';
+}
+function toggleSafeGuide(enabled) {
+  document.getElementById('safe-text-box').style.display = enabled ? 'flex' : 'none';
+}
+
+// 5. 画布缩放
+function zoomCanvas(delta) {
+  state.zoomLevel = Math.max(0.3, Math.min(2.5, state.zoomLevel + delta));
+  applyZoom();
+}
+function resetZoom() {
+  state.zoomLevel = 1.0;
+  applyZoom();
+}
+function applyZoom() {
+  document.getElementById('zoom-val-text').innerText = `${Math.round(state.zoomLevel * 100)}%`;
+  const view = document.getElementById('storyboard-view');
+  if (view) view.style.transform = `scale(${state.zoomLevel})`;
+  const artboard = document.getElementById('print-artboard');
+  if (artboard) artboard.style.transform = `scale(${state.zoomLevel})`;
+}
+
+// 6. 图层开关控制
+function toggleLayer(layerKey) {
+  const el = document.getElementById(`layer-${layerKey}`);
+  if (el) {
+    const isHidden = el.style.opacity === '0';
+    el.style.opacity = isHidden ? '1' : '0';
+    showToast(`图层 [${layerKey}] 已${isHidden ? '开启显示' : '隐藏'}`);
+  }
+}
+
+// 7. Stage 1: 文稿载入与 LLM 拆解
+function loadScriptSample() {
+  document.getElementById('script-input-text').value = 
+    "雨后的森林泥土松软，小兔子欢欢发现了一根硕大的红胡萝卜，两手紧紧抓住叶柄，鼓起腮帮子用力向外拔！顶部需留白30%作为大字排版安全区。";
+  showToast('已成功载入少儿科普绘本原稿段落！');
+}
+function runScriptAnalysis() {
+  showToast('LLM 正在执行学科知识点提炼与分镜 Prompt 结构化拆解...');
+  setTimeout(() => {
+    document.getElementById('script-result-box').style.display = 'block';
+    showToast('✅ 拆解完成！已自动标定开本 30% 文字留白警戒线。');
+  }, 1000);
+}
+
+// 8. Stage 3 核心高光: 局部重绘 Inpainting 笔刷交互
+function activateInpaintBrush() {
+  state.isMaskActive = true;
+  document.getElementById('inpaint-mask').classList.add('active');
+  showToast('选区笔刷已激活：已圈选小兔子右手粘连畸变区域 (半透明红色选区)');
+}
+
+function runInpaint() {
+  if (!state.isMaskActive) {
+    activateInpaintBrush();
+  }
+  showToast('⚡ ComfyUI 正在调度 Inpainting 节点重绘手部像素...');
+  
+  setTimeout(() => {
+    state.isHandFixed = true;
+    document.getElementById('hand-defective').style.display = 'none';
+    document.getElementById('hand-fixed').style.display = 'inline';
+    document.getElementById('inpaint-mask').classList.remove('active');
+    
+    // 更新 P03 状态
+    document.getElementById('p03-status-pill').innerText = '已重绘修复';
+    document.getElementById('p03-status-pill').style.background = '#ecfdf5';
+    document.getElementById('p03-status-pill').style.color = '#059669';
+    document.getElementById('card-p03').classList.remove('has-error');
+
+    // 更新质检评分
+    const badge = document.getElementById('eval-anatomy-badge');
+    if (badge) {
+      badge.innerText = '98% 正常达标';
+      badge.style.background = '#ecfdf5';
+      badge.style.color = '#059669';
+    }
+
+    showToast('✨ 局部重绘成功！手部已修复为标准少儿四指卡通爪，非选区像素 100% 保持完全不变！');
+  }, 1400);
+}
+
+function submitToReview() {
+  switchStage(4);
+  switchRole('proofreader');
+  showToast('已派发审校工单至【责任编辑】！已进入三审三校质检控制台。');
+}
+
+// 9. Stage 4: 三审驳回与合规签发
+function triggerReviewReject() {
+  document.getElementById('audit-note').classList.add('visible');
+  showToast('❌ 责任编辑已驳回：手部形制瑕疵工单已回流至 Stage 03 分层画布！');
+  setTimeout(() => {
+    switchStage(3);
+    switchRole('art');
+  }, 1400);
+}
+
+function triggerReviewApprove() {
+  state.isAudited = true;
+  document.getElementById('audit-note').classList.remove('visible');
+  document.getElementById('audit-stamp').classList.add('stamped');
+  
+  const b4 = document.getElementById('stage-4-badge');
+  b4.innerText = '已签署';
+  b4.className = 'stage-status-pill pill-done';
+  
+  const b5 = document.getElementById('stage-5-badge');
+  b5.innerText = '已解锁';
+  b5.className = 'stage-status-pill pill-active';
+
+  showToast('🎉 三审三校合规通过！已加盖出版电子签章，印前出片阶段已解锁！');
+}
+
+// 10. Stage 5: 印前工程物理检测
+function toggle300Dpi(enabled) {
+  showToast(`300 DPI 出版级物理超分：${enabled ? '已开启 (消弭位图锯齿，高精呈现)' : '已降级为 72 DPI 屏幕预览'}`);
+}
+function toggleCmykFilter(enabled) {
+  const artboard = document.getElementById('print-artboard');
+  if (enabled) {
+    artboard.style.filter = 'saturate(0.92) contrast(1.04)';
+    showToast('CMYK 胶印色域模拟滤镜：已激活 (模拟印刷网点油墨吸收)');
+  } else {
+    artboard.style.filter = 'none';
+    showToast('已切回 RGB 屏幕鲜艳显示模式');
+  }
+}
+function toggleK100(enabled) {
+  const textLayer = document.getElementById('layer-text');
+  if (enabled) {
+    textLayer.style.color = '#000000';
+    showToast('K100 纯单色黑文字分离：已激活 (文字刀刻般纯黑锐利，杜绝套印色边)');
+  } else {
+    textLayer.style.color = '#1e3a8a';
+    showToast('文字已切回四色黑混色状态');
+  }
+}
+function exportPrintBundle() {
+  showToast('🖨️ 正在导出出版级工业物料包：生成分层PSD母版、300DPI CMYK PDF与版权存证哈希中...');
+  setTimeout(() => {
+    alert('🎉 【印前交付物导出成功！】\n\n1. 分层原稿: 《森林兔子_P03_300DPI_CMYK_分层.psd》\n2. 印刷胶印母版: 《森林兔子_全册_合规出片_高精.pdf》\n3. 出血位校验: 3.0mm 裁切完全合规\n4. 版权存证哈希: C2PA-SHA256-PEP-2026-V3\n\n已直连印厂制版上机！');
+  }, 1000);
+}
+
+// 11. 资产抽屉控制
+function toggleAssetDrawer() {
+  state.isAssetDrawerOpen = !state.isAssetDrawerOpen;
+  document.getElementById('asset-drawer').classList.toggle('open', state.isAssetDrawerOpen);
+  document.getElementById('btn-toggle-asset').classList.toggle('active-asset', state.isAssetDrawerOpen);
+}
+function switchDrawerTab(tabId) {
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById(`dtab-${i}`).classList.toggle('active', i === tabId);
+    document.getElementById(`dcontent-${i}`).style.display = (i === tabId) ? 'block' : 'none';
+  }
+}
+
+// 11.5. 协同 Agent 对话控制台核心交互逻辑
+function setRightPanelMode(mode) {
+  state.rightPanelMode = mode;
+  const isAgent = (mode === 'agent');
+  const btnInsp = document.getElementById('btn-mode-inspector');
+  const btnAgent = document.getElementById('btn-mode-agent');
+  if (btnInsp) btnInsp.classList.toggle('active', !isAgent);
+  if (btnAgent) btnAgent.classList.toggle('active', isAgent);
+
+  const inspContainer = document.getElementById('inspector-view-container');
+  const agentContainer = document.getElementById('agent-view-container');
+  if (inspContainer) inspContainer.style.display = isAgent ? 'none' : 'flex';
+  if (agentContainer) agentContainer.style.display = isAgent ? 'flex' : 'none';
+
+  const topBadge = document.getElementById('top-agent-badge');
+  const innerBadge = document.getElementById('agent-unread-badge');
+  if (isAgent) {
+    if (topBadge) topBadge.style.display = 'none';
+    if (innerBadge) innerBadge.style.display = 'none';
+  }
+}
+
+function toggleRightPanelMode() {
+  const nextMode = (state.rightPanelMode === 'agent') ? 'inspector' : 'agent';
+  setRightPanelMode(nextMode);
+  showToast(`已切换至【${nextMode === 'agent' ? '协同 Agent 对话' : '属性面板'}】模式`);
+}
+
+function switchSubAgent(agentKey, silent = false) {
+  state.activeSubAgent = agentKey;
+  const names = {
+    art: '🎨 美术监修 Agent',
+    script: '📝 策划分镜 Agent',
+    audit: '⚖️ 审校合规 Agent',
+    print: '🖨️ 印前工程 Agent'
+  };
+  const intros = {
+    art: '已接管<strong>美术监修智能体</strong>：已锁定三视图 FaceID 特征向量与分层画布，随时可调度 SAM 2 笔刷定向局部重绘。',
+    script: '已接管<strong>策划分镜智能体</strong>：负责文稿情节语义拆解、叙事节拍提炼与开本 30% 文字留白安全区标定。',
+    audit: '已接管<strong>审校合规智能体</strong>：负责 VLM 四级质检漏斗（政治红线、科普常识、少儿解剖）、瑕疵圈选工单生成与三审签批。',
+    print: '已接管<strong>印前工程智能体</strong>：负责 300 DPI 印刷级超分、CMYK 胶印色域模拟、K100 纯单色黑分离与合规出片。'
+  };
+  if (!silent) {
+    appendAgentMessage(names[agentKey], intros[agentKey]);
+  }
+}
+
+function focusCanvasEntity(entity) {
+  if (entity === 'p03') {
+    openPageDetail(3);
+    showToast('画布已平滑聚焦至【P03 拔胡萝卜】印刷受控画板');
+  } else if (entity === 'hand') {
+    openPageDetail(3);
+    activateInpaintBrush();
+    showToast('画布已定位并高亮小兔子右手形制异常区域 (红色半透明选区)');
+  }
+}
+
+function openAgentChatWithTask(taskKey) {
+  setRightPanelMode('agent');
+  if (taskKey === 'inpaint') {
+    focusCanvasEntity('hand');
+    const msgEl = document.getElementById('agent-msg-initial-proposal');
+    if (msgEl) {
+      msgEl.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+}
+
+function insertMention(mentionText) {
+  const input = document.getElementById('agent-user-input');
+  if (input) {
+    input.value += (input.value ? ' ' : '') + mentionText + ' ';
+    input.focus();
+  }
+}
+
+function handleAgentInputKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendAgentMessage();
+  }
+}
+
+function handleQuickChip(type) {
+  setRightPanelMode('agent');
+  const chips = {
+    inpaint: '请针对 @画板 P03 的责任编辑工单 #042，规划右手修复方案，保持四指卡通爪并紧握胡萝卜叶。',
+    anatomy: '请调用 VLM 多模态大模型对 @画板 P03 执行少儿肢体解剖与幼儿科普常识四级质检。',
+    safe_area: '请校验当前画板是否满足大度16开 30% 文字排版安全留白与 12mm 中缝装订避让线。',
+    cmyk: '请启动印前物理检测：模拟 CMYK 胶印网点吸收并提取文字为 K100 纯单色黑通道。'
+  };
+  const text = chips[type] || '请帮我优化当前画板。';
+  const input = document.getElementById('agent-user-input');
+  if (input) {
+    input.value = text;
+    sendAgentMessage();
+  }
+}
+
+function appendUserMessage(text) {
+  const stream = document.getElementById('agent-chat-messages');
+  if (!stream) return;
+  const row = document.createElement('div');
+  row.className = 'agent-msg-row';
+  const formattedText = text.replace(/(@[^\s，。]+)/g, '<span class="agent-mention-tag">$1</span>');
+  row.innerHTML = `
+    <div class="agent-msg-meta user">
+      <span>我 (${state.currentRole === 'art' ? '美术监修' : state.currentRole === 'proofreader' ? '责任编辑' : state.currentRole === 'editor' ? '文字编辑' : '印制工程师'})</span>
+      <span>刚刚</span>
+    </div>
+    <div class="agent-msg-bubble user">${formattedText}</div>
+  `;
+  stream.appendChild(row);
+  stream.scrollTop = stream.scrollHeight;
+}
+
+function appendAgentMessage(sender, htmlContent) {
+  const stream = document.getElementById('agent-chat-messages');
+  if (!stream) return;
+  const row = document.createElement('div');
+  row.className = 'agent-msg-row';
+  row.innerHTML = `
+    <div class="agent-msg-meta">
+      <span>${sender}</span>
+      <span>刚刚</span>
+    </div>
+    <div class="agent-msg-bubble agent">${htmlContent}</div>
+  `;
+  stream.appendChild(row);
+  stream.scrollTop = stream.scrollHeight;
+}
+
+function sendAgentMessage() {
+  const input = document.getElementById('agent-user-input');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  appendUserMessage(text);
+
+  const stream = document.getElementById('agent-chat-messages');
+  const thinkingRow = document.createElement('div');
+  thinkingRow.className = 'agent-msg-row';
+  thinkingRow.id = 'agent-thinking-temp';
+  thinkingRow.innerHTML = `
+    <div class="agent-msg-meta">
+      <span>${state.activeSubAgent === 'art' ? '🎨 美术监修 Agent' : state.activeSubAgent === 'script' ? '📝 策划分镜 Agent' : state.activeSubAgent === 'audit' ? '⚖️ 审校合规 Agent' : '🖨️ 印前工程 Agent'}</span>
+      <span>正在分析...</span>
+    </div>
+    <div class="agent-msg-bubble agent" style="color:var(--text-muted); font-size:11.5px; display:flex; align-items:center; gap:8px;">
+      <span class="agent-pulse-icon">⚡</span> 正在执行意图解析、实体约束校验与工具调度...
+    </div>
+  `;
+  stream.appendChild(thinkingRow);
+  stream.scrollTop = stream.scrollHeight;
+
+  setTimeout(() => {
+    const temp = document.getElementById('agent-thinking-temp');
+    if (temp) temp.remove();
+
+    const lower = text.toLowerCase();
+    if (lower.includes('修复') || lower.includes('重绘') || lower.includes('inpaint') || lower.includes('手') || lower.includes('042')) {
+      const respHtml = `
+        已识别重绘意图！以下为 <span class="agent-mention-tag">@画板 P03</span> 右手修复规划：
+        <details open class="agent-cot-stream">
+          <summary><span>⚡</span> Agent 规划链 (CoT)</summary>
+          <div>1. <strong>定位选区：</strong>SAM 2 自动识别右手坐标 (X:285, Y:405, R:32px)</div>
+          <div>2. <strong>物理不变性约束：</strong>锁定 FaceID 向量，冻结背景与道具层像素</div>
+          <div>3. <strong>工具编排：</strong>ComfyUI Inpainting 节点绑定水彩 LoRA (权重: 0.85)</div>
+          <div>4. <strong>质检预测：</strong>解剖合规率提升至 98%，消耗算力约 15 Token</div>
+        </details>
+        <div class="agent-action-card">
+          <div class="action-card-top">
+            <span>🎯 局部重绘执行提案 (P03 · 右手修复)</span>
+            <span style="font-size:10px; color:#16a34a; font-weight:700;">● 算力消耗: 15 Token</span>
+          </div>
+          <div class="action-card-diff">
+            <div class="action-diff-col before">
+              <div>⚠️ 当前状态</div>
+              <div>手指粘连畸变</div>
+            </div>
+            <div style="align-self:center; font-weight:800; color:var(--text-muted);">➔</div>
+            <div class="action-diff-col after">
+              <div>✨ 修复目标</div>
+              <div>四指卡通爪紧握叶柄</div>
+            </div>
+          </div>
+          <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">
+            选区外像素 100% 保持完全不变，杜绝全图重画漂移。
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-primary" onclick="executeAgentAction('apply_inpaint')" style="padding:6px 10px; font-size:11.5px; border-radius:5px; background:#4f46e5; border-color:#4f46e5;">
+              ⚡ 一键执行并应用到画布
+            </button>
+          </div>
+        </div>
+      `;
+      appendAgentMessage('🎨 美术监修 Agent', respHtml);
+    } else if (lower.includes('质检') || lower.includes('vlm') || lower.includes('解剖') || lower.includes('合规')) {
+      const respHtml = `
+        已调用 <strong>VLM 多模态质检模型</strong> 对 <span class="agent-mention-tag">@画板 P03</span> 进行四级扫描：
+        <div class="agent-action-card" style="border-color:#fde68a;">
+          <div class="action-card-top" style="color:#b45309;">
+            <span>🛡️ VLM 多模态质检诊断报告</span>
+            <span style="font-size:10px; color:#dc2626; font-weight:700;">● 存在 1 项阻断缺陷</span>
+          </div>
+          <div style="font-size:11.5px; line-height:1.6; color:var(--text-body);">
+            <div>1. 意识形态红线：<strong style="color:#059669;">100% 合规</strong></div>
+            <div>2. 幼儿科普常识：<strong style="color:#059669;">98% 准确</strong> (森林生态符合自然常识)</div>
+            <div>3. 少儿解剖结构：<strong style="color:#dc2626;">82% 异常警告</strong> (右手粘连，违反《常识规范》)</div>
+            <div>4. 印前物理规格：<strong style="color:#2563eb;">待最终出片检测</strong></div>
+          </div>
+          <div style="margin-top:8px;">
+            <button class="btn-primary" onclick="handleQuickChip('inpaint')" style="padding:6px 10px; font-size:11.5px; border-radius:5px; background:#dc2626; border-color:#dc2626;">
+              🔧 立即规划手部重绘方案
+            </button>
+          </div>
+        </div>
+      `;
+      appendAgentMessage('⚖️ 审校合规 Agent', respHtml);
+    } else if (lower.includes('留白') || lower.includes('安全区') || lower.includes('版式') || lower.includes('文字')) {
+      const respHtml = `
+        已完成 <span class="agent-mention-tag">@画板 P03</span> 排版留白与开本工程合规推演：
+        <div class="agent-action-card" style="border-color:#bfdbfe;">
+          <div class="action-card-top" style="color:#1d4ed8;">
+            <span>📐 版式文字安全区检测报告</span>
+            <span style="font-size:10px; color:#16a34a; font-weight:700;">● 留白率: 32% (达标)</span>
+          </div>
+          <div style="font-size:11.5px; line-height:1.6; color:var(--text-body);">
+            <div>• <strong>当前开本：</strong>大度 16 开 (210 × 285 mm)</div>
+            <div>• <strong>版心文字留白率：</strong>32% (标准要求 ≥30%，满足大字少儿排版)</div>
+            <div>• <strong>装订中缝避让：</strong>左侧预留 12.0 mm (无线胶装装订线内无关键画面主体)</div>
+            <div>• <strong>3mm 物理出血：</strong>四周均在安全裁剪框内</div>
+          </div>
+        </div>
+      `;
+      appendAgentMessage('📝 策划分镜 Agent', respHtml);
+    } else if (lower.includes('cmyk') || lower.includes('印刷') || lower.includes('300dpi') || lower.includes('出片') || lower.includes('k100')) {
+      const respHtml = `
+        印前工程 Agent 已完成合规物理校准自检：
+        <div class="agent-action-card" style="border-color:#a7f3d0;">
+          <div class="action-card-top" style="color:#047857;">
+            <span>🖨️ 印前物理合规校准清单</span>
+            <span style="font-size:10px; color:#047857; font-weight:700;">● 印刷级标准</span>
+          </div>
+          <div style="font-size:11.5px; line-height:1.6; color:var(--text-body);">
+            <div>• <strong>300 DPI 超分引擎：</strong>已挂载 Real-ESRGAN 自适应图块超分</div>
+            <div>• <strong>CMYK 色域映射：</strong>已加载 Japan Color 2001 Coated 配置文件，荧光色域压缩率 3.2%</div>
+            <div>• <strong>文字通道分色：</strong>正文已自动分离至 K100 纯单色黑通道 (规避套印模糊)</div>
+          </div>
+          <div style="margin-top:8px;">
+            <button class="btn-primary" onclick="exportPrintBundle()" style="padding:6px 10px; font-size:11.5px; border-radius:5px; background:#059669; border-color:#059669;">
+              📦 导出工业印刷物料包 (PSD+PDF)
+            </button>
+          </div>
+        </div>
+      `;
+      appendAgentMessage('🖨️ 印前工程 Agent', respHtml);
+    } else {
+      const respHtml = `
+        收到您的指令：<em>"${text}"</em>。<br/>
+        已同步至当前工作台状态。建议结合画布当前画板，点击下方快捷动作卡片执行精细化操作：
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+          <button class="quick-chip" onclick="handleQuickChip('inpaint')">✨ 规划 P03 手部局部重绘</button>
+          <button class="quick-chip" onclick="handleQuickChip('anatomy')">🔍 运行 VLM 四级质检</button>
+          <button class="quick-chip" onclick="handleQuickChip('cmyk')">🖨️ 印刷合规分色检测</button>
+        </div>
+      `;
+      appendAgentMessage('🤖 协同 Agent', respHtml);
+    }
+  }, 700);
+}
+
+function executeAgentAction(actionType) {
+  if (actionType === 'apply_inpaint') {
+    focusCanvasEntity('hand');
+    showToast('⚡ Agent 正在调度 ComfyUI Inpainting 节点，局部重绘小兔子右手...');
+
+    setTimeout(() => {
+      runInpaint();
+
+      const successHtml = `
+        <div style="border-left:3px solid #10b981; padding-left:8px;">
+          <strong style="color:#059669;">🎉 局部重绘已成功执行并同步至画布！</strong><br/>
+          • 非选区像素 100% 物理保持不变<br/>
+          • 小兔子右手已重绘为合规少儿卡通四指手爪<br/>
+          • VLM 肢体解剖合规率由 <strong>82%</strong> 跃升至 <strong style="color:#059669;">98%</strong> (合格达标)<br/>
+          • 消耗算力 Token: 15 / 10,000<br/>
+          <div style="margin-top:8px;">
+            <button class="btn-primary" onclick="submitToReview()" style="padding:6px 12px; font-size:11.5px; border-radius:5px; background:#059669; border-color:#059669;">
+              📤 推送至 Stage 04 责任编辑审校工单 ➔
+            </button>
+          </div>
+        </div>
+      `;
+      appendAgentMessage('🎨 美术监修 Agent', successHtml);
+
+      const barText = document.getElementById('canvas-agent-bar-text');
+      if (barText) {
+        barText.innerHTML = '<strong>Agent 协同状态：</strong>P03 手部瑕疵已修复达标，点击可提交三审签批 ➔';
+      }
+    }, 800);
+  }
+}
+
+// 12. 全局轻量 Toast 提示
+function showToast(msg) {
+  const toast = document.getElementById('toast-msg');
+  toast.innerText = msg;
+  toast.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2800);
+}
+
+// 初始默认触发
+window.addEventListener('DOMContentLoaded', () => {
+  setRightPanelMode('agent');
+  showToast('欢迎进入出版级 AI 绘画工作台交互沙盘！智能协同 Agent 已对齐 P03 拔胡萝卜上下文');
+});
+</script>
+</body>
+</html>
